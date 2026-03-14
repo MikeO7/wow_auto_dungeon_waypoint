@@ -6,7 +6,11 @@
 ## SavedVariables: AutoDungeonWaypointDB
 ## IconTexture: Interface\Icons\INV_Misc_Map_01
 ## X-Category: Dungeon
-## X-Website: https://github.com/mikeo
+## X-Website: https://github.com/mikeo/wow_auto_dungeon_waypoint
+## X-License: MIT
+
+## X-Curse-Project-ID: 1486357
+## X-WoWI-ID: REPLACE_WITH_YOUR_WOWINTERFACE_ID
 
 Data.lua
 Core.lua
