@@ -48,6 +48,21 @@ Tired of tabbing out to check which portal leads to which zone, or what flight p
 
 ---
 
-## Next Steps
+## How to Release Updates (Automated)
 
-Once you click **Next** and finish creating the project, remember to grab the **Project ID** from the right side of the project dashboard or the URL, and paste it into `AutoDungeonWaypoint.toc`.
+1. **Update the Version**: Change `## Version:` in `AutoDungeonWaypoint.toc`.
+2. **Push a Tag**: Push a version tag to GitHub to trigger the release pipeline:
+   ```bash
+   git add -A && git commit -m "Release v1.0.1"
+   git tag v1.0.1
+   git push origin main --tags
+   ```
+3. **Verify**: The GitHub Action will automatically package the addon, create a GitHub Release with the zip attached, and publish directly to your CurseForge project.
+
+---
+
+## Project Setup Requirements
+
+- **GitHub Secret**: You must add your CurseForge token as a GitHub Secret named `CF_API_KEY`.
+- **Project ID**: Ensure `## X-Curse-Project-ID: 1486357` is set in your `.toc` file.
+
