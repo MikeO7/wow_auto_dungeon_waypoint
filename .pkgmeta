@@ -1,0 +1,12 @@
+package-as: AutoDungeonWaypoint
+
+ignore:
+  - .git
+  - .github
+  - .gitignore
+  - .pkgmeta
+  - README.md
+  - CHANGELOG.md
+  - LICENSE
+  - CurseForgeSetup.md
+  - assets
