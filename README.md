@@ -34,7 +34,7 @@ All routes start from **Silvermoon City** and guide you through the correct port
    ```
    World of Warcraft/_retail_/Interface/AddOns/auto_dungeon_waypoint
    ```
-3. Make sure the folder is named `auto_dungeon_waypoint` (must match the `.toc` filename prefix)
+3. Make sure the folder is named `AutoDungeonWaypoint` (must match the `.toc` filename prefix)
 4. Restart WoW or type `/reload` if you're already logged in
 5. Verify it's enabled in the AddOns menu on the character select screen
 
@@ -66,25 +66,21 @@ Use these with `/adw route`:
 ## How It Works
 
 - Listens for the `LFG_LIST_JOINED_GROUP` event to detect when you join a premade group
-- Queries `C_LFGList.GetSearchResultInfo` to identify the dungeon
+- Queries `C_LFGList.GetSearchResultInfo` to identify the dungeon using verified Mythic Keystone Activity IDs.
 - Sets a waypoint using `C_Map.SetUserWaypoint` and pins it to your screen with `C_SuperTrack`
 - Polls your position every second and auto-advances to the next step when you arrive
 - Also listens to `ZONE_CHANGED_NEW_AREA` so portal transitions are detected instantly
+- Includes a persistent logging system to track route starts, completions, and group detections.
 
 ## Settings
 
-Your auto-route toggle preference is saved between sessions. The on-screen toggle button is draggable — put it wherever you want and it'll stay put.
+Your auto-route toggle preference and logging settings are saved between sessions. The on-screen toggle button and HUD are draggable — put them wherever you want and they'll stay put.
 
 ## Contributing
 
 If you find incorrect coordinates or want to add intermediate steps to a route, the data lives in `Data.lua`. Each route is just an array of `{ mapID, x, y, desc }` entries. PRs welcome.
 
-To find LFG Activity IDs for new dungeons, enable debug mode with `/adw debug` and join a group — the addon will print the Activity ID to chat.
-
-## Known Limitations
-
-- The LFG Activity ID mappings are placeholders until the official IDs are datamined. If auto-detection doesn't fire, use `/adw route <id>` manually and report the Activity ID from `/adw debug`.
-- Routes assume you're starting in Silvermoon City. If you're already near the dungeon, just `/adw stop` and head in.
+To find LFG Activity IDs for new dungeons, enable debug mode with `/adw debug` and join a group — the addon will print the Activity ID to chat and log it to the `SavedVariables`.
 
 ## License
 
