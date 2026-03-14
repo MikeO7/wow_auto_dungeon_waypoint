@@ -19,6 +19,8 @@ local debugMode = false
 local DEFAULTS = {
     AutoRouteEnabled = true,
     ShowStatusFrame = true,
+    Log = {},       -- Persistent event log
+    LogMaxLines = 200,
 }
 
 -- ============================================================================
@@ -34,6 +36,24 @@ local GRAY        = "|cFF888888"
 local function Print(msg)
     DEFAULT_CHAT_FRAME:AddMessage(ADDON_COLOR .. "[Auto Dungeon Waypoint]|r " .. msg)
 end
+
+-- ============================================================================
+-- Logging (persisted to SavedVariables, importable for investigation)
+-- ============================================================================
+local function Log(level, msg)
+    if not AutoDungeonWaypointDB or not AutoDungeonWaypointDB.Log then return end
+    local db = AutoDungeonWaypointDB
+    local entry = string.format("[%s][%s] %s", date("%Y-%m-%d %H:%M:%S"), level, msg)
+    table.insert(db.Log, entry)
+    -- Trim log to max size
+    while #db.Log > (db.LogMaxLines or 200) do
+        table.remove(db.Log, 1)
+    end
+end
+
+local function LogInfo(msg)  Log("INFO",  msg) end
+local function LogWarn(msg)  Log("WARN",  msg) end
+local function LogError(msg) Log("ERROR", msg) end
 
 -- ============================================================================
 -- Status Frame (HUD widget showing current step)
@@ -107,6 +127,7 @@ end
 local function SetWaypointStep(index)
     if not activeRoute or not activeRoute[index] then
         Print(GREEN .. "You have arrived! Route complete.|r")
+        LogInfo("Route complete: " .. tostring(activeRouteKey))
         PlaySound(SOUNDKIT.READY_CHECK)
         ClearRoute()
         return
@@ -119,6 +140,7 @@ local function SetWaypointStep(index)
 
     local dungeonName = ADW.RouteNames[activeRouteKey] or activeRouteKey
     Print(YELLOW .. "Step " .. index .. "/" .. totalSteps .. ":|r " .. WHITE .. step.desc .. "|r")
+    LogInfo(string.format("Step %d/%d for %s: %s (mapID=%d, x=%.4f, y=%.4f)", index, totalSteps, dungeonName, step.desc, step.mapID, step.x, step.y))
     UpdateStatusFrame(dungeonName, step.desc, index, totalSteps)
 
     if index > 1 then
@@ -158,6 +180,7 @@ local function StartRoute(routeKey)
     local route = ADW.Routes[routeKey]
     if not route then
         Print(RED .. "No route found for:|r " .. tostring(routeKey) .. ". Type " .. YELLOW .. "/adw list|r to see all routes.")
+        LogWarn("StartRoute failed: unknown key '" .. tostring(routeKey) .. "'")
         return
     end
 
@@ -169,6 +192,7 @@ local function StartRoute(routeKey)
 
     local dungeonName = ADW.RouteNames[routeKey] or routeKey
     Print(GREEN .. "Starting route to " .. dungeonName .. " (" .. totalSteps .. " steps)|r")
+    LogInfo("Route started: " .. dungeonName .. " (" .. totalSteps .. " steps)")
     SetWaypointStep(currentStepIndex)
     checkTicker = C_Timer.NewTicker(1, CheckDistance)
 end
@@ -224,9 +248,11 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
     local cmd, arg = strsplit(" ", (msg or ""):lower(), 2)
 
     if cmd == "route" and arg then
+        LogInfo("Manual route command: " .. arg)
         StartRoute(arg)
 
     elseif cmd == "stop" then
+        LogInfo("Route manually cancelled.")
         ClearRoute()
         Print("Route cancelled.")
 
@@ -240,8 +266,28 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
             Print("  " .. YELLOW .. key .. "|r — " .. WHITE .. name .. "|r " .. GRAY .. "(" .. steps .. " steps)|r")
         end
 
+    elseif cmd == "log" then
+        local db = AutoDungeonWaypointDB
+        if arg == "clear" then
+            db.Log = {}
+            Print("Log cleared.")
+        else
+            local log = db and db.Log or {}
+            local count = #log
+            if count == 0 then
+                Print("Log is empty.")
+            else
+                local start = math.max(1, count - 19) -- show last 20 entries
+                Print(GRAY .. "--- Log " .. start .. "-" .. count .. " of " .. count .. " entries ---  (" .. YELLOW .. "/adw log clear|r to wipe)")
+                for i = start, count do
+                    DEFAULT_CHAT_FRAME:AddMessage(GRAY .. log[i] .. "|r")
+                end
+            end
+        end
+
     elseif cmd == "debug" then
         debugMode = not debugMode
+        LogInfo("Debug mode toggled: " .. (debugMode and "ON" or "OFF"))
         Print("Debug mode: " .. (debugMode and (GREEN .. "ON|r") or (RED .. "OFF|r")))
 
     elseif cmd == "hide" then
@@ -257,6 +303,8 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
         Print("  " .. YELLOW .. "/adw list|r — Show all available dungeon routes")
         Print("  " .. YELLOW .. "/adw stop|r — Cancel the current route")
         Print("  " .. YELLOW .. "/adw toggle|r — Toggle auto-routing on/off")
+        Print("  " .. YELLOW .. "/adw log|r — Show recent log entries")
+        Print("  " .. YELLOW .. "/adw log clear|r — Clear the log")
         Print("  " .. YELLOW .. "/adw hide|r / " .. YELLOW .. "/adw show|r — Hide/show toggle button")
     end
 end
@@ -280,6 +328,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             end
         end
         UpdateToggleButton()
+        LogInfo("Addon loaded. Version 1.0.0. AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
         Print("Loaded — Type " .. YELLOW .. "/adw|r for help or " .. YELLOW .. "/adw list|r to see routes.")
         self:UnregisterEvent("PLAYER_ENTERING_WORLD")
         return
@@ -295,6 +344,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
         local info = C_LFGList.GetSearchResultInfo(searchResultID)
         if info and info.activityID then
+            LogInfo("LFG joined. ActivityID=" .. tostring(info.activityID))
             if debugMode then
                 Print(GRAY .. "[Debug] Activity ID: " .. tostring(info.activityID) .. "|r")
             end
@@ -302,13 +352,17 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             if routeKey then
                 local name = ADW.RouteNames[routeKey] or routeKey
                 Print(GREEN .. "Dungeon detected:|r " .. WHITE .. name .. "|r — auto-starting route!")
+                LogInfo("Auto-route triggered for: " .. name)
                 StartRoute(routeKey)
             else
+                LogWarn("No route for ActivityID=" .. tostring(info.activityID))
                 Print(YELLOW .. "No route mapped for this dungeon yet.|r Use " .. YELLOW .. "/adw list|r for manual options.")
                 if debugMode then
                     Print(GRAY .. "[Debug] Unmapped Activity ID: " .. tostring(info.activityID) .. "|r — please submit this ID!")
                 end
             end
+        else
+            LogWarn("LFG_LIST_JOINED_GROUP fired but no activityID found. searchResultID=" .. tostring(searchResultID))
         end
         return
     end
