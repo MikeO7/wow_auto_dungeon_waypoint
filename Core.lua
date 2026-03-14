@@ -1,0 +1,329 @@
+local _, ADW = ...
+
+-- Expose to global for SavedVariables and debugging
+AutoDungeonWaypoint = ADW
+
+-- ============================================================================
+-- State
+-- ============================================================================
+local activeRoute = nil
+local activeRouteKey = nil
+local currentStepIndex = 0
+local totalSteps = 0
+local checkTicker = nil
+local debugMode = false
+
+-- ============================================================================
+-- Defaults for SavedVariables
+-- ============================================================================
+local DEFAULTS = {
+    AutoRouteEnabled = true,
+    ShowStatusFrame = true,
+}
+
+-- ============================================================================
+-- Utility: Print
+-- ============================================================================
+local ADDON_COLOR = "|cFF00BFFF"  -- Bright sky blue to match the "waypoint" theme
+local WHITE       = "|cFFFFFFFF"
+local GREEN       = "|cFF00FF00"
+local RED         = "|cFFFF4444"
+local YELLOW      = "|cFFFFCC00"
+local GRAY        = "|cFF888888"
+
+local function Print(msg)
+    DEFAULT_CHAT_FRAME:AddMessage(ADDON_COLOR .. "[Auto Dungeon Waypoint]|r " .. msg)
+end
+
+-- ============================================================================
+-- Status Frame (HUD widget showing current step)
+-- ============================================================================
+local statusFrame = CreateFrame("Frame", "ADWStatusFrame", UIParent, "BackdropTemplate")
+statusFrame:SetSize(280, 60)
+statusFrame:SetPoint("TOP", UIParent, "TOP", 0, -60)
+statusFrame:SetMovable(true)
+statusFrame:EnableMouse(true)
+statusFrame:RegisterForDrag("LeftButton")
+statusFrame:SetScript("OnDragStart", statusFrame.StartMoving)
+statusFrame:SetScript("OnDragStop", statusFrame.StopMovingOrSizing)
+statusFrame:SetBackdrop({
+    bgFile   = "Interface\\Tooltips\\UI-Tooltip-Background",
+    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+    tile     = true,
+    tileSize = 16,
+    edgeSize = 16,
+    insets   = { left = 4, right = 4, top = 4, bottom = 4 },
+})
+statusFrame:SetBackdropColor(0.02, 0.08, 0.15, 0.88)
+statusFrame:SetBackdropBorderColor(0.0, 0.75, 1.0, 0.8) -- Blue border
+
+-- Title line
+local titleText = statusFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+titleText:SetPoint("TOP", statusFrame, "TOP", 0, -8)
+titleText:SetTextColor(0.0, 0.75, 1.0)
+titleText:SetText("Auto Dungeon Waypoint")
+
+-- Step description line
+local stepText = statusFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+stepText:SetPoint("TOP", titleText, "BOTTOM", 0, -4)
+stepText:SetWidth(260)
+stepText:SetWordWrap(true)
+stepText:SetText("")
+
+statusFrame:Hide()
+
+local function UpdateStatusFrame(dungeonName, stepDesc, stepNum, stepTotal)
+    if dungeonName then
+        titleText:SetText(ADDON_COLOR .. dungeonName .. "|r " .. GRAY .. "(Step " .. stepNum .. "/" .. stepTotal .. ")|r")
+    end
+    if stepDesc then
+        stepText:SetText(stepDesc)
+    end
+    local textHeight = stepText:GetStringHeight() or 16
+    statusFrame:SetHeight(36 + textHeight)
+    statusFrame:Show()
+end
+
+local function HideStatusFrame()
+    statusFrame:Hide()
+end
+
+-- ============================================================================
+-- Waypoint Engine
+-- ============================================================================
+local function ClearRoute()
+    C_Map.ClearUserWaypoint()
+    if checkTicker then
+        checkTicker:Cancel()
+        checkTicker = nil
+    end
+    activeRoute = nil
+    activeRouteKey = nil
+    currentStepIndex = 0
+    totalSteps = 0
+    HideStatusFrame()
+end
+
+local function SetWaypointStep(index)
+    if not activeRoute or not activeRoute[index] then
+        Print(GREEN .. "You have arrived! Route complete.|r")
+        PlaySound(SOUNDKIT.READY_CHECK)
+        ClearRoute()
+        return
+    end
+
+    local step = activeRoute[index]
+    local point = UiMapPoint.CreateFromCoordinates(step.mapID, step.x, step.y)
+    C_Map.SetUserWaypoint(point)
+    C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+
+    local dungeonName = ADW.RouteNames[activeRouteKey] or activeRouteKey
+    Print(YELLOW .. "Step " .. index .. "/" .. totalSteps .. ":|r " .. WHITE .. step.desc .. "|r")
+    UpdateStatusFrame(dungeonName, step.desc, index, totalSteps)
+
+    if index > 1 then
+        PlaySound(SOUNDKIT.IG_QUEST_LOG_OPEN)
+    end
+end
+
+local function CheckDistance()
+    if not activeRoute then return end
+
+    local step = activeRoute[currentStepIndex]
+    if not step then return end
+
+    local currentMapID = C_Map.GetBestMapForUnit("player")
+    if not currentMapID then return end
+
+    if currentMapID == step.mapID then
+        local pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
+        if pos then
+            local dx = pos.x - step.x
+            local dy = pos.y - step.y
+            if (dx * dx + dy * dy) < 0.0004 then
+                currentStepIndex = currentStepIndex + 1
+                SetWaypointStep(currentStepIndex)
+            end
+        end
+    else
+        local nextStep = activeRoute[currentStepIndex + 1]
+        if nextStep and currentMapID == nextStep.mapID then
+            currentStepIndex = currentStepIndex + 1
+            SetWaypointStep(currentStepIndex)
+        end
+    end
+end
+
+local function StartRoute(routeKey)
+    local route = ADW.Routes[routeKey]
+    if not route then
+        Print(RED .. "No route found for:|r " .. tostring(routeKey) .. ". Type " .. YELLOW .. "/adw list|r to see all routes.")
+        return
+    end
+
+    ClearRoute()
+    activeRoute = route
+    activeRouteKey = routeKey
+    currentStepIndex = 1
+    totalSteps = #route
+
+    local dungeonName = ADW.RouteNames[routeKey] or routeKey
+    Print(GREEN .. "Starting route to " .. dungeonName .. " (" .. totalSteps .. " steps)|r")
+    SetWaypointStep(currentStepIndex)
+    checkTicker = C_Timer.NewTicker(1, CheckDistance)
+end
+
+-- ============================================================================
+-- Toggle Button
+-- ============================================================================
+local toggleBtn = CreateFrame("Button", "ADWToggleButton", UIParent, "UIPanelButtonTemplate")
+toggleBtn:SetSize(160, 26)
+toggleBtn:SetPoint("TOP", UIParent, "TOP", 0, -20)
+toggleBtn:SetMovable(true)
+toggleBtn:EnableMouse(true)
+toggleBtn:RegisterForDrag("LeftButton")
+toggleBtn:SetScript("OnDragStart", toggleBtn.StartMoving)
+toggleBtn:SetScript("OnDragStop", toggleBtn.StopMovingOrSizing)
+toggleBtn:SetNormalFontObject("GameFontNormalSmall")
+toggleBtn:SetHighlightFontObject("GameFontHighlightSmall")
+
+local function UpdateToggleButton()
+    if AutoDungeonWaypointDB.AutoRouteEnabled then
+        toggleBtn:SetText("|cFF00FF00\226\151\143|r ADW: Auto ON")
+    else
+        toggleBtn:SetText("|cFFFF4444\226\151\143|r ADW: Auto OFF")
+    end
+end
+
+toggleBtn:SetScript("OnClick", function()
+    AutoDungeonWaypointDB.AutoRouteEnabled = not AutoDungeonWaypointDB.AutoRouteEnabled
+    UpdateToggleButton()
+    if AutoDungeonWaypointDB.AutoRouteEnabled then
+        Print("Auto-Routing " .. GREEN .. "enabled|r.")
+    else
+        Print("Auto-Routing " .. RED .. "disabled|r. Use " .. YELLOW .. "/adw route <id>|r to route manually.")
+        ClearRoute()
+    end
+end)
+
+toggleBtn:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+    GameTooltip:SetText("Auto Dungeon Waypoint", 0.0, 0.75, 1.0)
+    GameTooltip:AddLine("Click to toggle auto-routing on/off.", 1, 1, 1, true)
+    GameTooltip:AddLine("Drag to reposition.", 0.5, 0.5, 0.5, true)
+    GameTooltip:Show()
+end)
+toggleBtn:SetScript("OnLeave", GameTooltip_Hide)
+
+-- ============================================================================
+-- Slash Commands
+-- ============================================================================
+SLASH_AUTODUNGEONWAYPOINT1 = "/adw"
+SLASH_AUTODUNGEONWAYPOINT2 = "/autodungeonwaypoint"
+SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
+    local cmd, arg = strsplit(" ", (msg or ""):lower(), 2)
+
+    if cmd == "route" and arg then
+        StartRoute(arg)
+
+    elseif cmd == "stop" then
+        ClearRoute()
+        Print("Route cancelled.")
+
+    elseif cmd == "toggle" then
+        toggleBtn:Click()
+
+    elseif cmd == "list" then
+        Print("Available routes:")
+        for key, name in pairs(ADW.RouteNames) do
+            local steps = ADW.Routes[key] and #ADW.Routes[key] or 0
+            Print("  " .. YELLOW .. key .. "|r — " .. WHITE .. name .. "|r " .. GRAY .. "(" .. steps .. " steps)|r")
+        end
+
+    elseif cmd == "debug" then
+        debugMode = not debugMode
+        Print("Debug mode: " .. (debugMode and (GREEN .. "ON|r") or (RED .. "OFF|r")))
+
+    elseif cmd == "hide" then
+        toggleBtn:Hide()
+        Print("Toggle button hidden. Use " .. YELLOW .. "/adw show|r to restore.")
+
+    elseif cmd == "show" then
+        toggleBtn:Show()
+
+    else
+        Print("Commands:")
+        Print("  " .. YELLOW .. "/adw route <id>|r — Start a route (see " .. YELLOW .. "/adw list|r)")
+        Print("  " .. YELLOW .. "/adw list|r — Show all available dungeon routes")
+        Print("  " .. YELLOW .. "/adw stop|r — Cancel the current route")
+        Print("  " .. YELLOW .. "/adw toggle|r — Toggle auto-routing on/off")
+        Print("  " .. YELLOW .. "/adw hide|r / " .. YELLOW .. "/adw show|r — Hide/show toggle button")
+    end
+end
+
+-- ============================================================================
+-- Event Handling
+-- ============================================================================
+local eventFrame = CreateFrame("Frame")
+eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventFrame:RegisterEvent("LFG_LIST_JOINED_GROUP")
+eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+
+eventFrame:SetScript("OnEvent", function(self, event, ...)
+    if event == "PLAYER_ENTERING_WORLD" then
+        if not AutoDungeonWaypointDB then
+            AutoDungeonWaypointDB = {}
+        end
+        for k, v in pairs(DEFAULTS) do
+            if AutoDungeonWaypointDB[k] == nil then
+                AutoDungeonWaypointDB[k] = v
+            end
+        end
+        UpdateToggleButton()
+        Print("Loaded — Type " .. YELLOW .. "/adw|r for help or " .. YELLOW .. "/adw list|r to see routes.")
+        self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+        return
+    end
+
+    if event == "LFG_LIST_JOINED_GROUP" then
+        if not AutoDungeonWaypointDB.AutoRouteEnabled then return end
+
+        local searchResultID = ...
+        if not searchResultID then return end
+
+        Print("Joined an LFG group. Detecting dungeon...")
+
+        local info = C_LFGList.GetSearchResultInfo(searchResultID)
+        if info and info.activityID then
+            if debugMode then
+                Print(GRAY .. "[Debug] Activity ID: " .. tostring(info.activityID) .. "|r")
+            end
+            local routeKey = ADW.LFGToRoute[info.activityID]
+            if routeKey then
+                local name = ADW.RouteNames[routeKey] or routeKey
+                Print(GREEN .. "Dungeon detected:|r " .. WHITE .. name .. "|r — auto-starting route!")
+                StartRoute(routeKey)
+            else
+                Print(YELLOW .. "No route mapped for this dungeon yet.|r Use " .. YELLOW .. "/adw list|r for manual options.")
+                if debugMode then
+                    Print(GRAY .. "[Debug] Unmapped Activity ID: " .. tostring(info.activityID) .. "|r — please submit this ID!")
+                end
+            end
+        end
+        return
+    end
+
+    if event == "ZONE_CHANGED_NEW_AREA" then
+        if not activeRoute then return end
+
+        local currentMapID = C_Map.GetBestMapForUnit("player")
+        if not currentMapID then return end
+
+        local nextStep = activeRoute[currentStepIndex + 1]
+        if nextStep and currentMapID == nextStep.mapID then
+            currentStepIndex = currentStepIndex + 1
+            SetWaypointStep(currentStepIndex)
+        end
+        return
+    end
+end)
