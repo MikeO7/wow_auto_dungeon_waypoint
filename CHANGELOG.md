@@ -4,6 +4,13 @@
 - **Global Smart Routing (Continent-Aware)**: The addon no longer gets "stuck" if you start a route from a different zone. It now detects your continent and automatically syncs to the first relevant step for your current location.
 - Added `ADW.GetMapContinent` helper for smarter zone-to-continent mapping.
 
+## v2.1.0 (The Polish Update)
+- **Visual Refinement**: Thinner HUD border and cleaner "glass" backdrop for a more modern look.
+- **HUD Animations**: Smooth fade-in effect when navigation starts.
+- **Color-Coded Distance**: Distance text now turns yellow and green as you approach your target.
+- **Reset Button**: Added a "Reset Positions" button in the options menu to restore default UI placement.
+- **Polished Colors**: Tweaked UI colors for better readability and a premium feel.
+
 ## v2.0.0 (The Premium Update)
 - **Live Distance Tracking**: The HUD now shows how many yards are left until the next waypoint in real-time.
 - **Navigation Arrow**: A dynamic green arrow on the HUD now points directly toward your destination.

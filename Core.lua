@@ -83,12 +83,12 @@ statusFrame:SetBackdrop({
     bgFile   = "Interface\\Tooltips\\UI-Tooltip-Background",
     edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
     tile     = true,
-    tileSize = 16,
-    edgeSize = 16,
-    insets   = { left = 4, right = 4, top = 4, bottom = 4 },
+    tileSize = 12,
+    edgeSize = 12, -- Thinner border
+    insets   = { left = 3, right = 3, top = 3, bottom = 3 },
 })
-statusFrame:SetBackdropColor(0.02, 0.08, 0.15, 0.88)
-statusFrame:SetBackdropBorderColor(0.0, 0.75, 1.0, 0.8) -- Blue border
+statusFrame:SetBackdropColor(0, 0, 0, 0.75) -- Darker, cleaner glass look
+statusFrame:SetBackdropBorderColor(0, 0.75, 1, 0.5) -- Softer blue border
 
 -- Title line
 local titleText = statusFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
@@ -122,6 +122,7 @@ arrowFrame.tex = arrowTex
 statusFrame:Hide()
 
 local function UpdateStatusFrame(dungeonName, stepDesc, stepNum, stepTotal)
+    if not AutoDungeonWaypointDB.ShowStatusFrame then return end
     if dungeonName then
         titleText:SetText(ADDON_COLOR .. dungeonName .. "|r " .. GRAY .. "(Step " .. stepNum .. "/" .. stepTotal .. ")|r")
     end
@@ -130,7 +131,13 @@ local function UpdateStatusFrame(dungeonName, stepDesc, stepNum, stepTotal)
     end
     local textHeight = stepText:GetStringHeight() or 16
     statusFrame:SetHeight(math.max(60, 36 + textHeight))
-    statusFrame:Show()
+    
+    -- Smooth fade in
+    if not statusFrame:IsShown() then
+        statusFrame:SetAlpha(0)
+        statusFrame:Show()
+        UIFrameFadeIn(statusFrame, 0.2, 0, 1)
+    end
 end
 
 local function HideStatusFrame()
@@ -206,6 +213,15 @@ local function CheckDistance()
             local dy = (pos.y - step.y) * 1000
             local distSq = dx * dx + dy * dy
             local yards = math.floor(math.sqrt(distSq) * 7.5) -- Multiplier for yards-conversion
+            
+            -- Color-coded distance for better feedback
+            if yards < 40 then
+                distanceText:SetTextColor(0, 1, 0) -- Green
+            elseif yards < 100 then
+                distanceText:SetTextColor(1, 0.8, 0) -- Yellow
+            else
+                distanceText:SetTextColor(0.8, 0.8, 0.8) -- Gray/White
+            end
             
             distanceText:SetText(tostring(yards) .. "yd")
             
@@ -310,9 +326,9 @@ toggleBtn:SetHighlightFontObject("GameFontHighlightSmall")
 local function UpdateToggleButton()
     if not AutoDungeonWaypointDB then return end
     if AutoDungeonWaypointDB.AutoRouteEnabled then
-        toggleBtn:SetText("|cFF00FF00[ON]|r ADW: Auto")
+        toggleBtn:SetText("|cFF55FF55[ON]|r ADW: Auto") -- Softer green
     else
-        toggleBtn:SetText("|cFFFF4444[OFF]|r ADW: Auto")
+        toggleBtn:SetText("|cFFFF5555[OFF]|r ADW: Auto") -- Softer red
     end
 end
 
@@ -366,6 +382,21 @@ local function CreateOptionsPanel()
     end)
     hudCheck:SetScript("OnShow", function(self)
         self:SetChecked(AutoDungeonWaypointDB.ShowStatusFrame)
+    end)
+
+    -- Reset Positions Button
+    local resetBtn = CreateFrame("Button", "ADWResetBtn", panel, "UIPanelButtonTemplate")
+    resetBtn:SetSize(120, 26)
+    resetBtn:SetPoint("TOPLEFT", hudCheck, "BOTTOMLEFT", 0, -20)
+    resetBtn:SetText("Reset Positions")
+    resetBtn:SetScript("OnClick", function()
+        AutoDungeonWaypointDB.StatusFramePos = nil
+        AutoDungeonWaypointDB.ToggleButtonPos = nil
+        statusFrame:ClearAllPoints()
+        statusFrame:SetPoint("TOP", UIParent, "TOP", 0, -60)
+        toggleBtn:ClearAllPoints()
+        toggleBtn:SetPoint("TOP", UIParent, "TOP", 0, -20)
+        Print("Positions reset to default.")
     end)
 
     -- Register with WoW
