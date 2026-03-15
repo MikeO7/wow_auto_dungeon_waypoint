@@ -4,6 +4,15 @@
 - **Global Smart Routing (Continent-Aware)**: The addon no longer gets "stuck" if you start a route from a different zone. It now detects your continent and automatically syncs to the first relevant step for your current location.
 - Added `ADW.GetMapContinent` helper for smarter zone-to-continent mapping.
 
+## v4.0.0 (The Experience Update)
+- **ETA Timer**: Distance text now shows estimated arrival time based on your movement speed (e.g., `126yd (~8s)`).
+- **Progress Bar**: Animated bar at the bottom of the HUD fills as you complete route steps.
+- **Compact Mode**: Toggle minimal HUD (arrow + distance + progress bar only) via `/adw compact` or Options Panel.
+- **`/adw nearest`**: Automatically detects and starts the closest dungeon route from your current location.
+- **Route History**: Your last 5 used routes appear in a "Recent" section at the top of the List menu for quick access.
+- **Party Sharing**: Starting a route automatically broadcasts it to party members who also have the addon.
+- **Improved Sounds**: Added a distinct "route starting" audio cue.
+
 ## v3.0.0 (Quality Overhaul)
 - **Bug Fixes**:
   - Fixed `Bindings.xml` referencing a local variable that caused silent failures.

@@ -23,10 +23,12 @@ local debugMode = false
 local DEFAULTS = {
     AutoRouteEnabled = true,
     ShowStatusFrame = true,
+    CompactMode = false,
     Log = {},       -- Persistent event log
     LogMaxLines = 200,
     StatusFramePos = nil,
     ToggleButtonPos = nil,
+    RouteHistory = {},  -- Last 5 used routes
 }
 
 -- ============================================================================
@@ -131,18 +133,47 @@ arrowTex:SetVertexColor(0.0, 1.0, 0.0) -- Green arrow
 arrowTex:SetRotation(0) -- Initial rotation
 arrowFrame.tex = arrowTex
 
+-- Progress Bar
+local progressBar = CreateFrame("StatusBar", nil, statusFrame)
+progressBar:SetSize(260, 6)
+progressBar:SetPoint("BOTTOM", statusFrame, "BOTTOM", 0, 4)
+progressBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+progressBar:SetStatusBarColor(0, 0.75, 1, 0.9)
+progressBar:SetMinMaxValues(0, 1)
+progressBar:SetValue(0)
+local progressBG = progressBar:CreateTexture(nil, "BACKGROUND")
+progressBG:SetAllPoints()
+progressBG:SetColorTexture(0, 0, 0, 0.4)
+
 statusFrame:Hide()
 
 local function UpdateStatusFrame(dungeonName, stepDesc, stepNum, stepTotal)
     if not AutoDungeonWaypointDB.ShowStatusFrame then return end
+    
+    local isCompact = AutoDungeonWaypointDB.CompactMode
+    
     if dungeonName then
         titleText:SetText(ADDON_COLOR .. dungeonName .. "|r " .. GRAY .. "(Step " .. stepNum .. "/" .. stepTotal .. ")|r")
     end
     if stepDesc then
         stepText:SetText(stepDesc)
     end
-    local textHeight = stepText:GetStringHeight() or 16
-    statusFrame:SetHeight(math.max(60, 36 + textHeight))
+    
+    -- Update progress bar
+    progressBar:SetMinMaxValues(0, stepTotal)
+    progressBar:SetValue(stepNum)
+    
+    -- Compact mode: hide text, shrink frame
+    if isCompact then
+        titleText:Hide()
+        stepText:Hide()
+        statusFrame:SetHeight(44)
+    else
+        titleText:Show()
+        stepText:Show()
+        local textHeight = stepText:GetStringHeight() or 16
+        statusFrame:SetHeight(math.max(70, 44 + textHeight))
+    end
     
     -- Smooth fade in
     if not statusFrame:IsShown() then
@@ -229,7 +260,20 @@ local function CheckDistance()
             local distSq = dx * dx + dy * dy
             local yards = math.floor(math.sqrt(distSq) * 7.5) -- Multiplier for yards-conversion
             
-            -- Color-coded distance for better feedback
+            -- Color-coded distance + ETA for better feedback
+            local speed = GetUnitSpeed("player") or 0
+            local etaStr
+            if speed > 0.5 then
+                local eta = math.ceil(yards / speed)
+                if eta > 60 then
+                    etaStr = string.format("%dm%ds", math.floor(eta/60), eta%60)
+                else
+                    etaStr = eta .. "s"
+                end
+            else
+                etaStr = "stopped"
+            end
+            
             if yards < 40 then
                 distanceText:SetTextColor(0, 1, 0) -- Green
             elseif yards < 100 then
@@ -238,7 +282,7 @@ local function CheckDistance()
                 distanceText:SetTextColor(0.8, 0.8, 0.8) -- Gray/White
             end
             
-            distanceText:SetText(tostring(yards) .. "yd")
+            distanceText:SetText(tostring(yards) .. "yd (" .. etaStr .. ")")
             
             -- 2. Update Arrow Rotation (Refined for Minimap-QuestArrow)
             local playerFacing = GetPlayerFacing() or 0
@@ -318,9 +362,32 @@ local function StartRoute(routeKey)
     Print(msg)
     
     LogInfo("Route started: " .. dungeonName .. " (Entry Step: " .. currentStepIndex .. "/" .. totalSteps .. ")")
+    PlaySound(SOUNDKIT.IG_QUEST_LIST_OPEN) -- Distinct "route starting" sound
     SetWaypointStep(currentStepIndex)
     UpdateToggleButton() -- Show step progress on button
     checkTicker = C_Timer.NewTicker(0.2, CheckDistance) -- 5x/sec for smooth tracking
+    
+    -- Track route history
+    local db = AutoDungeonWaypointDB
+    if db.RouteHistory then
+        -- Remove if already in history
+        for i = #db.RouteHistory, 1, -1 do
+            if db.RouteHistory[i] == routeKey then
+                table.remove(db.RouteHistory, i)
+            end
+        end
+        -- Push to front
+        table.insert(db.RouteHistory, 1, routeKey)
+        -- Keep max 5
+        while #db.RouteHistory > 5 do
+            table.remove(db.RouteHistory)
+        end
+    end
+    
+    -- Broadcast to party
+    if IsInGroup() then
+        C_ChatInfo.SendAddonMessage("ADW", "ROUTE:" .. routeKey, "PARTY")
+    end
 end
 
 -- ============================================================================
@@ -425,10 +492,24 @@ local function CreateOptionsPanel()
         self:SetChecked(AutoDungeonWaypointDB.ShowStatusFrame)
     end)
 
+    -- Compact Mode Toggle
+    local compactCheck = CreateFrame("CheckButton", "ADWCompactModeCheck", panel, "InterfaceOptionsCheckButtonTemplate")
+    compactCheck:SetPoint("TOPLEFT", hudCheck, "BOTTOMLEFT", 0, -8)
+    _G[compactCheck:GetName() .. "Text"]:SetText("Compact HUD (arrow + distance only)")
+    compactCheck:SetScript("OnClick", function(self)
+        AutoDungeonWaypointDB.CompactMode = self:GetChecked()
+        if activeRoute then
+            UpdateStatusFrame(ADW.RouteNames[activeRouteKey] or activeRouteKey, nil, currentStepIndex, totalSteps)
+        end
+    end)
+    compactCheck:SetScript("OnShow", function(self)
+        self:SetChecked(AutoDungeonWaypointDB.CompactMode)
+    end)
+
     -- Reset Positions Button
     local resetBtn = CreateFrame("Button", "ADWResetBtn", panel, "UIPanelButtonTemplate")
     resetBtn:SetSize(120, 26)
-    resetBtn:SetPoint("TOPLEFT", hudCheck, "BOTTOMLEFT", 0, -20)
+    resetBtn:SetPoint("TOPLEFT", compactCheck, "BOTTOMLEFT", 0, -20)
     resetBtn:SetText("Reset Positions")
     resetBtn:SetScript("OnClick", function()
         AutoDungeonWaypointDB.StatusFramePos = nil
@@ -456,7 +537,29 @@ local adwMenuFrame = CreateFrame("Frame", "ADWMenuFrame", UIParent, "UIDropDownM
 
 local function ADWMenu_Initialize(self, level)
     local info = UIDropDownMenu_CreateInfo()
-    info.text = "|cFF00BFFFSelect Dungeon (Manual)|r"
+    
+    -- Recent Routes section
+    local db = AutoDungeonWaypointDB
+    if db and db.RouteHistory and #db.RouteHistory > 0 then
+        info.text = "|cFFFFD100Recent|r"
+        info.isTitle = true
+        info.notCheckable = true
+        UIDropDownMenu_AddButton(info)
+        
+        for _, key in ipairs(db.RouteHistory) do
+            if ADW.RouteNames[key] then
+                info = UIDropDownMenu_CreateInfo()
+                info.text = "|cFFFFD100>|r " .. ADW.RouteNames[key]
+                info.func = function() StartRoute(key) end
+                info.notCheckable = true
+                UIDropDownMenu_AddButton(info)
+            end
+        end
+    end
+    
+    -- All Routes section
+    info = UIDropDownMenu_CreateInfo()
+    info.text = "|cFF00BFFFAll Dungeons|r"
     info.isTitle = true
     info.notCheckable = true
     UIDropDownMenu_AddButton(info)
@@ -562,15 +665,62 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
     elseif cmd == "show" then
         controlBar:Show()
 
+    elseif cmd == "compact" then
+        AutoDungeonWaypointDB.CompactMode = not AutoDungeonWaypointDB.CompactMode
+        Print("Compact HUD: " .. (AutoDungeonWaypointDB.CompactMode and (GREEN .. "ON|r") or (RED .. "OFF|r")))
+        if activeRoute then
+            UpdateStatusFrame(ADW.RouteNames[activeRouteKey] or activeRouteKey, nil, currentStepIndex, totalSteps)
+        end
+
+    elseif cmd == "nearest" then
+        local currentMapID = C_Map.GetBestMapForUnit("player")
+        if not currentMapID then
+            Print(RED .. "Cannot determine your location.|r")
+            return
+        end
+        local pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
+        local bestKey, bestDist = nil, math.huge
+        for key, route in pairs(ADW.Routes) do
+            local step1 = route[1]
+            if step1 and step1.mapID == currentMapID and pos then
+                local ddx = (pos.x - step1.x) * 1000
+                local ddy = (pos.y - step1.y) * 1000
+                local d = ddx*ddx + ddy*ddy
+                if d < bestDist then
+                    bestDist = d
+                    bestKey = key
+                end
+            end
+        end
+        -- Fallback: try continent matching
+        if not bestKey then
+            local currentContinent = ADW.GetMapContinent(currentMapID)
+            for key, route in pairs(ADW.Routes) do
+                local step1 = route[1]
+                if step1 and ADW.GetMapContinent(step1.mapID) == currentContinent then
+                    bestKey = key
+                    break
+                end
+            end
+        end
+        if bestKey then
+            Print("Nearest dungeon: " .. WHITE .. (ADW.RouteNames[bestKey] or bestKey) .. "|r")
+            StartRoute(bestKey)
+        else
+            Print(RED .. "No nearby dungeon routes found.|r")
+        end
+
     else
         Print("Commands:")
         Print("  " .. YELLOW .. "/adw route <id>|r — Start a route (see " .. YELLOW .. "/adw list|r)")
         Print("  " .. YELLOW .. "/adw list|r — Show all available dungeon routes")
+        Print("  " .. YELLOW .. "/adw nearest|r — Start the closest dungeon route")
         Print("  " .. YELLOW .. "/adw stop|r — Cancel the current route")
         Print("  " .. YELLOW .. "/adw toggle|r — Toggle auto-routing on/off")
+        Print("  " .. YELLOW .. "/adw compact|r — Toggle compact HUD mode")
         Print("  " .. YELLOW .. "/adw log|r — Show recent log entries")
         Print("  " .. YELLOW .. "/adw log clear|r — Clear the log")
-        Print("  " .. YELLOW .. "/adw hide|r / " .. YELLOW .. "/adw show|r — Hide/show toggle button")
+        Print("  " .. YELLOW .. "/adw hide|r / " .. YELLOW .. "/adw show|r — Hide/show control bar")
     end
 end
 
@@ -610,6 +760,10 @@ eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("LFG_LIST_JOINED_GROUP")
 eventFrame:RegisterEvent("LFG_LIST_ACTIVE_ENTRY_UPDATE")
 eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+eventFrame:RegisterEvent("CHAT_MSG_ADDON")
+
+-- Register addon message prefix for party sharing
+C_ChatInfo.RegisterAddonMessagePrefix("ADW")
 
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     local arg1 = ...
@@ -637,7 +791,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
         UpdateToggleButton()
         CreateOptionsPanel()
-        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "3.0.0") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
+        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "4.0.0") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
         self:UnregisterEvent("ADDON_LOADED")
         return
     end
@@ -722,6 +876,23 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             LogInfo(string.format("Zone/Continent sync detected. Jumping from step %d to %d (MapID %d)", currentStepIndex, furthestIndex, currentMapID))
             currentStepIndex = furthestIndex
             SetWaypointStep(currentStepIndex)
+        end
+        return
+    end
+
+    if event == "CHAT_MSG_ADDON" then
+        local prefix, message, channel, sender = ...
+        if prefix ~= "ADW" then return end
+        if sender == UnitName("player") then return end -- Ignore own messages
+        if not AutoDungeonWaypointDB.AutoRouteEnabled then return end
+        
+        local cmd, routeKey = strsplit(":", message, 2)
+        if cmd == "ROUTE" and routeKey and ADW.Routes[routeKey] then
+            if activeRouteKey == routeKey then return end -- Already on this route
+            local name = ADW.RouteNames[routeKey] or routeKey
+            Print(ADDON_COLOR .. sender .. "|r shared a route to " .. WHITE .. name .. "|r — auto-starting!")
+            LogInfo("Party route shared by " .. sender .. ": " .. name)
+            StartRoute(routeKey)
         end
         return
     end
