@@ -327,12 +327,43 @@ end)
 toggleBtn:SetNormalFontObject("GameFontNormalSmall")
 toggleBtn:SetHighlightFontObject("GameFontHighlightSmall")
 
+-- ============================================================================
+-- Toggle UI (Dual-Button Control Bar)
+-- ============================================================================
+local controlBar = CreateFrame("Frame", "ADWControlBar", UIParent)
+controlBar:SetSize(190, 26)
+controlBar:SetPoint("TOP", UIParent, "TOP", 0, -20)
+controlBar:SetMovable(true)
+controlBar:EnableMouse(true)
+controlBar:RegisterForDrag("LeftButton")
+controlBar:SetScript("OnDragStart", controlBar.StartMoving)
+controlBar:SetScript("OnDragStop", function(self)
+    self:StopMovingOrSizing()
+    local point, _, relPoint, x, y = self:GetPoint()
+    if AutoDungeonWaypointDB then
+        AutoDungeonWaypointDB.ToggleButtonPos = { point, relPoint, x, y }
+    end
+end)
+
+-- 1. Auto-Route Toggle Button
+local autoBtn = CreateFrame("Button", nil, controlBar, "UIPanelButtonTemplate")
+autoBtn:SetSize(150, 26)
+autoBtn:SetPoint("LEFT", controlBar, "LEFT", 0, 0)
+autoBtn:SetNormalFontObject("GameFontNormalSmall")
+autoBtn:SetHighlightFontObject("GameFontHighlightSmall")
+
+-- 2. Menu Button (Select Dungeon)
+local menuBtn = CreateFrame("Button", nil, controlBar, "UIPanelButtonTemplate")
+menuBtn:SetSize(36, 26)
+menuBtn:SetPoint("LEFT", autoBtn, "RIGHT", 4, 0)
+menuBtn:SetText("☰")
+
 local function UpdateToggleButton()
     if not AutoDungeonWaypointDB then return end
     if AutoDungeonWaypointDB.AutoRouteEnabled then
-        toggleBtn:SetText("|cFF55FF55[ON]|r ADW: Auto") -- Softer green
+        autoBtn:SetText("|cFF55FF55[ON]|r Auto-Routing")
     else
-        toggleBtn:SetText("|cFFFF5555[OFF]|r ADW: Auto") -- Softer red
+        autoBtn:SetText("|cFFFF5555[OFF]|r Auto-Routing")
     end
 end
 
@@ -398,8 +429,8 @@ local function CreateOptionsPanel()
         AutoDungeonWaypointDB.ToggleButtonPos = nil
         statusFrame:ClearAllPoints()
         statusFrame:SetPoint("TOP", UIParent, "TOP", 0, -60)
-        toggleBtn:ClearAllPoints()
-        toggleBtn:SetPoint("TOP", UIParent, "TOP", 0, -20)
+        controlBar:ClearAllPoints()
+        controlBar:SetPoint("TOP", UIParent, "TOP", 0, -20)
         Print("Positions reset to default.")
     end)
 
@@ -438,25 +469,26 @@ local function ADWMenu_Initialize(self, level)
     end
 end
 
-toggleBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-toggleBtn:SetScript("OnClick", function(self, button)
-    if button == "LeftButton" then
-        ADW.ToggleAutoRoute()
-    else
-        UIDropDownMenu_Initialize(adwMenuFrame, ADWMenu_Initialize, "MENU")
-        ToggleDropDownMenu(1, nil, adwMenuFrame, self, 0, 0)
-    end
-end)
-
-toggleBtn:SetScript("OnEnter", function(self)
+autoBtn:SetScript("OnClick", function() ADW.ToggleAutoRoute() end)
+autoBtn:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
-    GameTooltip:SetText("Auto Dungeon Waypoint", 0.0, 0.75, 1.0)
-    GameTooltip:AddLine("Left-Click: Toggle auto-routing.", 1, 1, 1, true)
-    GameTooltip:AddLine("Right-Click: Select dungeon manually.", 0, 1, 0, true)
-    GameTooltip:AddLine("Drag: Reposition button.", 0.5, 0.5, 0.5, true)
+    GameTooltip:SetText("Auto-Route Toggle", 0.0, 0.75, 1.0)
+    GameTooltip:AddLine("Click to enable/disable automatic|ndungeon waypoint detection.", 1, 1, 1, true)
     GameTooltip:Show()
 end)
-toggleBtn:SetScript("OnLeave", GameTooltip_Hide)
+autoBtn:SetScript("OnLeave", GameTooltip_Hide)
+
+menuBtn:SetScript("OnClick", function(self)
+    UIDropDownMenu_Initialize(adwMenuFrame, ADWMenu_Initialize, "MENU")
+    ToggleDropDownMenu(1, nil, adwMenuFrame, self, 0, 0)
+end)
+menuBtn:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+    GameTooltip:SetText("Manual Selection", 0, 0.75, 1)
+    GameTooltip:AddLine("Browse and start a route|nto any dungeon manually.", 1, 1, 1, true)
+    GameTooltip:Show()
+end)
+menuBtn:SetScript("OnLeave", GameTooltip_Hide)
 
 -- ============================================================================
 -- Slash Commands
@@ -510,11 +542,11 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
         Print("Debug mode: " .. (debugMode and (GREEN .. "ON|r") or (RED .. "OFF|r")))
 
     elseif cmd == "hide" then
-        toggleBtn:Hide()
-        Print("Toggle button hidden. Use " .. YELLOW .. "/adw show|r to restore.")
+        controlBar:Hide()
+        Print("Control bar hidden. Use " .. YELLOW .. "/adw show|r to restore.")
 
     elseif cmd == "show" then
-        toggleBtn:Show()
+        controlBar:Show()
 
     else
         Print("Commands:")
@@ -585,8 +617,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         end
         if AutoDungeonWaypointDB.ToggleButtonPos then
             local p = AutoDungeonWaypointDB.ToggleButtonPos
-            toggleBtn:ClearAllPoints()
-            toggleBtn:SetPoint(p[1], UIParent, p[2], p[3], p[4])
+            controlBar:ClearAllPoints()
+            controlBar:SetPoint(p[1], UIParent, p[2], p[3], p[4])
         end
 
         UpdateToggleButton()
