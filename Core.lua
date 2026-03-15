@@ -18,9 +18,6 @@ local checkTicker = nil
 local debugMode = false
 local tomtomUID = nil  -- Optional TomTom waypoint UID
 
--- Forward declarations (functions defined later but called earlier)
-local UpdateToggleButton
-
 -- ============================================================================
 -- Defaults for SavedVariables
 -- ============================================================================
@@ -180,6 +177,56 @@ local function HideStatusFrame()
     if statusFrame:IsShown() then
         UIFrameFadeOut(statusFrame, 0.2, statusFrame:GetAlpha(), 0)
         C_Timer.After(0.2, function() statusFrame:Hide() end)
+    end
+end
+
+-- ============================================================================
+-- Toggle UI (Dual-Button Control Bar)
+-- ============================================================================
+local controlBar = CreateFrame("Frame", "ADWControlBar", UIParent)
+controlBar:SetSize(210, 26) -- Widened for better label fit
+controlBar:SetPoint("TOP", UIParent, "TOP", 0, -20)
+controlBar:SetMovable(true)
+controlBar:EnableMouse(true)
+controlBar:RegisterForDrag("LeftButton")
+controlBar:SetScript("OnDragStart", function(self)
+    if IsShiftKeyDown() then
+        self:StartMoving()
+    end
+end)
+controlBar:SetScript("OnDragStop", function(self)
+    self:StopMovingOrSizing()
+    local point, _, relPoint, x, y = self:GetPoint()
+    if AutoDungeonWaypointDB then
+        AutoDungeonWaypointDB.ToggleButtonPos = { point, relPoint, x, y }
+    end
+end)
+
+-- 1. Auto-Route Toggle Button
+local autoBtn = CreateFrame("Button", nil, controlBar, "UIPanelButtonTemplate")
+autoBtn:SetSize(150, 26)
+autoBtn:SetPoint("LEFT", controlBar, "LEFT", 0, 0)
+autoBtn:SetNormalFontObject("GameFontNormalSmall")
+autoBtn:SetHighlightFontObject("GameFontHighlightSmall")
+
+-- 2. Menu Button (Select Dungeon)
+local menuBtn = CreateFrame("Button", nil, controlBar, "UIPanelButtonTemplate")
+menuBtn:SetSize(46, 26) -- Slightly wider for "List" text
+menuBtn:SetPoint("LEFT", autoBtn, "RIGHT", 4, 0)
+menuBtn:SetText("List")
+
+local function UpdateToggleButton()
+    if not AutoDungeonWaypointDB then return end
+    if AutoDungeonWaypointDB.AutoRouteEnabled then
+        if activeRoute and activeRouteKey then
+            local name = ADW.RouteNames[activeRouteKey] or activeRouteKey
+            local short = string.sub(name, 1, 14)
+            autoBtn:SetText("|cFF55FF55" .. currentStepIndex .. "/" .. totalSteps .. "|r " .. short)
+        else
+            autoBtn:SetText("|cFF55FF55[ON]|r Auto-Routing")
+        end
+    else
+        autoBtn:SetText("|cFFFF5555[OFF]|r Auto-Routing")
     end
 end
 
@@ -370,56 +417,6 @@ local function StartRoute(routeKey)
     -- Broadcast to party
     if IsInGroup() then
         C_ChatInfo.SendAddonMessage("ADW", "ROUTE:" .. routeKey, "PARTY")
-    end
-end
-
--- ============================================================================
--- Toggle UI (Dual-Button Control Bar)
--- ============================================================================
-local controlBar = CreateFrame("Frame", "ADWControlBar", UIParent)
-controlBar:SetSize(210, 26) -- Widened for better label fit
-controlBar:SetPoint("TOP", UIParent, "TOP", 0, -20)
-controlBar:SetMovable(true)
-controlBar:EnableMouse(true)
-controlBar:RegisterForDrag("LeftButton")
-controlBar:SetScript("OnDragStart", function(self)
-    if IsShiftKeyDown() then
-        self:StartMoving()
-    end
-end)
-controlBar:SetScript("OnDragStop", function(self)
-    self:StopMovingOrSizing()
-    local point, _, relPoint, x, y = self:GetPoint()
-    if AutoDungeonWaypointDB then
-        AutoDungeonWaypointDB.ToggleButtonPos = { point, relPoint, x, y }
-    end
-end)
-
--- 1. Auto-Route Toggle Button
-local autoBtn = CreateFrame("Button", nil, controlBar, "UIPanelButtonTemplate")
-autoBtn:SetSize(150, 26)
-autoBtn:SetPoint("LEFT", controlBar, "LEFT", 0, 0)
-autoBtn:SetNormalFontObject("GameFontNormalSmall")
-autoBtn:SetHighlightFontObject("GameFontHighlightSmall")
-
--- 2. Menu Button (Select Dungeon)
-local menuBtn = CreateFrame("Button", nil, controlBar, "UIPanelButtonTemplate")
-menuBtn:SetSize(46, 26) -- Slightly wider for "List" text
-menuBtn:SetPoint("LEFT", autoBtn, "RIGHT", 4, 0)
-menuBtn:SetText("List")
-
-UpdateToggleButton = function()
-    if not AutoDungeonWaypointDB then return end
-    if AutoDungeonWaypointDB.AutoRouteEnabled then
-        if activeRoute and activeRouteKey then
-            local name = ADW.RouteNames[activeRouteKey] or activeRouteKey
-            local short = string.sub(name, 1, 14)
-            autoBtn:SetText("|cFF55FF55" .. currentStepIndex .. "/" .. totalSteps .. "|r " .. short)
-        else
-            autoBtn:SetText("|cFF55FF55[ON]|r Auto-Routing")
-        end
-    else
-        autoBtn:SetText("|cFFFF5555[OFF]|r Auto-Routing")
     end
 end
 
@@ -790,7 +787,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             LogInfo("Minimap button registered via LibDBIcon.")
         end
         
-        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "4.2.0") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
+        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "4.3.0") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
         self:UnregisterEvent("ADDON_LOADED")
         return
     end
