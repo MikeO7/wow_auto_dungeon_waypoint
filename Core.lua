@@ -119,6 +119,18 @@ end
 -- ============================================================================
 -- Waypoint Engine
 -- ============================================================================
+-- ============================================================================
+-- Map Utilities
+-- ============================================================================
+function ADW.GetMapContinent(mapID)
+    if not mapID then return nil end
+    local mapInfo = C_Map.GetMapInfo(mapID)
+    while mapInfo and mapInfo.mapType ~= 2 do -- MapType 2 is Continent
+        mapInfo = C_Map.GetMapInfo(mapInfo.parentMapID)
+    end
+    return mapInfo and mapInfo.mapID or nil
+end
+
 local function ClearRoute()
     C_Map.ClearUserWaypoint()
     if checkTicker then
@@ -197,22 +209,38 @@ local function StartRoute(routeKey)
     activeRouteKey = routeKey
     totalSteps = #route
 
-    -- Smart Routing: Detect if we are already in one of the route zones
     local currentMapID = C_Map.GetBestMapForUnit("player")
+    local currentContinentID = ADW.GetMapContinent(currentMapID)
     local bestStep = 1
+    
     if currentMapID then
+        -- 1. Try to find an exact map match (highest accuracy)
+        local exactMatch = nil
         for i = 1, totalSteps do
             if activeRoute[i].mapID == currentMapID then
-                bestStep = i
+                exactMatch = i
+            end
+        end
+        
+        if exactMatch then
+            bestStep = exactMatch
+        elseif currentContinentID then
+            -- 2. Fall back to the first step on this continent
+            for i = 1, totalSteps do
+                if ADW.GetMapContinent(activeRoute[i].mapID) == currentContinentID then
+                    bestStep = i
+                    break
+                end
             end
         end
     end
+    
     currentStepIndex = bestStep
 
     local dungeonName = ADW.RouteNames[routeKey] or routeKey
     local msg = GREEN .. "Starting route to " .. dungeonName .. " (" .. totalSteps .. " steps)|r"
     if currentStepIndex > 1 then
-        msg = msg .. GRAY .. " — resuming from step " .. currentStepIndex .. "|r"
+        msg = msg .. GRAY .. " — sync'd to step " .. currentStepIndex .. "|r"
     end
     Print(msg)
     
@@ -496,8 +524,9 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
         local currentMapID = C_Map.GetBestMapForUnit("player")
         if not currentMapID then return end
+        local currentContinentID = ADW.GetMapContinent(currentMapID)
 
-        -- Scan forward for the furthest reached step in this map
+        -- 1. Exact map sync (farthest match in this map)
         local furthestIndex = currentStepIndex
         for i = currentStepIndex + 1, totalSteps do
             if activeRoute[i].mapID == currentMapID then
@@ -505,8 +534,19 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             end
         end
 
+        -- 2. Continent sync (if we changed zones but didn't match exactly, 
+        -- see if we are on a relevant continent further down the route)
+        if furthestIndex == currentStepIndex and currentContinentID then
+            for i = currentStepIndex + 1, totalSteps do
+                if ADW.GetMapContinent(activeRoute[i].mapID) == currentContinentID then
+                    furthestIndex = i
+                    break
+                end
+            end
+        end
+
         if furthestIndex > currentStepIndex then
-            LogInfo(string.format("Zone change detected. Skipping from step %d to %d (MapID %d)", currentStepIndex, furthestIndex, currentMapID))
+            LogInfo(string.format("Zone/Continent sync detected. Jumping from step %d to %d (MapID %d)", currentStepIndex, furthestIndex, currentMapID))
             currentStepIndex = furthestIndex
             SetWaypointStep(currentStepIndex)
         end
