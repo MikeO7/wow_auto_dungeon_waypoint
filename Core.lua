@@ -266,7 +266,7 @@ local function SetWaypointStep(index)
     if not activeRoute or not activeRoute[index] then
         Print(GREEN .. "You have arrived! Route complete.|r")
         LogInfo("Route complete: " .. tostring(activeRouteKey))
-        PlaySound(SOUNDKIT.UI_RAID_BOSS_DEFEATED_LG) -- Satisfying completion sound
+        PlaySound(8659) -- SOUNDKIT.UI_RAID_BOSS_DEFEATED_LG (Satisfying completion sound)
         ClearRoute()
         return
     end
@@ -295,7 +295,7 @@ local function SetWaypointStep(index)
     UpdateStatusFrame(dungeonName, step.desc, index, totalSteps)
 
     if index > 1 then
-        PlaySound(SOUNDKIT.IG_QUEST_LOG_OPEN)
+        PlaySound(850) -- SOUNDKIT.IG_QUEST_LOG_OPEN
     end
 end
 
@@ -408,7 +408,7 @@ local function StartRoute(routeKey)
     Print(msg)
     
     LogInfo("Route started: " .. dungeonName .. " (Entry Step: " .. currentStepIndex .. "/" .. totalSteps .. ")")
-    PlaySound(SOUNDKIT.IG_QUEST_LIST_OPEN) -- Distinct "route starting" sound
+    PlaySound(846) -- SOUNDKIT.IG_QUEST_LIST_OPEN (Distinct "route starting" sound)
     SetWaypointStep(currentStepIndex)
     UpdateToggleButton() -- Show step progress on button
     checkTicker = C_Timer.NewTicker(0.2, CheckDistance) -- 5x/sec for smooth tracking
@@ -810,7 +810,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             if (instanceType == "party" or instanceType == "raid") and activeRoute then
                 local name = ADW.RouteNames[activeRouteKey] or activeRouteKey or "dungeon"
                 Print(GREEN .. "You've entered " .. name .. "! Route cleared.|r")
-                PlaySound(SOUNDKIT.UI_RAID_BOSS_DEFEATED_LG)
+                PlaySound(8659) -- SOUNDKIT.UI_RAID_BOSS_DEFEATED_LG
                 ClearRoute()
             end
         end
