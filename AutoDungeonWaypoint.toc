@@ -2,7 +2,7 @@
 ## Title: Auto Dungeon Waypoint
 ## Notes: Automatic step-by-step navigation to Mythic+ dungeons. Auto-activates when joining groups.
 ## Author: mikeo
-## Version: 1.0.4
+## Version: 1.0.5
 ## SavedVariables: AutoDungeonWaypointDB
 ## IconTexture: Interface\Icons\INV_Misc_Map_01
 ## X-Category: Dungeon

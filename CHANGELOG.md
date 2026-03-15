@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.0.5
+- Updated interface version to 12.0.1 for WoW compatibility.
+
 ## v1.0.0 — Initial Release
 
 - Automatic dungeon detection when joining M+ groups via Premade Group Finder
