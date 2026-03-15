@@ -4,6 +4,11 @@
 - **Global Smart Routing (Continent-Aware)**: The addon no longer gets "stuck" if you start a route from a different zone. It now detects your continent and automatically syncs to the first relevant step for your current location.
 - Added `ADW.GetMapContinent` helper for smarter zone-to-continent mapping.
 
+## v4.1.0 (Navigation Upgrade)
+- **Removed Janky Custom Arrow**: The broken HUD arrow with inaccurate rotation has been removed. Blizzard's built-in super-tracked waypoint arrow handles this perfectly.
+- **Optional TomTom Integration**: If you have TomTom installed, Auto Dungeon Waypoint will automatically add waypoints to TomTom for minimap pins and TomTom's directional arrow. No configuration needed — it just detects TomTom and uses it.
+- **Cleaner HUD**: Distance text repositioned for a cleaner look without the arrow taking up space.
+
 ## v4.0.1 (Route Data Fix)
 - **Critical Fix**: Corrected the Nexus-Point Xenas entrance coordinates — the previous data was pointing to the wrong location entirely (Y: 15.8 → 61.75).
 - Validated all 8 dungeon route coordinates against online sources (method.gg, icy-veins, arcaneintellect, conquestcapped).

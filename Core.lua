@@ -16,6 +16,7 @@ local currentStepIndex = 0
 local totalSteps = 0
 local checkTicker = nil
 local debugMode = false
+local tomtomUID = nil  -- Optional TomTom waypoint UID
 
 -- ============================================================================
 -- Defaults for SavedVariables
@@ -108,9 +109,9 @@ stepText:SetWidth(230)
 stepText:SetWordWrap(true)
 stepText:SetText("")
 
--- Distance line
+-- Distance line (left-aligned, where arrow used to be)
 local distanceText = statusFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-distanceText:SetPoint("BOTTOMRIGHT", statusFrame, "BOTTOMRIGHT", -10, 8)
+distanceText:SetPoint("BOTTOMLEFT", statusFrame, "BOTTOMLEFT", 10, 8)
 distanceText:SetTextColor(0.8, 0.8, 0.8)
 distanceText:SetText("")
 
@@ -121,17 +122,6 @@ statusFrame:SetScript("OnEnter", function(self)
     GameTooltip:Show()
 end)
 statusFrame:SetScript("OnLeave", GameTooltip_Hide)
-
--- Navigation Arrow
-local arrowFrame = CreateFrame("Frame", nil, statusFrame)
-arrowFrame:SetSize(32, 32)
-arrowFrame:SetPoint("LEFT", statusFrame, "LEFT", 10, -2)
-local arrowTex = arrowFrame:CreateTexture(nil, "OVERLAY")
-arrowTex:SetAllPoints()
-arrowTex:SetTexture("Interface\\Minimap\\MiniMap-QuestArrow")
-arrowTex:SetVertexColor(0.0, 1.0, 0.0) -- Green arrow
-arrowTex:SetRotation(0) -- Initial rotation
-arrowFrame.tex = arrowTex
 
 -- Progress Bar
 local progressBar = CreateFrame("StatusBar", nil, statusFrame)
@@ -208,12 +198,16 @@ local function ClearRoute()
         checkTicker:Cancel()
         checkTicker = nil
     end
+    -- Remove TomTom waypoint if it exists
+    if tomtomUID and TomTom and TomTom.RemoveWaypoint then
+        TomTom:RemoveWaypoint(tomtomUID)
+    end
+    tomtomUID = nil
     activeRoute = nil
     activeRouteKey = nil
     currentStepIndex = 0
     totalSteps = 0
     distanceText:SetText("")
-    arrowFrame:Hide()
     HideStatusFrame()
     UpdateToggleButton() -- Refresh button label
 end
@@ -231,6 +225,19 @@ local function SetWaypointStep(index)
     local point = UiMapPoint.CreateFromCoordinates(step.mapID, step.x, step.y)
     C_Map.SetUserWaypoint(point)
     C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+    
+    -- Optional TomTom integration (soft dependency)
+    if TomTom and TomTom.AddWaypoint then
+        -- Clear previous TomTom waypoint
+        if tomtomUID and TomTom.RemoveWaypoint then
+            TomTom:RemoveWaypoint(tomtomUID)
+        end
+        tomtomUID = TomTom:AddWaypoint(step.mapID, step.x, step.y, {
+            title = step.desc,
+            source = "ADW",
+            persistent = false,
+        })
+    end
 
     local dungeonName = ADW.RouteNames[activeRouteKey] or activeRouteKey
     Print(YELLOW .. "Step " .. index .. "/" .. totalSteps .. ":|r " .. WHITE .. step.desc .. "|r")
@@ -283,18 +290,8 @@ local function CheckDistance()
             end
             
             distanceText:SetText(tostring(yards) .. "yd (" .. etaStr .. ")")
-            
-            -- 2. Update Arrow Rotation (Refined for Minimap-QuestArrow)
-            local playerFacing = GetPlayerFacing() or 0
-            -- Map coordinates: Y increases downwards. atan2(dy, dx) returns angle from X axis.
-            -- We need to compensate for Blizzard's texture orientation and player facing.
-            local angleToPoint = math.atan2(-dy, dx) - (math.pi / 2)
-            local relativeAngle = angleToPoint + playerFacing
-            
-            arrowFrame.tex:SetRotation(relativeAngle)
-            arrowFrame:Show()
 
-            -- 3. Check for Arrival
+            -- 2. Check for Arrival
             if distSq < 0.04 then -- Trigger distance
                 currentStepIndex = currentStepIndex + 1
                 SetWaypointStep(currentStepIndex)
@@ -303,7 +300,6 @@ local function CheckDistance()
         end
     else
         distanceText:SetText("")
-        arrowFrame:Hide()
         
         local nextStep = activeRoute[currentStepIndex + 1]
         if nextStep and currentMapID == nextStep.mapID then
