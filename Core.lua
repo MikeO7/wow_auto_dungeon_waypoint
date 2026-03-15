@@ -8,9 +8,7 @@ local GetAddOnMetadata = GetAddOnMetadata or (C_AddOns and C_AddOns.GetAddOnMeta
 AutoDungeonWaypoint = ADW
 
 -- Keybinding Strings
-_G["BINDING_HEADER_ADW"] = "Auto Dungeon Waypoint"
-_G["BINDING_NAME_ADW_TOGGLEHUD"] = "Toggle Navigation HUD"
-_G["BINDING_NAME_ADW_STOP"] = "Cancel Current Route"
+
 
 -- ============================================================================
 -- State
