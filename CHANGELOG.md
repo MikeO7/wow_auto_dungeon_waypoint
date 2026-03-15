@@ -4,6 +4,9 @@
 - **Global Smart Routing (Continent-Aware)**: The addon no longer gets "stuck" if you start a route from a different zone. It now detects your continent and automatically syncs to the first relevant step for your current location.
 - Added `ADW.GetMapContinent` helper for smarter zone-to-continent mapping.
 
+## v4.2.1 (Bug Fix)
+- **Critical Fix**: Resolved a Lua "nil value" error when using the `/adw toggle` command or the auto-route button. This was caused by a forward-declaration issue in `Core.lua`.
+
 ## v4.2.0 (Minimap Button)
 - **Minimap Button**: Added a proper minimap icon via LibDBIcon. Left-click opens the dungeon selection menu, right-click toggles auto-routing. Draggable around the minimap edge.
 - Embedded LibStub, CallbackHandler-1.0, LibDataBroker-1.1, and LibDBIcon-1.0 as bundled libraries (no external dependencies needed).
