@@ -50,8 +50,8 @@ ADW.Routes = {
     -- Validated: entrance at /way #2405 63.9 15.8 (conquestcapped.com)
     ["nexuspoint"] = {
         { mapID = 2393, x = 0.3528, y = 0.6565, desc = "Take the Voidstorm Portal on the west side of Silvermoon" },
-        { mapID = 2405, x = 0.5000, y = 0.3000, desc = "You're in Voidstorm — fly north toward the dungeon" },
-        { mapID = 2405, x = 0.6390, y = 0.1580, desc = "Nexus-Point Xenas entrance is here" },
+        { mapID = 2405, x = 0.5000, y = 0.5000, desc = "You're in Voidstorm — fly south-east toward the dungeon" },
+        { mapID = 2405, x = 0.6475, y = 0.6175, desc = "Nexus-Point Xenas entrance is here" },
     },
 
     -- =========================================================================

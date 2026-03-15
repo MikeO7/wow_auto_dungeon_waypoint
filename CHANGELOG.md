@@ -4,6 +4,10 @@
 - **Global Smart Routing (Continent-Aware)**: The addon no longer gets "stuck" if you start a route from a different zone. It now detects your continent and automatically syncs to the first relevant step for your current location.
 - Added `ADW.GetMapContinent` helper for smarter zone-to-continent mapping.
 
+## v4.0.1 (Route Data Fix)
+- **Critical Fix**: Corrected the Nexus-Point Xenas entrance coordinates — the previous data was pointing to the wrong location entirely (Y: 15.8 → 61.75).
+- Validated all 8 dungeon route coordinates against online sources (method.gg, icy-veins, arcaneintellect, conquestcapped).
+
 ## v4.0.0 (The Experience Update)
 - **ETA Timer**: Distance text now shows estimated arrival time based on your movement speed (e.g., `126yd (~8s)`).
 - **Progress Bar**: Animated bar at the bottom of the HUD fills as you complete route steps.
