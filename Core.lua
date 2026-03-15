@@ -30,6 +30,7 @@ local DEFAULTS = {
     StatusFramePos = nil,
     ToggleButtonPos = nil,
     RouteHistory = {},  -- Last 5 used routes
+    MinimapIcon = { hide = false, minimapPos = 220 },
 }
 
 -- ============================================================================
@@ -787,7 +788,43 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
         UpdateToggleButton()
         CreateOptionsPanel()
-        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "4.0.0") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
+        
+        -- Minimap button via LibDBIcon
+        local LDB = LibStub and LibStub("LibDataBroker-1.1", true)
+        local LDBIcon = LibStub and LibStub("LibDBIcon-1.0", true)
+        if LDB and LDBIcon then
+            local adwBroker = LDB:NewDataObject("AutoDungeonWaypoint", {
+                type = "launcher",
+                text = "Auto Dungeon Waypoint",
+                icon = "Interface\\Icons\\INV_Misc_Map_01",
+                OnClick = function(_, button)
+                    if button == "LeftButton" then
+                        -- Open dungeon selector menu
+                        UIDropDownMenu_Initialize(adwMenuFrame, ADWMenu_Initialize, "MENU")
+                        ToggleDropDownMenu(1, nil, adwMenuFrame, "cursor", 0, 0)
+                    elseif button == "RightButton" then
+                        -- Toggle auto-routing
+                        ADW.ToggleAutoRoute()
+                    end
+                end,
+                OnTooltipShow = function(tooltip)
+                    tooltip:SetText("Auto Dungeon Waypoint", 0.0, 0.75, 1.0)
+                    if activeRoute and activeRouteKey then
+                        local name = ADW.RouteNames[activeRouteKey] or activeRouteKey
+                        tooltip:AddLine("|cFF55FF55Active:|r " .. name .. " (" .. currentStepIndex .. "/" .. totalSteps .. ")", 1, 1, 1)
+                    else
+                        tooltip:AddLine("No active route", 0.5, 0.5, 0.5)
+                    end
+                    tooltip:AddLine(" ")
+                    tooltip:AddLine("|cFFFFD100Left-Click:|r Select a dungeon", 0.8, 0.8, 0.8)
+                    tooltip:AddLine("|cFFFFD100Right-Click:|r Toggle auto-routing", 0.8, 0.8, 0.8)
+                end,
+            })
+            LDBIcon:Register("AutoDungeonWaypoint", adwBroker, AutoDungeonWaypointDB.MinimapIcon)
+            LogInfo("Minimap button registered via LibDBIcon.")
+        end
+        
+        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "4.2.0") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
         self:UnregisterEvent("ADDON_LOADED")
         return
     end
