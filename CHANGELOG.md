@@ -1,5 +1,10 @@
 # Changelog
 
+## v4.3.0 (Cleanup & Fixes)
+- **Removed Recent Routes**: Simplified the UI by removing the "Recent" section and underlying history tracking.
+- **Fixed Binding Warnings**: Resolved "Binding header ADW was attempted to be loaded more than once" warning in `Bindings.xml`.
+- **Code Optimization**: General cleanup and removal of unused state variables.
+
 ## v1.2.0
 - **Global Smart Routing (Continent-Aware)**: The addon no longer gets "stuck" if you start a route from a different zone. It now detects your continent and automatically syncs to the first relevant step for your current location.
 - Added `ADW.GetMapContinent` helper for smarter zone-to-continent mapping.

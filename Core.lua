@@ -32,7 +32,6 @@ local DEFAULTS = {
     LogMaxLines = 200,
     StatusFramePos = nil,
     ToggleButtonPos = nil,
-    RouteHistory = {},  -- Last 5 used routes
     MinimapIcon = { hide = false, minimapPos = 220 },
 }
 
@@ -366,23 +365,7 @@ local function StartRoute(routeKey)
     SetWaypointStep(currentStepIndex)
     UpdateToggleButton() -- Show step progress on button
     checkTicker = C_Timer.NewTicker(0.2, CheckDistance) -- 5x/sec for smooth tracking
-    
-    -- Track route history
-    local db = AutoDungeonWaypointDB
-    if db.RouteHistory then
-        -- Remove if already in history
-        for i = #db.RouteHistory, 1, -1 do
-            if db.RouteHistory[i] == routeKey then
-                table.remove(db.RouteHistory, i)
-            end
-        end
-        -- Push to front
-        table.insert(db.RouteHistory, 1, routeKey)
-        -- Keep max 5
-        while #db.RouteHistory > 5 do
-            table.remove(db.RouteHistory)
-        end
-    end
+
     
     -- Broadcast to party
     if IsInGroup() then
@@ -536,28 +519,8 @@ end
 local adwMenuFrame = CreateFrame("Frame", "ADWMenuFrame", UIParent, "UIDropDownMenuTemplate")
 
 local function ADWMenu_Initialize(self, level)
+    -- All Routes
     local info = UIDropDownMenu_CreateInfo()
-    
-    -- Recent Routes section
-    local db = AutoDungeonWaypointDB
-    if db and db.RouteHistory and #db.RouteHistory > 0 then
-        info.text = "|cFFFFD100Recent|r"
-        info.isTitle = true
-        info.notCheckable = true
-        UIDropDownMenu_AddButton(info)
-        
-        for _, key in ipairs(db.RouteHistory) do
-            if ADW.RouteNames[key] then
-                info = UIDropDownMenu_CreateInfo()
-                info.text = "|cFFFFD100>|r " .. ADW.RouteNames[key]
-                info.func = function() StartRoute(key) end
-                info.notCheckable = true
-                UIDropDownMenu_AddButton(info)
-            end
-        end
-    end
-    
-    -- All Routes section
     info = UIDropDownMenu_CreateInfo()
     info.text = "|cFF00BFFFAll Dungeons|r"
     info.isTitle = true

@@ -7,7 +7,7 @@
             ADWStatusFrame:Show()
         end
 	</Binding>
-    <Binding name="ADW_STOP" header="ADW">
+    <Binding name="ADW_STOP">
         SlashCmdList["AUTODUNGEONWAYPOINT"]("stop")
     </Binding>
 </Bindings>
