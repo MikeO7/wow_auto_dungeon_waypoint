@@ -252,15 +252,48 @@ function ADW.ToggleAutoRoute(enabled)
     end
 end
 
-toggleBtn:SetScript("OnClick", function()
-    ADW.ToggleAutoRoute()
+-- ============================================================================
+-- Manual Route Dropdown
+-- ============================================================================
+local adwMenuFrame = CreateFrame("Frame", "ADWMenuFrame", UIParent, "UIDropDownMenuTemplate")
+
+local function ADWMenu_Initialize(self, level)
+    local info = UIDropDownMenu_CreateInfo()
+    info.text = "|cFF00BFFFSelect Dungeon (Manual)|r"
+    info.isTitle = true
+    info.notCheckable = true
+    UIDropDownMenu_AddButton(info)
+
+    -- Alphabetical sort of route names
+    local keys = {}
+    for k in pairs(ADW.RouteNames) do table.insert(keys, k) end
+    table.sort(keys, function(a, b) return ADW.RouteNames[a] < ADW.RouteNames[b] end)
+
+    for _, key in ipairs(keys) do
+        info = UIDropDownMenu_CreateInfo()
+        info.text = ADW.RouteNames[key]
+        info.func = function() StartRoute(key) end
+        info.notCheckable = true
+        UIDropDownMenu_AddButton(info)
+    end
+end
+
+toggleBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+toggleBtn:SetScript("OnClick", function(self, button)
+    if button == "LeftButton" then
+        ADW.ToggleAutoRoute()
+    else
+        UIDropDownMenu_Initialize(adwMenuFrame, ADWMenu_Initialize, "MENU")
+        ToggleDropDownMenu(1, nil, adwMenuFrame, self, 0, 0)
+    end
 end)
 
 toggleBtn:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
     GameTooltip:SetText("Auto Dungeon Waypoint", 0.0, 0.75, 1.0)
-    GameTooltip:AddLine("Click to toggle auto-routing on/off.", 1, 1, 1, true)
-    GameTooltip:AddLine("Drag to reposition.", 0.5, 0.5, 0.5, true)
+    GameTooltip:AddLine("Left-Click: Toggle auto-routing.", 1, 1, 1, true)
+    GameTooltip:AddLine("Right-Click: Select dungeon manually.", 0, 1, 0, true)
+    GameTooltip:AddLine("Drag: Reposition button.", 0.5, 0.5, 0.5, true)
     GameTooltip:Show()
 end)
 toggleBtn:SetScript("OnLeave", GameTooltip_Hide)

@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.9
+- Added Manual Selection Dropdown: Right-click the ADW Toggle button to manually select a dungeon from the list.
+- Updated tooltip with clear instructions for left-click (toggle) and right-click (manual select) actions.
+
 ## v1.0.8
 - Fixed "green square" UI bug: Replaced unsupported UTF-8 icons on the toggle button with standard text labels for maximum compatibility.
 
