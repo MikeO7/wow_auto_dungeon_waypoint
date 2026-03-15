@@ -4,6 +4,10 @@
 - **Global Smart Routing (Continent-Aware)**: The addon no longer gets "stuck" if you start a route from a different zone. It now detects your continent and automatically syncs to the first relevant step for your current location.
 - Added `ADW.GetMapContinent` helper for smarter zone-to-continent mapping.
 
+## v2.3.0 (Movement Update)
+- **Shift-Drag Movement**: You can now move any part of the UI (buttons or HUD) by holding **Shift** and dragging with the left mouse button.
+- **Enhanced HUD Interaction**: Added tooltips to the HUD and clarified movement instructions in button tooltips to prevent accidental dragging.
+
 ## v2.2.3
 - **Hotfix**: Resolved a startup warning regarding the binding header being loaded more than once. Removed redundant definitions from the Lua core to favor the XML system.
 
