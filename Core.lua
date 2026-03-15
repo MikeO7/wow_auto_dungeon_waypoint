@@ -195,12 +195,28 @@ local function StartRoute(routeKey)
     ClearRoute()
     activeRoute = route
     activeRouteKey = routeKey
-    currentStepIndex = 1
     totalSteps = #route
 
+    -- Smart Routing: Detect if we are already in one of the route zones
+    local currentMapID = C_Map.GetBestMapForUnit("player")
+    local bestStep = 1
+    if currentMapID then
+        for i = 1, totalSteps do
+            if activeRoute[i].mapID == currentMapID then
+                bestStep = i
+            end
+        end
+    end
+    currentStepIndex = bestStep
+
     local dungeonName = ADW.RouteNames[routeKey] or routeKey
-    Print(GREEN .. "Starting route to " .. dungeonName .. " (" .. totalSteps .. " steps)|r")
-    LogInfo("Route started: " .. dungeonName .. " (" .. totalSteps .. " steps)")
+    local msg = GREEN .. "Starting route to " .. dungeonName .. " (" .. totalSteps .. " steps)|r"
+    if currentStepIndex > 1 then
+        msg = msg .. GRAY .. " — resuming from step " .. currentStepIndex .. "|r"
+    end
+    Print(msg)
+    
+    LogInfo("Route started: " .. dungeonName .. " (Entry Step: " .. currentStepIndex .. "/" .. totalSteps .. ")")
     SetWaypointStep(currentStepIndex)
     checkTicker = C_Timer.NewTicker(1, CheckDistance)
 end

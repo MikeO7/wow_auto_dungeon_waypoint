@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.1.0
+- **Smart Routing**: The addon now detects your current location in the world when a route starts. If you are already in one of the zones on the path, it will automatically resume the route from your current position instead of always starting in Silvermoon.
+
 ## v1.0.9
 - Added Manual Selection Dropdown: Right-click the ADW Toggle button to manually select a dungeon from the list.
 - Updated tooltip with clear instructions for left-click (toggle) and right-click (manual select) actions.
