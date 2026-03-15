@@ -18,6 +18,9 @@ local checkTicker = nil
 local debugMode = false
 local tomtomUID = nil  -- Optional TomTom waypoint UID
 
+-- Forward declarations (functions defined later but called earlier)
+local UpdateToggleButton
+
 -- ============================================================================
 -- Defaults for SavedVariables
 -- ============================================================================
@@ -422,7 +425,7 @@ menuBtn:SetSize(46, 26) -- Slightly wider for "List" text
 menuBtn:SetPoint("LEFT", autoBtn, "RIGHT", 4, 0)
 menuBtn:SetText("List")
 
-local function UpdateToggleButton()
+UpdateToggleButton = function()
     if not AutoDungeonWaypointDB then return end
     if AutoDungeonWaypointDB.AutoRouteEnabled then
         if activeRoute and activeRouteKey then
