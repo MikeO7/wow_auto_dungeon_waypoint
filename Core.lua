@@ -119,8 +119,9 @@ arrowFrame:SetSize(32, 32)
 arrowFrame:SetPoint("LEFT", statusFrame, "LEFT", 10, -2)
 local arrowTex = arrowFrame:CreateTexture(nil, "OVERLAY")
 arrowTex:SetAllPoints()
-arrowTex:SetTexture("Interface\\CHATFRAME\\ChatFrameExpandArrow")
+arrowTex:SetTexture("Interface\\Minimap\\MiniMap-QuestArrow")
 arrowTex:SetVertexColor(0.0, 1.0, 0.0) -- Green arrow
+arrowTex:SetRotation(0) -- Initial rotation
 arrowFrame.tex = arrowTex
 
 statusFrame:Hide()
@@ -229,10 +230,13 @@ local function CheckDistance()
             
             distanceText:SetText(tostring(yards) .. "yd")
             
-            -- 2. Update Arrow Rotation
+            -- 2. Update Arrow Rotation (Refined for Minimap-QuestArrow)
             local playerFacing = GetPlayerFacing() or 0
-            local angleToPoint = math.atan2(-dy, dx) + math.pi/2
-            local relativeAngle = angleToPoint - playerFacing
+            -- Map coordinates: Y increases downwards. atan2(dy, dx) returns angle from X axis.
+            -- We need to compensate for Blizzard's texture orientation and player facing.
+            local angleToPoint = math.atan2(-dy, dx) - (math.pi / 2)
+            local relativeAngle = angleToPoint + playerFacing
+            
             arrowFrame.tex:SetRotation(relativeAngle)
             arrowFrame:Show()
 
@@ -331,7 +335,7 @@ toggleBtn:SetHighlightFontObject("GameFontHighlightSmall")
 -- Toggle UI (Dual-Button Control Bar)
 -- ============================================================================
 local controlBar = CreateFrame("Frame", "ADWControlBar", UIParent)
-controlBar:SetSize(190, 26)
+controlBar:SetSize(210, 26) -- Widened for better label fit
 controlBar:SetPoint("TOP", UIParent, "TOP", 0, -20)
 controlBar:SetMovable(true)
 controlBar:EnableMouse(true)
@@ -354,9 +358,9 @@ autoBtn:SetHighlightFontObject("GameFontHighlightSmall")
 
 -- 2. Menu Button (Select Dungeon)
 local menuBtn = CreateFrame("Button", nil, controlBar, "UIPanelButtonTemplate")
-menuBtn:SetSize(36, 26)
+menuBtn:SetSize(46, 26) -- Slightly wider for "List" text
 menuBtn:SetPoint("LEFT", autoBtn, "RIGHT", 4, 0)
-menuBtn:SetText("☰")
+menuBtn:SetText("List")
 
 local function UpdateToggleButton()
     if not AutoDungeonWaypointDB then return end

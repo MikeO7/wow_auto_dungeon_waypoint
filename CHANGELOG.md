@@ -4,6 +4,13 @@
 - **Global Smart Routing (Continent-Aware)**: The addon no longer gets "stuck" if you start a route from a different zone. It now detects your continent and automatically syncs to the first relevant step for your current location.
 - Added `ADW.GetMapContinent` helper for smarter zone-to-continent mapping.
 
+## v2.2.2
+- **UI Glitch Fixes**: 
+  - Replaced the unsupported menu symbol with the word "List" to ensure it shows up on all clients.
+  - Swapped the navigation arrow for a cleaner "Quest Pointer" style.
+  - Refined the arrow's rotation math for much more accurate tracking.
+  - Widened the control bar to prevent text clipping.
+
 ## v2.2.1
 - **Hotfix**: Fixed a LUA_WARNING caused by malformed XML in `Bindings.xml`. Added the required XML declaration and standardized attributes.
 
