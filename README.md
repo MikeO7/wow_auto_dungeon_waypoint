@@ -1,86 +1,110 @@
 # Auto Dungeon Waypoint
 
-A World of Warcraft addon that automatically guides you to your Mythic+ dungeon, step by step. Join a group, and let Auto Dungeon Waypoint do the rest.
+**Automatic step-by-step Mythic+ dungeon navigation for World of Warcraft: Midnight.**
 
-Built for the **WoW: Midnight** expansion (12.x).
+Join a group → get routed instantly → arrive at the dungeon entrance.
+
+[![CurseForge](https://img.shields.io/badge/CurseForge-Download-orange)](https://www.curseforge.com/wow/addons/auto-dungeon-waypoint)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
 
 ## What It Does
 
-When you join a Mythic+ group through the Premade Group Finder, Auto Dungeon Waypoint detects the dungeon and immediately sets a waypoint on your map. It walks you through each step — head to the portal room, take the right portal, fly to the entrance — and automatically advances to the next waypoint as you go.
+When you join a Mythic+ group through the Group Finder, Auto Dungeon Waypoint **automatically detects the dungeon** and starts a step-by-step route with on-screen waypoints. It guides you through the portal room, the right portal, the flight path, and straight to the dungeon entrance — then auto-clears when you zone in.
 
-No more alt-tabbing to look up dungeon locations. No more asking in group chat "where is this one again?"
+No more alt-tabbing. No more asking "where is this one again?"
+
+---
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| 🚀 **Auto-Routing** | Detects dungeon on group join — zero input required |
+| ⏱️ **ETA Timer** | Shows estimated arrival time based on movement speed |
+| 📊 **Progress Bar** | Visual step completion bar in the HUD |
+| 🗺️ **Smart Routing** | Works from anywhere — syncs to the correct step based on your location |
+| 📡 **Party Sharing** | Automatically shares routes with party members |
+| 📋 **Route History** | Quick access to your last 5 used routes |
+| 📍 **`/adw nearest`** | Auto-start the closest dungeon route |
+| 🔲 **Compact Mode** | Minimal HUD with just arrow + distance |
+| 🎨 **Premium UI** | Glassmorphism HUD, color-coded distance, smooth animations |
+
+---
 
 ## Supported Dungeons
 
-| Dungeon | Expansion | Origin Zone |
-|---|---|---|
-| Windrunner Spire | Midnight | Eversong Woods |
-| Maisara Caverns | Midnight | Zul'Aman |
-| Magister's Terrace | Midnight | Isle of Quel'Danas |
-| Nexus-Point Xenas | Midnight | Voidstorm |
-| Algeth'ar Academy | Dragonflight | Thaldraszus |
-| Seat of the Triumvirate | Legion | Eredath (Argus) |
-| Skyreach | Warlords of Draenor | Spires of Arak |
-| Pit of Saron | Wrath of the Lich King | Icecrown |
+### Midnight Season 1
+| Dungeon | Zone |
+|---------|------|
+| Windrunner Spire | Eversong Woods |
+| Magister's Terrace | Isle of Quel'Danas |
+| Maisara Caverns | Zul'Aman |
+| Nexus-Point Xenas | Voidstorm |
 
-All routes start from **Silvermoon City** and guide you through the correct portal or city exit.
+### Legacy M+ Rotation
+| Dungeon | Zone |
+|---------|------|
+| Algeth'ar Academy | Thaldraszus |
+| Seat of the Triumvirate | Eredath (Argus) |
+| Skyreach | Spires of Arak |
+| Pit of Saron | Icecrown |
+
+All coordinates verified against method.gg, icy-veins.com, and wowhead.
+
+---
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `/adw` | Show all commands |
+| `/adw list` | List available dungeons |
+| `/adw route <id>` | Start a specific route |
+| `/adw nearest` | Start the closest dungeon route |
+| `/adw stop` | Cancel current route |
+| `/adw toggle` | Toggle auto-routing |
+| `/adw compact` | Toggle compact HUD |
+| `/adw hide` / `show` | Hide/show control bar |
+| `/adw log` | View recent events |
+| `/adw debug` | Toggle debug mode |
+
+**Route IDs:** `windrunner` · `magisters` · `maisara` · `nexuspoint` · `algethar` · `seattriumvirate` · `skyreach` · `pitofsaron`
+
+---
 
 ## Installation
 
-1. Download or clone this repository
-2. Copy the folder into your WoW addons directory:
-   ```
-   World of Warcraft/_retail_/Interface/AddOns/auto_dungeon_waypoint
-   ```
-3. Make sure the folder is named `AutoDungeonWaypoint` (must match the `.toc` filename prefix)
-4. Restart WoW or type `/reload` if you're already logged in
-5. Verify it's enabled in the AddOns menu on the character select screen
+**CurseForge (recommended):** Search "Auto Dungeon Waypoint" in the CurseForge app.
 
-## How To Use
+**Manual:**
+1. Download the latest release from [Releases](https://github.com/MikeO7/wow_auto_dungeon_waypoint/releases)
+2. Extract to `World of Warcraft/_retail_/Interface/AddOns/AutoDungeonWaypoint`
+3. Restart WoW or `/reload`
 
-**Automatic mode (default):** Just join a Mythic+ group. The addon detects the dungeon and starts routing you there immediately. A small status frame appears at the top of your screen showing your current step.
-
-**Manual mode:** Use the slash commands below to start a route yourself.
-
-### Commands
-
-| Command | What it does |
-|---|---|
-| `/adw` | Show all available commands |
-| `/adw list` | List all supported dungeons and their route IDs |
-| `/adw route <id>` | Manually start a route (e.g. `/adw route magisters`) |
-| `/adw stop` | Cancel the current route |
-| `/adw toggle` | Turn auto-routing on or off |
-| `/adw hide` | Hide the on-screen toggle button |
-| `/adw show` | Show the on-screen toggle button |
-| `/adw debug` | Toggle debug mode (prints LFG Activity IDs — useful for development) |
-
-### Route IDs
-
-Use these with `/adw route`:
-
-`windrunner` · `magisters` · `maisara` · `nexuspoint` · `algethar` · `seattriumvirate` · `skyreach` · `pitofsaron`
+---
 
 ## How It Works
 
-- Listens for the `LFG_LIST_JOINED_GROUP` event to detect when you join a premade group
-- Queries `C_LFGList.GetSearchResultInfo` to identify the dungeon using verified Mythic Keystone Activity IDs.
-- Sets a waypoint using `C_Map.SetUserWaypoint` and pins it to your screen with `C_SuperTrack`
-- Polls your position every second and auto-advances to the next step when you arrive
-- Also listens to `ZONE_CHANGED_NEW_AREA` so portal transitions are detected instantly
-- Includes a persistent logging system to track route starts, completions, and group detections.
+1. Listens for `LFG_LIST_JOINED_GROUP` to detect dungeon groups
+2. Matches Activity IDs to verified dungeon routes
+3. Sets waypoints via `C_Map.SetUserWaypoint` + `C_SuperTrack`
+4. Polls position 5x/second for smooth arrow tracking and auto-advancement
+5. Auto-clears the route when you enter the dungeon instance
 
-## Settings
-
-Your auto-route toggle preference and logging settings are saved between sessions. The on-screen toggle button and HUD are draggable — put them wherever you want and they'll stay put.
+---
 
 ## Contributing
 
-If you find incorrect coordinates or want to add intermediate steps to a route, the data lives in `Data.lua`. Each route is just an array of `{ mapID, x, y, desc }` entries. PRs welcome.
+Routes are defined in `Data.lua` as simple arrays:
+```lua
+{ mapID = 2395, x = 0.3560, y = 0.7880, desc = "Windrunner Spire entrance is here" }
+```
 
-To find LFG Activity IDs for new dungeons, enable debug mode with `/adw debug` and join a group — the addon will print the Activity ID to chat and log it to the `SavedVariables`.
+To find Activity IDs for new dungeons, enable `/adw debug` and join a group — the ID will print to chat.
+
+PRs welcome!
 
 ## License
 
