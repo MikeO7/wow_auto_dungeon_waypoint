@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.1.1
+- **Hotfix**: Fixed a crash caused by the `GetAddOnMetadata` function being removed in WoW 12.0.1. Switched to `C_AddOns.GetAddOnMetadata`.
+
 ## v1.1.0
 - **Smart Routing**: The addon now detects your current location in the world when a route starts. If you are already in one of the zones on the path, it will automatically resume the route from your current position instead of always starting in Silvermoon.
 

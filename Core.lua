@@ -446,7 +446,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         end
 
         UpdateToggleButton()
-        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata("AutoDungeonWaypoint", "Version") or "1.0.5") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
+        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "1.1.0") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
         self:UnregisterEvent("ADDON_LOADED")
         return
     end
