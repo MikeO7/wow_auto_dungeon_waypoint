@@ -4,6 +4,9 @@
 - **Global Smart Routing (Continent-Aware)**: The addon no longer gets "stuck" if you start a route from a different zone. It now detects your continent and automatically syncs to the first relevant step for your current location.
 - Added `ADW.GetMapContinent` helper for smarter zone-to-continent mapping.
 
+## v2.1.1
+- **Hotfix**: Properly fixed the `GetAddOnMetadata` crash for WoW 12.0.1 (Midnight) by introducing a reliable API compatibility fallback.
+
 ## v2.1.0 (The Polish Update)
 - **Visual Refinement**: Thinner HUD border and cleaner "glass" backdrop for a more modern look.
 - **HUD Animations**: Smooth fade-in effect when navigation starts.

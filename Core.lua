@@ -1,4 +1,8 @@
 local _, ADW = ...
+local ADW_NAME = "AutoDungeonWaypoint"
+
+-- API Compatibility for WoW 12.0.1+ (Midnight)
+local GetAddOnMetadata = GetAddOnMetadata or (C_AddOns and C_AddOns.GetAddOnMetadata) or function() return nil end
 
 -- Expose to global for SavedVariables and debugging
 AutoDungeonWaypoint = ADW
@@ -587,7 +591,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
         UpdateToggleButton()
         CreateOptionsPanel()
-        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "1.1.1") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
+        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "2.1.0") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
         self:UnregisterEvent("ADDON_LOADED")
         return
     end
