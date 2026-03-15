@@ -21,6 +21,8 @@ local DEFAULTS = {
     ShowStatusFrame = true,
     Log = {},       -- Persistent event log
     LogMaxLines = 200,
+    StatusFramePos = nil,
+    ToggleButtonPos = nil,
 }
 
 -- ============================================================================
@@ -65,7 +67,13 @@ statusFrame:SetMovable(true)
 statusFrame:EnableMouse(true)
 statusFrame:RegisterForDrag("LeftButton")
 statusFrame:SetScript("OnDragStart", statusFrame.StartMoving)
-statusFrame:SetScript("OnDragStop", statusFrame.StopMovingOrSizing)
+statusFrame:SetScript("OnDragStop", function(self)
+    self:StopMovingOrSizing()
+    local point, _, relPoint, x, y = self:GetPoint()
+    if AutoDungeonWaypointDB then
+        AutoDungeonWaypointDB.StatusFramePos = { point, relPoint, x, y }
+    end
+end)
 statusFrame:SetBackdrop({
     bgFile   = "Interface\\Tooltips\\UI-Tooltip-Background",
     edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -207,11 +215,18 @@ toggleBtn:SetMovable(true)
 toggleBtn:EnableMouse(true)
 toggleBtn:RegisterForDrag("LeftButton")
 toggleBtn:SetScript("OnDragStart", toggleBtn.StartMoving)
-toggleBtn:SetScript("OnDragStop", toggleBtn.StopMovingOrSizing)
+toggleBtn:SetScript("OnDragStop", function(self)
+    self:StopMovingOrSizing()
+    local point, _, relPoint, x, y = self:GetPoint()
+    if AutoDungeonWaypointDB then
+        AutoDungeonWaypointDB.ToggleButtonPos = { point, relPoint, x, y }
+    end
+end)
 toggleBtn:SetNormalFontObject("GameFontNormalSmall")
 toggleBtn:SetHighlightFontObject("GameFontHighlightSmall")
 
 local function UpdateToggleButton()
+    if not AutoDungeonWaypointDB then return end
     if AutoDungeonWaypointDB.AutoRouteEnabled then
         toggleBtn:SetText("|cFF00FF00\226\151\143|r ADW: Auto ON")
     else
@@ -219,15 +234,26 @@ local function UpdateToggleButton()
     end
 end
 
-toggleBtn:SetScript("OnClick", function()
-    AutoDungeonWaypointDB.AutoRouteEnabled = not AutoDungeonWaypointDB.AutoRouteEnabled
+function ADW.ToggleAutoRoute(enabled)
+    local db = AutoDungeonWaypointDB
+    if enabled == nil then
+        db.AutoRouteEnabled = not db.AutoRouteEnabled
+    else
+        db.AutoRouteEnabled = enabled
+    end
+    
     UpdateToggleButton()
-    if AutoDungeonWaypointDB.AutoRouteEnabled then
+    
+    if db.AutoRouteEnabled then
         Print("Auto-Routing " .. GREEN .. "enabled|r.")
     else
         Print("Auto-Routing " .. RED .. "disabled|r. Use " .. YELLOW .. "/adw route <id>|r to route manually.")
         ClearRoute()
     end
+end
+
+toggleBtn:SetScript("OnClick", function()
+    ADW.ToggleAutoRoute()
 end)
 
 toggleBtn:SetScript("OnEnter", function(self)
@@ -257,7 +283,7 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
         Print("Route cancelled.")
 
     elseif cmd == "toggle" then
-        toggleBtn:Click()
+        ADW.ToggleAutoRoute()
 
     elseif cmd == "list" then
         Print("Available routes:")
@@ -313,12 +339,14 @@ end
 -- Event Handling
 -- ============================================================================
 local eventFrame = CreateFrame("Frame")
+eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("LFG_LIST_JOINED_GROUP")
 eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 
 eventFrame:SetScript("OnEvent", function(self, event, ...)
-    if event == "PLAYER_ENTERING_WORLD" then
+    local arg1 = ...
+    if event == "ADDON_LOADED" and arg1 == "AutoDungeonWaypoint" then
         if not AutoDungeonWaypointDB then
             AutoDungeonWaypointDB = {}
         end
@@ -327,8 +355,26 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                 AutoDungeonWaypointDB[k] = v
             end
         end
+        
+        -- Restore positions
+        if AutoDungeonWaypointDB.StatusFramePos then
+            local p = AutoDungeonWaypointDB.StatusFramePos
+            statusFrame:ClearAllPoints()
+            statusFrame:SetPoint(p[1], UIParent, p[2], p[3], p[4])
+        end
+        if AutoDungeonWaypointDB.ToggleButtonPos then
+            local p = AutoDungeonWaypointDB.ToggleButtonPos
+            toggleBtn:ClearAllPoints()
+            toggleBtn:SetPoint(p[1], UIParent, p[2], p[3], p[4])
+        end
+
         UpdateToggleButton()
-        LogInfo("Addon loaded. Version 1.0.0. AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
+        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata("AutoDungeonWaypoint", "Version") or "1.0.5") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
+        self:UnregisterEvent("ADDON_LOADED")
+        return
+    end
+
+    if event == "PLAYER_ENTERING_WORLD" then
         Print("Loaded — Type " .. YELLOW .. "/adw|r for help or " .. YELLOW .. "/adw list|r to see routes.")
         self:UnregisterEvent("PLAYER_ENTERING_WORLD")
         return
@@ -373,9 +419,17 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         local currentMapID = C_Map.GetBestMapForUnit("player")
         if not currentMapID then return end
 
-        local nextStep = activeRoute[currentStepIndex + 1]
-        if nextStep and currentMapID == nextStep.mapID then
-            currentStepIndex = currentStepIndex + 1
+        -- Scan forward for the furthest reached step in this map
+        local furthestIndex = currentStepIndex
+        for i = currentStepIndex + 1, totalSteps do
+            if activeRoute[i].mapID == currentMapID then
+                furthestIndex = i
+            end
+        end
+
+        if furthestIndex > currentStepIndex then
+            LogInfo(string.format("Zone change detected. Skipping from step %d to %d (MapID %d)", currentStepIndex, furthestIndex, currentMapID))
+            currentStepIndex = furthestIndex
             SetWaypointStep(currentStepIndex)
         end
         return
