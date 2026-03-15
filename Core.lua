@@ -228,9 +228,9 @@ toggleBtn:SetHighlightFontObject("GameFontHighlightSmall")
 local function UpdateToggleButton()
     if not AutoDungeonWaypointDB then return end
     if AutoDungeonWaypointDB.AutoRouteEnabled then
-        toggleBtn:SetText("|cFF00FF00\226\151\143|r ADW: Auto ON")
+        toggleBtn:SetText("|cFF00FF00[ON]|r ADW: Auto")
     else
-        toggleBtn:SetText("|cFFFF4444\226\151\143|r ADW: Auto OFF")
+        toggleBtn:SetText("|cFFFF4444[OFF]|r ADW: Auto")
     end
 end
 

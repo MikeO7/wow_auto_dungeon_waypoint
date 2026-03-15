@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.0.8
+- Fixed "green square" UI bug: Replaced unsupported UTF-8 icons on the toggle button with standard text labels for maximum compatibility.
+
 ## v1.0.7
 - Fixed auto-routing for group creators: Navigation now triggers automatically when you list your own group.
 - Added startup check: Automatically resume or start routes if already listed in LFG on login/reload.
