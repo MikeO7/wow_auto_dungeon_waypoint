@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.6
+- Improved UI persistence: HUD and Toggle button positions are now saved.
+- Smarter navigation: Advanced zone-skipping logic when taking shortcuts.
+- Robust initialization: Switched to `ADDON_LOADED` for better reliability.
+
 ## v1.0.5
 - Updated interface version to 12.0.1 for WoW compatibility.
 
