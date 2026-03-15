@@ -4,6 +4,13 @@
 - **Global Smart Routing (Continent-Aware)**: The addon no longer gets "stuck" if you start a route from a different zone. It now detects your continent and automatically syncs to the first relevant step for your current location.
 - Added `ADW.GetMapContinent` helper for smarter zone-to-continent mapping.
 
+## v2.0.0 (The Premium Update)
+- **Live Distance Tracking**: The HUD now shows how many yards are left until the next waypoint in real-time.
+- **Navigation Arrow**: A dynamic green arrow on the HUD now points directly toward your destination.
+- **Interface Options Panel**: Added a dedicated settings menu under "Options > Addons" for easy configuration.
+- **Keybindings Support**: You can now assign hotkeys to toggle the HUD or stop routes in the game's Keybindings menu.
+- **Premium Audio**: Added a more satisfying sound cue upon reaching your dungeon destination.
+
 ## v1.1.1
 - **Hotfix**: Fixed a crash caused by the `GetAddOnMetadata` function being removed in WoW 12.0.1. Switched to `C_AddOns.GetAddOnMetadata`.
 

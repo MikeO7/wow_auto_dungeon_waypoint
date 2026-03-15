@@ -3,6 +3,11 @@ local _, ADW = ...
 -- Expose to global for SavedVariables and debugging
 AutoDungeonWaypoint = ADW
 
+-- Keybinding Strings
+_G["BINDING_HEADER_ADW"] = "Auto Dungeon Waypoint"
+_G["BINDING_NAME_ADW_TOGGLEHUD"] = "Toggle Navigation HUD"
+_G["BINDING_NAME_ADW_STOP"] = "Cancel Current Route"
+
 -- ============================================================================
 -- State
 -- ============================================================================
@@ -94,9 +99,25 @@ titleText:SetText("Auto Dungeon Waypoint")
 -- Step description line
 local stepText = statusFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 stepText:SetPoint("TOP", titleText, "BOTTOM", 0, -4)
-stepText:SetWidth(260)
+stepText:SetWidth(230)
 stepText:SetWordWrap(true)
 stepText:SetText("")
+
+-- Distance line
+local distanceText = statusFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+distanceText:SetPoint("BOTTOMRIGHT", statusFrame, "BOTTOMRIGHT", -10, 8)
+distanceText:SetTextColor(0.8, 0.8, 0.8)
+distanceText:SetText("")
+
+-- Navigation Arrow
+local arrowFrame = CreateFrame("Frame", nil, statusFrame)
+arrowFrame:SetSize(32, 32)
+arrowFrame:SetPoint("LEFT", statusFrame, "LEFT", 10, -2)
+local arrowTex = arrowFrame:CreateTexture(nil, "OVERLAY")
+arrowTex:SetAllPoints()
+arrowTex:SetTexture("Interface\\CHATFRAME\\ChatFrameExpandArrow")
+arrowTex:SetVertexColor(0.0, 1.0, 0.0) -- Green arrow
+arrowFrame.tex = arrowTex
 
 statusFrame:Hide()
 
@@ -108,7 +129,7 @@ local function UpdateStatusFrame(dungeonName, stepDesc, stepNum, stepTotal)
         stepText:SetText(stepDesc)
     end
     local textHeight = stepText:GetStringHeight() or 16
-    statusFrame:SetHeight(36 + textHeight)
+    statusFrame:SetHeight(math.max(60, 36 + textHeight))
     statusFrame:Show()
 end
 
@@ -148,7 +169,7 @@ local function SetWaypointStep(index)
     if not activeRoute or not activeRoute[index] then
         Print(GREEN .. "You have arrived! Route complete.|r")
         LogInfo("Route complete: " .. tostring(activeRouteKey))
-        PlaySound(SOUNDKIT.READY_CHECK)
+        PlaySound(SOUNDKIT.UI_RAID_BOSS_DEFEATED_LG) -- Satisfying completion sound
         ClearRoute()
         return
     end
@@ -180,14 +201,31 @@ local function CheckDistance()
     if currentMapID == step.mapID then
         local pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
         if pos then
-            local dx = pos.x - step.x
-            local dy = pos.y - step.y
-            if (dx * dx + dy * dy) < 0.0004 then
+            -- 1. Calculate Distance
+            local dx = (pos.x - step.x) * 1000 -- Approximate scaling for yards
+            local dy = (pos.y - step.y) * 1000
+            local distSq = dx * dx + dy * dy
+            local yards = math.floor(math.sqrt(distSq) * 7.5) -- Multiplier for yards-conversion
+            
+            distanceText:SetText(tostring(yards) .. "yd")
+            
+            -- 2. Update Arrow Rotation
+            local playerFacing = GetPlayerFacing() or 0
+            local angleToPoint = math.atan2(-dy, dx) + math.pi/2
+            local relativeAngle = angleToPoint - playerFacing
+            arrowFrame.tex:SetRotation(relativeAngle)
+            arrowFrame:Show()
+
+            -- 3. Check for Arrival
+            if distSq < 0.04 then -- Trigger distance
                 currentStepIndex = currentStepIndex + 1
                 SetWaypointStep(currentStepIndex)
             end
         end
     else
+        distanceText:SetText("")
+        arrowFrame:Hide()
+        
         local nextStep = activeRoute[currentStepIndex + 1]
         if nextStep and currentMapID == nextStep.mapID then
             currentStepIndex = currentStepIndex + 1
@@ -293,6 +331,49 @@ function ADW.ToggleAutoRoute(enabled)
     else
         Print("Auto-Routing " .. RED .. "disabled|r. Use " .. YELLOW .. "/adw route <id>|r to route manually.")
         ClearRoute()
+    end
+end
+
+-- ============================================================================
+-- Options Panel
+-- ============================================================================
+local function CreateOptionsPanel()
+    local panel = CreateFrame("Frame", "ADWOptionsPanel", UIParent)
+    panel.name = "Auto Dungeon Waypoint"
+
+    local title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    title:SetPoint("TOPLEFT", 16, -16)
+    title:SetText("Auto Dungeon Waypoint Settings")
+
+    -- Auto-Routing Toggle
+    local autoCheck = CreateFrame("CheckButton", "ADWAutoRoutingCheck", panel, "InterfaceOptionsCheckButtonTemplate")
+    autoCheck:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -20)
+    _G[autoCheck:GetName() .. "Text"]:SetText("Enable Auto-Routing")
+    autoCheck:SetScript("OnClick", function(self)
+        ADW.ToggleAutoRoute(self:GetChecked())
+    end)
+    autoCheck:SetScript("OnShow", function(self)
+        self:SetChecked(AutoDungeonWaypointDB.AutoRouteEnabled)
+    end)
+
+    -- Show HUD Toggle
+    local hudCheck = CreateFrame("CheckButton", "ADWShowHUDCheck", panel, "InterfaceOptionsCheckButtonTemplate")
+    hudCheck:SetPoint("TOPLEFT", autoCheck, "BOTTOMLEFT", 0, -8)
+    _G[hudCheck:GetName() .. "Text"]:SetText("Show Navigation HUD")
+    hudCheck:SetScript("OnClick", function(self)
+        AutoDungeonWaypointDB.ShowStatusFrame = self:GetChecked()
+        if activeRoute and AutoDungeonWaypointDB.ShowStatusFrame then statusFrame:Show() else statusFrame:Hide() end
+    end)
+    hudCheck:SetScript("OnShow", function(self)
+        self:SetChecked(AutoDungeonWaypointDB.ShowStatusFrame)
+    end)
+
+    -- Register with WoW
+    if Settings and Settings.RegisterCanvasLayoutCategory then
+        local category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
+        Settings.RegisterAddOnCategory(category)
+    else
+        InterfaceOptions_AddCategory(panel)
     end
 end
 
@@ -474,7 +555,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         end
 
         UpdateToggleButton()
-        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "1.1.0") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
+        CreateOptionsPanel()
+        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "1.1.1") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
         self:UnregisterEvent("ADDON_LOADED")
         return
     end

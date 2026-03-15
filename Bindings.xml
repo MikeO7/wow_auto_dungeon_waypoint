@@ -1,0 +1,12 @@
+<Bindings>
+	<Binding name="ADW_TOGGLEHUD" header="ADW">
+        if ADWStatusFrame:IsShown() then
+            ADWStatusFrame:Hide()
+        else
+            if activeRoute then ADWStatusFrame:Show() end
+        end
+	</Binding>
+    <Binding name="ADW_STOP">
+        SlashCmdList["AUTODUNGEONWAYPOINT"]("stop")
+    </Binding>
+</Bindings>
