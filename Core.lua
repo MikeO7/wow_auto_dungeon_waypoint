@@ -336,12 +336,40 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
 end
 
 -- ============================================================================
+-- LFG Activity Processor
+-- ============================================================================
+function ADW.ProcessActivityID(activityID, isSilent)
+    if not activityID then return end
+    
+    local routeKey = ADW.LFGToRoute[activityID]
+    if routeKey then
+        -- Avoid restarting the same route if it's already active
+        if activeRouteKey == routeKey then return end
+
+        local name = ADW.RouteNames[routeKey] or routeKey
+        if not isSilent then
+            Print(GREEN .. "Dungeon detected:|r " .. WHITE .. name .. "|r — auto-starting route!")
+        end
+        LogInfo("Auto-route triggered for: " .. name .. (isSilent and " (Silent/Startup)" or ""))
+        StartRoute(routeKey)
+    else
+        if not isSilent then
+            LogWarn("No route for ActivityID=" .. tostring(activityID))
+            if debugMode then
+                Print(GRAY .. "[Debug] Unmapped Activity ID: " .. tostring(activityID) .. "|r")
+            end
+        end
+    end
+end
+
+-- ============================================================================
 -- Event Handling
 -- ============================================================================
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("LFG_LIST_JOINED_GROUP")
+eventFrame:RegisterEvent("LFG_LIST_ACTIVE_ENTRY_UPDATE")
 eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 
 eventFrame:SetScript("OnEvent", function(self, event, ...)
@@ -376,6 +404,15 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
     if event == "PLAYER_ENTERING_WORLD" then
         Print("Loaded — Type " .. YELLOW .. "/adw|r for help or " .. YELLOW .. "/adw list|r to see routes.")
+        
+        -- Check if already listed (e.g. after a reload)
+        if AutoDungeonWaypointDB.AutoRouteEnabled then
+            local activeEntry = C_LFGList.GetActiveEntryInfo()
+            if activeEntry and activeEntry.activityID then
+                ADW.ProcessActivityID(activeEntry.activityID, true)
+            end
+        end
+
         self:UnregisterEvent("PLAYER_ENTERING_WORLD")
         return
     end
@@ -386,29 +423,21 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         local searchResultID = ...
         if not searchResultID then return end
 
-        Print("Joined an LFG group. Detecting dungeon...")
-
         local info = C_LFGList.GetSearchResultInfo(searchResultID)
         if info and info.activityID then
-            LogInfo("LFG joined. ActivityID=" .. tostring(info.activityID))
-            if debugMode then
-                Print(GRAY .. "[Debug] Activity ID: " .. tostring(info.activityID) .. "|r")
-            end
-            local routeKey = ADW.LFGToRoute[info.activityID]
-            if routeKey then
-                local name = ADW.RouteNames[routeKey] or routeKey
-                Print(GREEN .. "Dungeon detected:|r " .. WHITE .. name .. "|r — auto-starting route!")
-                LogInfo("Auto-route triggered for: " .. name)
-                StartRoute(routeKey)
-            else
-                LogWarn("No route for ActivityID=" .. tostring(info.activityID))
-                Print(YELLOW .. "No route mapped for this dungeon yet.|r Use " .. YELLOW .. "/adw list|r for manual options.")
-                if debugMode then
-                    Print(GRAY .. "[Debug] Unmapped Activity ID: " .. tostring(info.activityID) .. "|r — please submit this ID!")
-                end
-            end
-        else
-            LogWarn("LFG_LIST_JOINED_GROUP fired but no activityID found. searchResultID=" .. tostring(searchResultID))
+            LogInfo("LFG joined (SearchResultID=" .. tostring(searchResultID) .. ")")
+            ADW.ProcessActivityID(info.activityID)
+        end
+        return
+    end
+
+    if event == "LFG_LIST_ACTIVE_ENTRY_UPDATE" then
+        if not AutoDungeonWaypointDB.AutoRouteEnabled then return end
+
+        local activeEntry = C_LFGList.GetActiveEntryInfo()
+        if activeEntry and activeEntry.activityID then
+            LogInfo("LFG active entry update (Creator context)")
+            ADW.ProcessActivityID(activeEntry.activityID)
         end
         return
     end
