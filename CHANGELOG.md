@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.7
+- Fixed auto-routing for group creators: Navigation now triggers automatically when you list your own group.
+- Added startup check: Automatically resume or start routes if already listed in LFG on login/reload.
+
 ## v1.0.6
 - Improved UI persistence: HUD and Toggle button positions are now saved.
 - Smarter navigation: Advanced zone-skipping logic when taking shortcuts.
