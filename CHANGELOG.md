@@ -4,6 +4,18 @@
 - **Global Smart Routing (Continent-Aware)**: The addon no longer gets "stuck" if you start a route from a different zone. It now detects your continent and automatically syncs to the first relevant step for your current location.
 - Added `ADW.GetMapContinent` helper for smarter zone-to-continent mapping.
 
+## v3.0.0 (Quality Overhaul)
+- **Bug Fixes**:
+  - Fixed `Bindings.xml` referencing a local variable that caused silent failures.
+  - Removed dead `toggleBtn` frame that was invisibly consuming resources.
+  - Distance text and navigation arrow now properly clear on route completion.
+  - HUD now smoothly fades out instead of snapping off.
+- **UX Improvements**:
+  - Distance/arrow updates 5x per second (up from 1x) for silky-smooth tracking.
+  - Auto-clears the route when you enter a dungeon instance — no manual `/adw stop` needed.
+  - Button now shows live step progress (e.g., `2/3 Windrunner`) when a route is active.
+- **Code Cleanup**: Removed dead code, duplicate section headers, and stale version string. Removed WoWInterface placeholder from TOC.
+
 ## v2.3.0 (Movement Update)
 - **Shift-Drag Movement**: You can now move any part of the UI (buttons or HUD) by holding **Shift** and dragging with the left mouse button.
 - **Enhanced HUD Interaction**: Added tooltips to the HUD and clarified movement instructions in button tooltips to prevent accidental dragging.

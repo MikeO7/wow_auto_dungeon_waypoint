@@ -4,7 +4,7 @@
         if ADWStatusFrame:IsShown() then
             ADWStatusFrame:Hide()
         else
-            if activeRoute then ADWStatusFrame:Show() end
+            ADWStatusFrame:Show()
         end
 	</Binding>
     <Binding name="ADW_STOP" header="ADW">

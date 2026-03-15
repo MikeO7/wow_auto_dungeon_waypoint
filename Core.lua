@@ -7,9 +7,6 @@ local GetAddOnMetadata = GetAddOnMetadata or (C_AddOns and C_AddOns.GetAddOnMeta
 -- Expose to global for SavedVariables and debugging
 AutoDungeonWaypoint = ADW
 
--- Keybinding Strings
-
-
 -- ============================================================================
 -- State
 -- ============================================================================
@@ -156,12 +153,12 @@ local function UpdateStatusFrame(dungeonName, stepDesc, stepNum, stepTotal)
 end
 
 local function HideStatusFrame()
-    statusFrame:Hide()
+    if statusFrame:IsShown() then
+        UIFrameFadeOut(statusFrame, 0.2, statusFrame:GetAlpha(), 0)
+        C_Timer.After(0.2, function() statusFrame:Hide() end)
+    end
 end
 
--- ============================================================================
--- Waypoint Engine
--- ============================================================================
 -- ============================================================================
 -- Map Utilities
 -- ============================================================================
@@ -184,7 +181,10 @@ local function ClearRoute()
     activeRouteKey = nil
     currentStepIndex = 0
     totalSteps = 0
+    distanceText:SetText("")
+    arrowFrame:Hide()
     HideStatusFrame()
+    UpdateToggleButton() -- Refresh button label
 end
 
 local function SetWaypointStep(index)
@@ -254,6 +254,7 @@ local function CheckDistance()
             if distSq < 0.04 then -- Trigger distance
                 currentStepIndex = currentStepIndex + 1
                 SetWaypointStep(currentStepIndex)
+                UpdateToggleButton() -- Refresh step progress
             end
         end
     else
@@ -318,28 +319,9 @@ local function StartRoute(routeKey)
     
     LogInfo("Route started: " .. dungeonName .. " (Entry Step: " .. currentStepIndex .. "/" .. totalSteps .. ")")
     SetWaypointStep(currentStepIndex)
-    checkTicker = C_Timer.NewTicker(1, CheckDistance)
+    UpdateToggleButton() -- Show step progress on button
+    checkTicker = C_Timer.NewTicker(0.2, CheckDistance) -- 5x/sec for smooth tracking
 end
-
--- ============================================================================
--- Toggle Button
--- ============================================================================
-local toggleBtn = CreateFrame("Button", "ADWToggleButton", UIParent, "UIPanelButtonTemplate")
-toggleBtn:SetSize(160, 26)
-toggleBtn:SetPoint("TOP", UIParent, "TOP", 0, -20)
-toggleBtn:SetMovable(true)
-toggleBtn:EnableMouse(true)
-toggleBtn:RegisterForDrag("LeftButton")
-toggleBtn:SetScript("OnDragStart", toggleBtn.StartMoving)
-toggleBtn:SetScript("OnDragStop", function(self)
-    self:StopMovingOrSizing()
-    local point, _, relPoint, x, y = self:GetPoint()
-    if AutoDungeonWaypointDB then
-        AutoDungeonWaypointDB.ToggleButtonPos = { point, relPoint, x, y }
-    end
-end)
-toggleBtn:SetNormalFontObject("GameFontNormalSmall")
-toggleBtn:SetHighlightFontObject("GameFontHighlightSmall")
 
 -- ============================================================================
 -- Toggle UI (Dual-Button Control Bar)
@@ -379,7 +361,13 @@ menuBtn:SetText("List")
 local function UpdateToggleButton()
     if not AutoDungeonWaypointDB then return end
     if AutoDungeonWaypointDB.AutoRouteEnabled then
-        autoBtn:SetText("|cFF55FF55[ON]|r Auto-Routing")
+        if activeRoute and activeRouteKey then
+            local name = ADW.RouteNames[activeRouteKey] or activeRouteKey
+            local short = string.sub(name, 1, 14)
+            autoBtn:SetText("|cFF55FF55" .. currentStepIndex .. "/" .. totalSteps .. "|r " .. short)
+        else
+            autoBtn:SetText("|cFF55FF55[ON]|r Auto-Routing")
+        end
     else
         autoBtn:SetText("|cFFFF5555[OFF]|r Auto-Routing")
     end
@@ -649,23 +637,33 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
         UpdateToggleButton()
         CreateOptionsPanel()
-        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "2.1.0") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
+        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "3.0.0") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
         self:UnregisterEvent("ADDON_LOADED")
         return
     end
 
     if event == "PLAYER_ENTERING_WORLD" then
-        Print("Loaded — Type " .. YELLOW .. "/adw|r for help or " .. YELLOW .. "/adw list|r to see routes.")
+        local isLogin, isReload = ...
         
-        -- Check if already listed (e.g. after a reload)
-        if AutoDungeonWaypointDB.AutoRouteEnabled then
-            local activeEntry = C_LFGList.GetActiveEntryInfo()
-            if activeEntry and activeEntry.activityID then
-                ADW.ProcessActivityID(activeEntry.activityID, true)
+        -- First load: show welcome message and check for existing LFG listing
+        if isLogin or isReload then
+            Print("Loaded — Type " .. YELLOW .. "/adw|r for help or " .. YELLOW .. "/adw list|r to see routes.")
+            if AutoDungeonWaypointDB.AutoRouteEnabled then
+                local activeEntry = C_LFGList.GetActiveEntryInfo()
+                if activeEntry and activeEntry.activityID then
+                    ADW.ProcessActivityID(activeEntry.activityID, true)
+                end
+            end
+        else
+            -- Subsequent zone transitions: auto-clear when entering a dungeon instance
+            local _, instanceType = IsInInstance()
+            if (instanceType == "party" or instanceType == "raid") and activeRoute then
+                local name = ADW.RouteNames[activeRouteKey] or activeRouteKey or "dungeon"
+                Print(GREEN .. "You've entered " .. name .. "! Route cleared.|r")
+                PlaySound(SOUNDKIT.UI_RAID_BOSS_DEFEATED_LG)
+                ClearRoute()
             end
         end
-
-        self:UnregisterEvent("PLAYER_ENTERING_WORLD")
         return
     end
 
