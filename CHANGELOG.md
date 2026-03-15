@@ -1,6 +1,9 @@
 # Changelog
 
-## v4.3.0 (Cleanup & Fixes)
+## v4.3.3 (Stability Fix)
+- **Sound Stability**: Replaced `SOUNDKIT` constants with numeric sound IDs. This fixes a "bad argument #1" error on route completion that occurred in some game versions where the constants were missing.
+
+## v4.3.1 (Cleanup & Fixes)
 - **Removed Recent Routes**: Simplified the UI by removing the "Recent" section and underlying history tracking.
 - **Fixed Binding Warnings**: Resolved "Binding header ADW was attempted to be loaded more than once" warning in `Bindings.xml`.
 - **Code Optimization**: General cleanup and removal of unused state variables.
