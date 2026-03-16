@@ -852,7 +852,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             local adwBroker = LDB:NewDataObject("AutoDungeonWaypoint", {
                 type = "launcher",
                 text = "Auto Dungeon Waypoint",
-                icon = "Interface\\Icons\\INV_Misc_Map_01",
+                icon = "Interface\\AddOns\\AutoDungeonWaypoint\\assets\\logo_400",
                 OnClick = function(_, button)
                     if button == "LeftButton" then
                         -- Open dungeon selector menu
