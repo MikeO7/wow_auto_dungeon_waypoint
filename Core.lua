@@ -89,15 +89,29 @@ statusFrame:SetScript("OnDragStop", function(self)
     end
 end)
 statusFrame:SetBackdrop({
-    bgFile   = "Interface\\Tooltips\\UI-Tooltip-Background",
-    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+    bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeFile = "Interface\\Buttons\\WHITE8X8",
     tile     = true,
-    tileSize = 12,
-    edgeSize = 12, -- Thinner border
-    insets   = { left = 3, right = 3, top = 3, bottom = 3 },
+    tileSize = 16,
+    edgeSize = 1,
+    insets   = { left = 0, right = 0, top = 0, bottom = 0 },
 })
-statusFrame:SetBackdropColor(0, 0, 0, 0.75) -- Darker, cleaner glass look
-statusFrame:SetBackdropBorderColor(0, 0.75, 1, 0.5) -- Softer blue border
+statusFrame:SetBackdropColor(0.05, 0.05, 0.1, 0.85) -- Deep midnight glass
+statusFrame:SetBackdropBorderColor(0, 0.6, 1, 0.3) -- Subtle blue edge
+
+-- Glow effect texture
+local glow = statusFrame:CreateTexture(nil, "BACKGROUND")
+glow:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Alert-Glow")
+glow:SetBlendMode("ADD")
+glow:SetPoint("TOPLEFT", -20, 20)
+glow:SetPoint("BOTTOMRIGHT", 20, -20)
+glow:SetAlpha(0)
+statusFrame.Glow = glow
+
+local function PulseGlow()
+    UIFrameFadeIn(glow, 0.2, 0, 0.6)
+    C_Timer.After(0.3, function() UIFrameFadeOut(glow, 0.5, 0.6, 0) end)
+end
 
 -- Title line
 local titleText = statusFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
@@ -111,6 +125,54 @@ stepText:SetPoint("TOP", titleText, "BOTTOM", 0, -4)
 stepText:SetWidth(230)
 stepText:SetWordWrap(true)
 stepText:SetText("")
+
+-- Manual Navigation Buttons
+local prevBtn = CreateFrame("Button", nil, statusFrame)
+prevBtn:SetSize(20, 20)
+prevBtn:SetPoint("LEFT", statusFrame, "LEFT", 8, 0)
+prevBtn:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
+prevBtn:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Down")
+prevBtn:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+
+local nextBtn = CreateFrame("Button", nil, statusFrame)
+nextBtn:SetSize(20, 20)
+nextBtn:SetPoint("RIGHT", statusFrame, "RIGHT", -8, 0)
+nextBtn:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
+nextBtn:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
+nextBtn:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+
+local function PrevStep()
+    if not activeRoute or currentStepIndex <= 1 then return end
+    currentStepIndex = currentStepIndex - 1
+    SetWaypointStep(currentStepIndex)
+    UpdateToggleButton()
+    PulseGlow()
+end
+
+local function NextStep()
+    if not activeRoute then return end
+    currentStepIndex = currentStepIndex + 1
+    SetWaypointStep(currentStepIndex)
+    UpdateToggleButton()
+    PulseGlow()
+end
+
+prevBtn:SetScript("OnClick", PrevStep)
+nextBtn:SetScript("OnClick", NextStep)
+
+prevBtn:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText("Previous Step", 1, 1, 1)
+    GameTooltip:Show()
+end)
+prevBtn:SetScript("OnLeave", GameTooltip_Hide)
+
+nextBtn:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+    GameTooltip:SetText("Next Step", 1, 1, 1)
+    GameTooltip:Show()
+end)
+nextBtn:SetScript("OnLeave", GameTooltip_Hide)
 
 
 
@@ -132,24 +194,28 @@ local function UpdateStatusFrame(dungeonName, stepDesc, stepNum, stepTotal)
     local isCompact = AutoDungeonWaypointDB.CompactMode
     
     if dungeonName then
-        titleText:SetText(ADDON_COLOR .. dungeonName .. "|r " .. GRAY .. "(Step " .. stepNum .. "/" .. stepTotal .. ")|r")
+        titleText:SetText(ADDON_COLOR .. dungeonName .. "|r")
     end
     if stepDesc then
-        stepText:SetText(stepDesc)
+        stepText:SetText(GRAY .. "Step " .. stepNum .. "/" .. stepTotal .. ":|r " .. WHITE .. stepDesc .. "|r")
     end
     
-
+    -- Show/Hide buttons based on steps
+    if stepNum > 1 then prevBtn:Show() else prevBtn:Hide() end
+    if stepNum <= stepTotal then nextBtn:Show() else nextBtn:Hide() end
     
     -- Compact mode: hide text, shrink frame
     if isCompact then
         titleText:Hide()
         stepText:Hide()
-        statusFrame:SetHeight(44)
+        prevBtn:Hide()
+        nextBtn:Hide()
+        statusFrame:SetHeight(30)
     else
         titleText:Show()
         stepText:Show()
         local textHeight = stepText:GetStringHeight() or 16
-        statusFrame:SetHeight(math.max(70, 44 + textHeight))
+        statusFrame:SetHeight(math.max(64, 40 + textHeight))
     end
     
     -- Smooth fade in
@@ -158,6 +224,7 @@ local function UpdateStatusFrame(dungeonName, stepDesc, stepNum, stepTotal)
         statusFrame:Show()
         UIFrameFadeIn(statusFrame, 0.2, 0, 1)
     end
+    PulseGlow()
 end
 
 local function HideStatusFrame()
@@ -339,6 +406,7 @@ local function CheckDistance()
                 currentStepIndex = currentStepIndex + 1
                 SetWaypointStep(currentStepIndex)
                 UpdateToggleButton() -- Refresh step progress
+                PulseGlow()
             end
         end
     else

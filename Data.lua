@@ -3,6 +3,7 @@ local _, ADW = ...
 -- We will store everything in the ADW namespace.
 -- Route Database
 -- Each route is an array of steps: { mapID, x, y, desc }
+-- ROUTES ARE DYNAMIC: They can have any number of steps (1, 3, 10, etc.)
 -- All routes assume the player starts in Silvermoon City (UiMapID 2393)
 -- ============================================================================
 
@@ -27,6 +28,7 @@ ADW.Routes = {
     ["windrunner"] = {
         { mapID = 2393, x = 0.5510, y = 0.7030, desc = "Head to the south gate (Shepherd's Gate) of Silvermoon City" },
         { mapID = 2395, x = 0.4800, y = 0.5500, desc = "You're in Eversong Woods — fly south-west toward the spire" },
+        { mapID = 2395, x = 0.3800, y = 0.7000, desc = "Approach the outer defenses of the Spire" },
         { mapID = 2395, x = 0.3560, y = 0.7880, desc = "Windrunner Spire entrance is here" },
     },
 
