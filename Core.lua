@@ -72,6 +72,23 @@ local function LogError(msg) Log("ERROR", msg) end
 -- ============================================================================
 local statusFrame = CreateFrame("Frame", "ADWStatusFrame", UIParent, "BackdropTemplate")
 statusFrame:SetSize(300, 70) -- Slightly wider for icon
+statusFrame:SetPoint("TOP", UIParent, "TOP", 0, -60) -- Default position
+statusFrame:SetMovable(true)
+statusFrame:EnableMouse(true)
+statusFrame:RegisterForDrag("LeftButton")
+statusFrame:SetScript("OnDragStart", function(self)
+    if IsShiftKeyDown() then
+        self:StartMoving()
+    end
+end)
+statusFrame:SetScript("OnDragStop", function(self)
+    self:StopMovingOrSizing()
+    local point, _, relPoint, x, y = self:GetPoint()
+    if AutoDungeonWaypointDB then
+        AutoDungeonWaypointDB.StatusFramePos = { point, relPoint, x, y }
+    end
+end)
+
 -- Backdrop layers for "Obsidian Glass" effect
 local bg = statusFrame:CreateTexture(nil, "BACKGROUND")
 bg:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
@@ -79,7 +96,7 @@ bg:SetAllPoints()
 bg:SetVertexColor(0.02, 0.02, 0.05, 0.9) -- Very dark, almost black
 
 local glass = statusFrame:CreateTexture(nil, "BORDER")
-glass:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal")
+ glass:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal")
 glass:SetAllPoints()
 glass:SetAlpha(0.05) -- Subtle texture
 glass:SetBlendMode("ADD")
@@ -852,7 +869,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             local adwBroker = LDB:NewDataObject("AutoDungeonWaypoint", {
                 type = "launcher",
                 text = "Auto Dungeon Waypoint",
-                icon = "Interface\\AddOns\\AutoDungeonWaypoint\\assets\\logo_400",
+                icon = "Interface\\Icons\\INV_Misc_Map_01",
                 OnClick = function(_, button)
                     if button == "LeftButton" then
                         -- Open dungeon selector menu
@@ -880,7 +897,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             LogInfo("Minimap button registered via LibDBIcon.")
         end
         
-        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "4.4.0") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
+        LogInfo("Addon loaded. Version " .. (C_AddOns.GetAddOnMetadata(ADW_NAME, "Version") or "4.6.3") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
         self:UnregisterEvent("ADDON_LOADED")
         return
     end
