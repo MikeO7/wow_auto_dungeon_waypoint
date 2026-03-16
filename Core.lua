@@ -4,8 +4,11 @@ local ADW_NAME = "AutoDungeonWaypoint"
 -- API Compatibility for WoW 12.0.1+ (Midnight)
 local GetAddOnMetadata = GetAddOnMetadata or (C_AddOns and C_AddOns.GetAddOnMetadata) or function() return nil end
 
--- Expose to global for SavedVariables and debugging
+-- Expose to global for SavedVariables, debugging, and Bindings.xml
 AutoDungeonWaypoint = ADW
+_G["BINDING_HEADER_ADW"] = "Auto Dungeon Waypoint"
+_G["BINDING_NAME_ADW_TOGGLEHUD"] = "Toggle HUD"
+_G["BINDING_NAME_ADW_STOP"] = "Stop Route"
 
 -- ============================================================================
 -- State
