@@ -97,6 +97,9 @@ ADW.Routes = {
 -- LFG Activity ID -> Route Key mapping
 -- Mythic Keystone (difficulty = 4) Activity IDs sourced from premade-groups-filter Activity.lua
 ADW.LFGToRoute = {
+    [1143] = "magisters",       -- Magister's Terrace (Normal)
+    [1144] = "magisters",       -- Magister's Terrace (Heroic)
+    [1145] = "magisters",       -- Magister's Terrace (Timewalking)
     [1542] = "windrunner",      -- Windrunner Spire (Mythic Keystone)
     [1760] = "magisters",       -- Magisters' Terrace (Mythic Keystone)
     [1764] = "maisara",         -- Maisara Caverns (Mythic Keystone)

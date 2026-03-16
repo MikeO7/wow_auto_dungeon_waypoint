@@ -112,11 +112,7 @@ stepText:SetWidth(230)
 stepText:SetWordWrap(true)
 stepText:SetText("")
 
--- Distance line (left-aligned, where arrow used to be)
-local distanceText = statusFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-distanceText:SetPoint("BOTTOMLEFT", statusFrame, "BOTTOMLEFT", 10, 8)
-distanceText:SetTextColor(0.8, 0.8, 0.8)
-distanceText:SetText("")
+
 
 statusFrame:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
@@ -126,17 +122,7 @@ statusFrame:SetScript("OnEnter", function(self)
 end)
 statusFrame:SetScript("OnLeave", GameTooltip_Hide)
 
--- Progress Bar
-local progressBar = CreateFrame("StatusBar", nil, statusFrame)
-progressBar:SetSize(260, 6)
-progressBar:SetPoint("BOTTOM", statusFrame, "BOTTOM", 0, 4)
-progressBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-progressBar:SetStatusBarColor(0, 0.75, 1, 0.9)
-progressBar:SetMinMaxValues(0, 1)
-progressBar:SetValue(0)
-local progressBG = progressBar:CreateTexture(nil, "BACKGROUND")
-progressBG:SetAllPoints()
-progressBG:SetColorTexture(0, 0, 0, 0.4)
+
 
 statusFrame:Hide()
 
@@ -152,9 +138,7 @@ local function UpdateStatusFrame(dungeonName, stepDesc, stepNum, stepTotal)
         stepText:SetText(stepDesc)
     end
     
-    -- Update progress bar
-    progressBar:SetMinMaxValues(0, stepTotal)
-    progressBar:SetValue(stepNum)
+
     
     -- Compact mode: hide text, shrink frame
     if isCompact then
@@ -260,7 +244,6 @@ local function ClearRoute()
     activeRouteKey = nil
     currentStepIndex = 0
     totalSteps = 0
-    distanceText:SetText("")
     HideStatusFrame()
     UpdateToggleButton() -- Refresh button label
 end
@@ -349,15 +332,7 @@ local function CheckDistance()
                 etaStr = "stopped"
             end
             
-            if yards < 40 then
-                distanceText:SetTextColor(0, 1, 0) -- Green
-            elseif yards < 100 then
-                distanceText:SetTextColor(1, 0.8, 0) -- Yellow
-            else
-                distanceText:SetTextColor(0.8, 0.8, 0.8) -- Gray/White
-            end
-            
-            distanceText:SetText(tostring(yards) .. "yd (" .. etaStr .. ")")
+
 
             -- 2. Check for Arrival
             if distSq < 0.04 then -- Trigger distance
@@ -367,7 +342,7 @@ local function CheckDistance()
             end
         end
     else
-        distanceText:SetText("")
+
         
         local nextStep = activeRoute[currentStepIndex + 1]
         if nextStep and currentMapID == nextStep.mapID then
@@ -709,6 +684,22 @@ function ADW.ProcessActivityID(activityID, isSilent)
     if not activityID then return end
     
     local routeKey = ADW.LFGToRoute[activityID]
+    
+    -- Fallback: Fuzzy name matching if ID is unknown
+    if not routeKey then
+        local info = C_LFGList.GetActivityInfoTable(activityID)
+        if info and info.fullName then
+            local lowerName = info.fullName:lower()
+            for key, name in pairs(ADW.RouteNames) do
+                if lowerName:find(name:lower(), 1, true) then
+                    routeKey = key
+                    LogInfo("Fuzzy match found: '" .. info.fullName .. "' -> " .. key)
+                    break
+                end
+            end
+        end
+    end
+
     if routeKey then
         -- Avoid restarting the same route if it's already active
         if activeRouteKey == routeKey then return end
@@ -722,9 +713,8 @@ function ADW.ProcessActivityID(activityID, isSilent)
     else
         if not isSilent then
             LogWarn("No route for ActivityID=" .. tostring(activityID))
-            if debugMode then
-                Print(GRAY .. "[Debug] Unmapped Activity ID: " .. tostring(activityID) .. "|r")
-            end
+            -- Always print unmapped ID to help user report it
+            Print(GRAY .. "Dungeon activity detected (ID: " .. YELLOW .. tostring(activityID) .. GRAY .. "), but no route is mapped. Please report this ID!|r")
         end
     end
 end
@@ -805,7 +795,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             LogInfo("Minimap button registered via LibDBIcon.")
         end
         
-        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "4.3.0") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
+        LogInfo("Addon loaded. Version " .. (GetAddOnMetadata(ADW_NAME, "Version") or "4.4.0") .. ". AutoRoute=" .. tostring(AutoDungeonWaypointDB.AutoRouteEnabled))
         self:UnregisterEvent("ADDON_LOADED")
         return
     end

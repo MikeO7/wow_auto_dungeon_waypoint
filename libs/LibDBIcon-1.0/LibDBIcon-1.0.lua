@@ -3,7 +3,7 @@
 -- Based on LibDBIcon-1.0 by funkehdude
 -- License: Public Domain
 
-local DBICON_MAJOR, DBICON_MINOR = "LibDBIcon-1.0", 1
+local DBICON_MAJOR, DBICON_MINOR = "LibDBIcon-1.0", 100
 local lib = LibStub:NewLibrary(DBICON_MAJOR, DBICON_MINOR)
 if not lib then return end
 
@@ -61,6 +61,14 @@ local function updatePosition(button, db)
     button:SetPoint("CENTER", Minimap, "CENTER", x * edge, y * edge)
 end
 
+local function updateCoord(self)
+    if self.dataObject.iconCoords then
+        self.icon:SetTexCoord(unpack(self.dataObject.iconCoords))
+    else
+        self.icon:SetTexCoord(0, 1, 0, 1)
+    end
+end
+
 local function onDragStart(self)
     self:LockHighlight()
     self.isMouseDown = true
@@ -109,6 +117,7 @@ function lib:Register(name, dataObject, db)
     button.icon = icon
     button.dataObject = dataObject
     button.db = db
+    button.UpdateCoord = updateCoord
 
     button:SetScript("OnEnter", onEnter)
     button:SetScript("OnLeave", onLeave)
