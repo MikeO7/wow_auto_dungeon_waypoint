@@ -302,8 +302,23 @@ local function SetWaypointStep(index)
     end
 end
 
+local function ReApplyWaypointIfMissing()
+    if not activeRoute or not activeRoute[currentStepIndex] then return end
+    if not C_Map.HasUserWaypoint() then
+        -- Game or another addon cleared our waypoint; stick it back
+        local step = activeRoute[currentStepIndex]
+        local point = UiMapPoint.CreateFromCoordinates(step.mapID, step.x, step.y)
+        C_Map.SetUserWaypoint(point)
+        C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+        LogInfo("Waypoint re-applied (detected missing)")
+    end
+end
+
 local function CheckDistance()
     if not activeRoute then return end
+    
+    -- Heartbeat: ensure our waypoint still exists
+    ReApplyWaypointIfMissing()
 
     local step = activeRoute[currentStepIndex]
     if not step then return end
@@ -815,6 +830,9 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                 Print(GREEN .. "You've entered " .. name .. "! Route cleared.|r")
                 PlaySound(8659) -- SOUNDKIT.UI_RAID_BOSS_DEFEATED_LG
                 ClearRoute()
+            elseif activeRoute then
+                -- Standard reload or transition: re-stick the waypoint
+                SetWaypointStep(currentStepIndex)
             end
         end
         return
@@ -874,6 +892,9 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         if furthestIndex > currentStepIndex then
             LogInfo(string.format("Zone/Continent sync detected. Jumping from step %d to %d (MapID %d)", currentStepIndex, furthestIndex, currentMapID))
             currentStepIndex = furthestIndex
+            SetWaypointStep(currentStepIndex)
+        else
+            -- Even if we didn't advance, re-apply the waypoint to handle zone-line clearing
             SetWaypointStep(currentStepIndex)
         end
         return

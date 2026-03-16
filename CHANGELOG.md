@@ -1,5 +1,9 @@
 # Changelog
 
+## v4.3.5 (Zone Transition Fix)
+- **Sticky Waypoints**: Implemented a "heartbeat" check that ensures the Blizzard and TomTom waypoints are re-applied if cleared by zone transitions, continent boundaries, or loading screens.
+- **Improved Map Sync**: Enhanced `ZONE_CHANGED_NEW_AREA` and `PLAYER_ENTERING_WORLD` handlers to bridge loading screens more reliably.
+
 ## v4.3.4 (Final Binding Fix)
 - **Binding Fix**: Standardized `Bindings.xml` to fix "Unrecognized XML attribute" and duplicate header warnings.
 - **Global Strings**: Added `BINDING_HEADER_ADW` and name strings for better menu readability.
