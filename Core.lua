@@ -71,75 +71,61 @@ local function LogError(msg) Log("ERROR", msg) end
 -- Status Frame (HUD widget showing current step)
 -- ============================================================================
 local statusFrame = CreateFrame("Frame", "ADWStatusFrame", UIParent, "BackdropTemplate")
-statusFrame:SetSize(280, 60)
-statusFrame:SetPoint("TOP", UIParent, "TOP", 0, -60)
-statusFrame:SetMovable(true)
-statusFrame:EnableMouse(true)
-statusFrame:RegisterForDrag("LeftButton")
-statusFrame:SetScript("OnDragStart", function(self)
-    if IsShiftKeyDown() then
-        self:StartMoving()
-    end
-end)
-statusFrame:SetScript("OnDragStop", function(self)
-    self:StopMovingOrSizing()
-    local point, _, relPoint, x, y = self:GetPoint()
-    if AutoDungeonWaypointDB then
-        AutoDungeonWaypointDB.StatusFramePos = { point, relPoint, x, y }
-    end
-end)
-statusFrame:SetBackdrop({
-    bgFile   = "Interface\\ChatFrame\\ChatFrameBackground",
-    edgeFile = "Interface\\Buttons\\WHITE8X8",
-    tile     = true,
-    tileSize = 16,
-    edgeSize = 1,
-    insets   = { left = 0, right = 0, top = 0, bottom = 0 },
-})
-statusFrame:SetBackdropColor(0.05, 0.05, 0.1, 0.85) -- Deep midnight glass
-statusFrame:SetBackdropBorderColor(0, 0.6, 1, 0.3) -- Subtle blue edge
+statusFrame:SetSize(300, 70) -- Slightly wider for icon
+-- Backdrop layers for "Obsidian Glass" effect
+local bg = statusFrame:CreateTexture(nil, "BACKGROUND")
+bg:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
+bg:SetAllPoints()
+bg:SetVertexColor(0.02, 0.02, 0.05, 0.9) -- Very dark, almost black
+
+local glass = statusFrame:CreateTexture(nil, "BORDER")
+glass:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal")
+glass:SetAllPoints()
+glass:SetAlpha(0.05) -- Subtle texture
+glass:SetBlendMode("ADD")
+
+-- Gradient Border
+local border = statusFrame:CreateTexture(nil, "OVERLAY")
+border:SetTexture("Interface\\Common\\WhiteSecondary-1x1")
+border:SetPoint("TOPLEFT")
+border:SetPoint("BOTTOMRIGHT")
+border:SetAlpha(0.2)
+statusFrame.Border = border
 
 -- Glow effect texture
-local glow = statusFrame:CreateTexture(nil, "BACKGROUND")
+local glow = statusFrame:CreateTexture(nil, "BACKGROUND", nil, -1)
 glow:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Alert-Glow")
 glow:SetBlendMode("ADD")
-glow:SetPoint("TOPLEFT", -20, 20)
-glow:SetPoint("BOTTOMRIGHT", 20, -20)
+glow:SetPoint("TOPLEFT", -15, 15)
+glow:SetPoint("BOTTOMRIGHT", 15, -15)
+glow:SetVertexColor(0, 0.6, 1, 0.5)
 glow:SetAlpha(0)
 statusFrame.Glow = glow
 
 local function PulseGlow()
-    UIFrameFadeIn(glow, 0.2, 0, 0.6)
-    C_Timer.After(0.3, function() UIFrameFadeOut(glow, 0.5, 0.6, 0) end)
+    UIFrameFadeIn(glow, 0.15, 0, 0.6)
+    C_Timer.After(0.2, function() UIFrameFadeOut(glow, 0.4, 0.6, 0) end)
 end
 
+-- Dynamic Icon
+local stepIcon = statusFrame:CreateTexture(nil, "OVERLAY")
+stepIcon:SetSize(32, 32)
+stepIcon:SetPoint("LEFT", statusFrame, "LEFT", 30, 0)
+stepIcon:SetTexture("Interface\\Icons\\INV_Misc_Map_01")
+
 -- Title line
-local titleText = statusFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-titleText:SetPoint("TOP", statusFrame, "TOP", 0, -8)
-titleText:SetTextColor(0.0, 0.75, 1.0)
+local titleText = statusFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalMed3")
+titleText:SetPoint("TOPLEFT", stepIcon, "TOPRIGHT", 12, -4)
+titleText:SetTextColor(0.0, 0.9, 1.0) -- Brighter blue
 titleText:SetText("Auto Dungeon Waypoint")
 
 -- Step description line
-local stepText = statusFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-stepText:SetPoint("TOP", titleText, "BOTTOM", 0, -4)
-stepText:SetWidth(230)
+local stepText = statusFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+stepText:SetPoint("TOPLEFT", titleText, "BOTTOMLEFT", 0, -2)
+stepText:SetPoint("RIGHT", statusFrame, "RIGHT", -35, 0)
+stepText:SetJustifyH("LEFT")
 stepText:SetWordWrap(true)
 stepText:SetText("")
-
--- Manual Navigation Buttons
-local prevBtn = CreateFrame("Button", nil, statusFrame)
-prevBtn:SetSize(20, 20)
-prevBtn:SetPoint("LEFT", statusFrame, "LEFT", 8, 0)
-prevBtn:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
-prevBtn:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Down")
-prevBtn:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
-
-local nextBtn = CreateFrame("Button", nil, statusFrame)
-nextBtn:SetSize(20, 20)
-nextBtn:SetPoint("RIGHT", statusFrame, "RIGHT", -8, 0)
-nextBtn:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
-nextBtn:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
-nextBtn:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
 
 local function PrevStep()
     if not activeRoute or currentStepIndex <= 1 then return end
@@ -157,7 +143,21 @@ local function NextStep()
     PulseGlow()
 end
 
+-- Manual Navigation Buttons (Integrated "Jewelry" Look)
+local prevBtn = CreateFrame("Button", nil, statusFrame)
+prevBtn:SetSize(24, 24)
+prevBtn:SetPoint("LEFT", statusFrame, "LEFT", 4, 0)
+prevBtn:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
+prevBtn:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Down")
+prevBtn:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
 prevBtn:SetScript("OnClick", PrevStep)
+
+local nextBtn = CreateFrame("Button", nil, statusFrame)
+nextBtn:SetSize(24, 24)
+nextBtn:SetPoint("RIGHT", statusFrame, "RIGHT", -4, 0)
+nextBtn:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
+nextBtn:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
+nextBtn:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
 nextBtn:SetScript("OnClick", NextStep)
 
 prevBtn:SetScript("OnEnter", function(self)
@@ -196,26 +196,43 @@ local function UpdateStatusFrame(dungeonName, stepDesc, stepNum, stepTotal)
     if dungeonName then
         titleText:SetText(ADDON_COLOR .. dungeonName .. "|r")
     end
+    
     if stepDesc then
-        stepText:SetText(GRAY .. "Step " .. stepNum .. "/" .. stepTotal .. ":|r " .. WHITE .. stepDesc .. "|r")
+        stepText:SetText(stepDesc)
+        
+        -- Dynamic Icon switching based on keywords
+        local desc = stepDesc:lower()
+        if desc:find("portal") or desc:find("gate") then
+            stepIcon:SetTexture("Interface\\Icons\\Spell_Arcane_PortalDalaran")
+        elseif desc:find("entrance") or desc:find("is here") then
+            stepIcon:SetTexture("Interface\\Icons\\INV_Misc_GroupLookingForGroup")
+        elseif desc:find("fly") or desc:find("travel") then
+            stepIcon:SetTexture("Interface\\Icons\\Ability_Mount_MechaStrider")
+        else
+            stepIcon:SetTexture("Interface\\Icons\\INV_Misc_Compass_01")
+        end
     end
     
     -- Show/Hide buttons based on steps
     if stepNum > 1 then prevBtn:Show() else prevBtn:Hide() end
-    if stepNum <= stepTotal then nextBtn:Show() else nextBtn:Hide() end
+    if stepNum < stepTotal then nextBtn:Show() else nextBtn:Hide() end
     
-    -- Compact mode: hide text, shrink frame
+    -- Compact mode: hide text and icon, simple label
     if isCompact then
         titleText:Hide()
         stepText:Hide()
+        stepIcon:Hide()
         prevBtn:Hide()
         nextBtn:Hide()
-        statusFrame:SetHeight(30)
+        statusFrame:SetHeight(26)
+        statusFrame:SetWidth(200)
     else
         titleText:Show()
         stepText:Show()
-        local textHeight = stepText:GetStringHeight() or 16
-        statusFrame:SetHeight(math.max(64, 40 + textHeight))
+        stepIcon:Show()
+        local textHeight = stepText:GetStringHeight() or 12
+        statusFrame:SetHeight(math.max(50, 36 + textHeight))
+        statusFrame:SetWidth(300)
     end
     
     -- Smooth fade in
