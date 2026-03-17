@@ -1,5 +1,9 @@
 # Changelog
 
+## v5.1.2 (Orgrimmar Coordinate Fix)
+- **Portal Precision**: Fixed the Orgrimmar Portal Room waypoint which was displaced due to an incorrect Map ID.
+- **Accurate Branding**: Waypoints for Valdrakken, Dalaran, and Ashran now point exactly to their portal objects within the Orgrimmar city map (ID 85).
+
 ## v5.1.1 (Midnight Expansion Alignment)
 - **Silvermoon Hub Revamp**: Aligned all routes with the redesigned Silvermoon City in the *Midnight* expansion.
 - **Orgrimmar Relay**: Added a necessary hop through the Orgrimmar Portal Room for all legacy dungeons (Valdrakken, Dalaran, Ashran), reflecting the new Silvermoon-to-Orgrimmar link.
