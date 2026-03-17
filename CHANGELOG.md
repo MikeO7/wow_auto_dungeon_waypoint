@@ -1,5 +1,12 @@
 # Changelog
 
+## v5.1.1 (Midnight Expansion Alignment)
+- **Silvermoon Hub Revamp**: Aligned all routes with the redesigned Silvermoon City in the *Midnight* expansion.
+- **Orgrimmar Relay**: Added a necessary hop through the Orgrimmar Portal Room for all legacy dungeons (Valdrakken, Dalaran, Ashran), reflecting the new Silvermoon-to-Orgrimmar link.
+- **New Portal Coordinates**: Updated coordinates for the new Silvermoon Portal Room (Wayfarer's Rest area) and Timeways Building (for Isle of Quel'Danas).
+- **Legion/BFA Routes Fixed**: Corrected waypoint paths for Seat of the Triumvirate and other legacy portals that moved in the capital city redesign.
+- **Improved Flight Logic**: Fixed South Gate exit steps for local Quel'Thalas dungeons.
+
 ## v5.1.0 (Navigation & LFG Overhaul)
 - **High-Speed Optimized**: Optimized heartbeat (0.1s) and arrival radius (25yd) for Skyriding at 830% speed.
 - **Loop Prevention**: Consolidated simple routes to single-step targets to eliminate "snap-back" loops.

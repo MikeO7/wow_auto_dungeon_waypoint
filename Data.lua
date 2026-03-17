@@ -28,18 +28,22 @@ ADW.Routes = {
     -- Midnight Expansion Dungeons (Optimized for Speed)
     -- =========================================================================
 
-    -- Windrunner Spire: Silvermoon South Gate -> Entrance
+    -- Windrunner Spire: Silvermoon -> Eversong
     ["windrunner"] = {
+        { mapID = 2393, x = 0.5510, y = 0.7030, desc = "Exit via South Gate (Shepherd's Gate)" },
         { mapID = 2395, x = 0.3560, y = 0.7880, desc = "Fly to the Spire Entrance in Eversong Woods" },
     },
 
-    -- Magister's Terrace: Silvermoon North Gate -> Entrance
+    -- Magister's Terrace: Silvermoon -> Timeways -> Isle
     ["magisters"] = {
+        { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Silvermoon Portal Room (Wayfarer's Rest)" },
+        { mapID = 2393, x = 0.4080, y = 0.5940, desc = "Take the Isle of Quel'Danas portal (Timeways Building)" },
         { mapID = 2424, x = 0.6240, y = 0.1450, desc = "Fly to the Magister's Terrace entrance" },
     },
 
-    -- Maisara Caverns: Silvermoon South Gate -> Entrance
+    -- Maisara Caverns: Silvermoon -> Eversong
     ["maisara"] = {
+        { mapID = 2393, x = 0.5510, y = 0.7030, desc = "Exit via South Gate (Shepherd's Gate)" },
         { mapID = 2437, x = 0.4390, y = 0.3970, desc = "Fly to the Caverns entrance" },
     },
 
@@ -49,30 +53,34 @@ ADW.Routes = {
     },
 
     -- =========================================================================
-    -- Legacy Mythic+ Dungeons (Optimized for Speed)
+    -- Legacy Mythic+ Dungeons (Orgrimmar Relay required)
     -- =========================================================================
 
-    -- Algeth'ar Academy: Portal Room Valdrakken -> Entrance
+    -- Algeth'ar Academy: Silvermoon -> Orgrimmar -> Valdrakken -> Entrance
     ["algethar"] = {
-        { mapID = 2393, x = 0.5330, y = 0.6610, desc = "Take the Valdrakken portal in the Portal Room" },
+        { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Take the Orgrimmar portal (Portal Room)" },
+        { mapID = 1,    x = 0.4900, y = 0.7700, desc = "Take the Valdrakken portal (Orgrimmar Portal Room)" },
         { mapID = 2025, x = 0.5820, y = 0.4240, desc = "Fly North-East from Valdrakken to the Tower" },
     },
 
-    -- Seat of the Triumvirate: Portal Room Dalaran (Legion) -> Entrance
+    -- Seat of the Triumvirate: Silvermoon -> Orgrimmar -> Dalaran -> Entrance
     ["seattriumvirate"] = {
-        { mapID = 2393, x = 0.5330, y = 0.6610, desc = "Take the Dalaran (Legion) portal" },
+        { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Take the Orgrimmar portal (Portal Room)" },
+        { mapID = 1,    x = 0.4900, y = 0.7700, desc = "Take the Azsuna/Dalaran portal (Orgrimmar Portal Room)" },
         { mapID = 882,  x = 0.2230, y = 0.5610, desc = "Take Argus portal (Krasus' Landing) -> Entrance" },
     },
 
-    -- Skyreach: Portal Room Ashran -> Entrance
+    -- Skyreach: Silvermoon -> Orgrimmar -> Ashran -> Entrance
     ["skyreach"] = {
-        { mapID = 2393, x = 0.5330, y = 0.6610, desc = "Take the Ashran portal in the Portal Room" },
+        { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Take the Orgrimmar portal (Portal Room)" },
+        { mapID = 1,    x = 0.4900, y = 0.7700, desc = "Take the Ashran portal (Orgrimmar Portal Room)" },
         { mapID = 542,  x = 0.3550, y = 0.3350, desc = "Fly directly South to the Skyreach entrance" },
     },
 
-    -- Pit of Saron: Portal Room Dalaran (Northrend) -> Entrance
+    -- Pit of Saron: Silvermoon -> Orgrimmar -> Dalaran -> Entrance
     ["pitofsaron"] = {
-        { mapID = 2393, x = 0.5330, y = 0.6610, desc = "Take the Dalaran (Northrend) portal" },
+        { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Take the Orgrimmar portal (Portal Room)" },
+        { mapID = 1,    x = 0.5850, y = 0.8950, desc = "Take the Dalaran portal (Lower Portal Room)" },
         { mapID = 118,  x = 0.5380, y = 0.8710, desc = "Fly South-East to Icecrown Citadel (Frozen Halls)" },
     },
 }
@@ -82,7 +90,9 @@ ADW.LFGToRoute = {
     [1143] = "magisters",       -- Magister's Terrace (Normal)
     [1144] = "magisters",       -- Magister's Terrace (Heroic)
     [1145] = "magisters",       -- Magister's Terrace (Timewalking)
+    [1541] = "windrunner",      -- Windrunner Spire (Mythic)
     [1542] = "windrunner",      -- Windrunner Spire (Mythic Keystone)
+    [1759] = "magisters",       -- Magisters' Terrace (Mythic)
     [1760] = "magisters",       -- Magisters' Terrace (Mythic Keystone)
     [1764] = "maisara",         -- Maisara Caverns (Mythic Keystone)
     [1768] = "nexuspoint",      -- Nexus-Point Xenas (Mythic Keystone)
