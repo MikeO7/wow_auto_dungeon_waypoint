@@ -45,40 +45,40 @@ ADW.Routes = {
 
     -- Nexus-Point Xenas: Silvermoon -> Voidstorm Portal -> Entrance
     ["nexuspoint"] = {
-        { mapID = 2393, x = 0.3528, y = 0.6565, desc = "Take the Voidstorm Portal (Gardens of Remembrance)" },
+        { mapID = 2393, x = 0.3530, y = 0.6550, desc = "Take the Voidstorm Portal (Gardens of Remembrance)" },
         { mapID = 2405, x = 0.5362, y = 0.3545, desc = "Fly directly to the Nexus-Point Xenas entrance" },
     },
 
     -- =========================================================================
-    -- Legacy Mythic+ Dungeons (Orgrimmar Relay required)
+    -- Legacy Mythic+ Dungeons (Timeways Relay)
     -- =========================================================================
 
-    -- Algeth'ar Academy: Silvermoon -> Orgrimmar -> Valdrakken -> Entrance
+    -- Algeth'ar Academy: Silvermoon -> Timeways -> Entrance
     ["algethar"] = {
-        { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Take the Orgrimmar portal (Portal Room)" },
-        { mapID = 85,   x = 0.5712, y = 0.8769, desc = "Take the Valdrakken portal (Orgrimmar Portal Room)" },
-        { mapID = 2025, x = 0.5810, y = 0.4260, desc = "Fly North-East from Valdrakken to the Tower" },
+        { mapID = 2393, x = 0.4230, y = 0.5830, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
+        { mapID = 2339, x = 0.6390, y = 0.1580, desc = "Take the Algeth'ar Academy portal" },
+        { mapID = 2025, x = 0.5830, y = 0.4240, desc = "Fly North-East to the Academy entrance" },
     },
 
-    -- Seat of the Triumvirate: Silvermoon -> Orgrimmar -> Azsuna -> Entrance
+    -- Seat of the Triumvirate: Silvermoon -> Timeways -> Entrance
     ["seattriumvirate"] = {
-        { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Take the Orgrimmar portal (Portal Room)" },
-        { mapID = 85,   x = 0.5712, y = 0.8769, desc = "Take the Azsuna/Dalaran portal (Orgrimmar Portal Room)" },
-        { mapID = 882,  x = 0.2230, y = 0.5610, desc = "Take Argus portal (Krasus' Landing) -> Entrance" },
+        { mapID = 2393, x = 0.4230, y = 0.5830, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
+        { mapID = 2339, x = 0.5700, y = 0.6090, desc = "Take the Seat of the Triumvirate portal" },
+        { mapID = 882,  x = 0.2220, y = 0.5620, desc = "Fly to the Triumvirate entrance" },
     },
 
-    -- Skyreach: Silvermoon -> Orgrimmar -> Ashran -> Entrance
+    -- Skyreach: Silvermoon -> Timeways -> Entrance
     ["skyreach"] = {
-        { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Take the Orgrimmar portal (Portal Room)" },
-        { mapID = 85,   x = 0.4930, y = 0.8410, desc = "Take the Ashran portal (Lower Portal Room)" },
-        { mapID = 542,  x = 0.3557, y = 0.3349, desc = "Fly directly South to the Skyreach entrance" },
+        { mapID = 2393, x = 0.4230, y = 0.5830, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
+        { mapID = 2339, x = 0.3520, y = 0.7840, desc = "Take the Skyreach portal" },
+        { mapID = 542,  x = 0.3560, y = 0.3360, desc = "Fly South-East to the Skyreach entrance" },
     },
 
-    -- Pit of Saron: Silvermoon -> Orgrimmar -> Dalaran -> Entrance
+    -- Pit of Saron: Silvermoon -> Timeways -> Entrance
     ["pitofsaron"] = {
-        { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Take the Orgrimmar portal (Portal Room)" },
-        { mapID = 85,   x = 0.5840, y = 0.8940, desc = "Take the Dalaran portal (Lower Portal Room)" },
-        { mapID = 118,  x = 0.5458, y = 0.9143, desc = "Fly South-East to Icecrown Citadel (Frozen Halls)" },
+        { mapID = 2393, x = 0.4230, y = 0.5830, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
+        { mapID = 2339, x = 0.2640, y = 0.7810, desc = "Take the Pit of Saron portal" },
+        { mapID = 118,  x = 0.5200, y = 0.8900, desc = "Fly to the Frozen Halls (Pit of Saron)" },
     },
 }
 
