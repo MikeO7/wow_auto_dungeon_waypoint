@@ -30,28 +30,24 @@ ADW.Routes = {
 
     -- Windrunner Spire: Silvermoon -> Eversong
     ["windrunner"] = {
-        { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Silvermoon Portal Room (Wayfarer's Rest)" },
         { mapID = 2393, x = 0.5510, y = 0.7030, desc = "Exit via South Gate (Shepherd's Gate)" },
         { mapID = 2395, x = 0.3563, y = 0.7887, desc = "Fly to the Spire Entrance in Eversong Woods" },
     },
 
     -- Magister's Terrace: Silvermoon -> Timeways -> Isle
     ["magisters"] = {
-        { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Silvermoon Portal Room (Wayfarer's Rest)" },
         { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Isle of Quel'Danas portal (Timeways Building)" },
         { mapID = 2424, x = 0.6239, y = 0.1455, desc = "Fly to the Magister's Terrace entrance" },
     },
 
     -- Maisara Caverns: Silvermoon -> Eversong
     ["maisara"] = {
-        { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Silvermoon Portal Room (Wayfarer's Rest)" },
         { mapID = 2393, x = 0.5510, y = 0.7030, desc = "Exit via South Gate (Shepherd's Gate)" },
         { mapID = 2437, x = 0.4393, y = 0.3971, desc = "Fly to the Caverns entrance" },
     },
 
     -- Nexus-Point Xenas: Silvermoon -> Voidstorm Portal -> Entrance
     ["nexuspoint"] = {
-        { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Silvermoon Portal Room (Wayfarer's Rest)" },
         { mapID = 2393, x = 0.3528, y = 0.6565, desc = "Take the Voidstorm Portal (Gardens of Remembrance)" },
         { mapID = 2405, x = 0.5362, y = 0.3545, desc = "Fly to the Nexus-Point Xenas entrance" },
     },
