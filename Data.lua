@@ -43,8 +43,9 @@ ADW.Routes = {
         { mapID = 2437, x = 0.4393, y = 0.3971, desc = "Fly directly to the Caverns entrance" },
     },
 
-    -- Nexus-Point Xenas: Direct Flight from Silvermoon
+    -- Nexus-Point Xenas: Silvermoon -> Voidstorm Portal -> Entrance
     ["nexuspoint"] = {
+        { mapID = 2393, x = 0.3528, y = 0.6565, desc = "Take the Voidstorm Portal (Gardens of Remembrance)" },
         { mapID = 2405, x = 0.5362, y = 0.3545, desc = "Fly directly to the Nexus-Point Xenas entrance" },
     },
 

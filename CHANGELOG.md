@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.1.8 (Nexus-Point Portal Restore)
+- **Nexus-Point Fix**: Restored the portal step for Nexus-Point Xenas. Since this dungeon is in Voidstorm and not reachable via direct flight from Silvermoon, the Gardens of Remembrance portal is now back in the route.
+
 ## v5.1.7 (HUD & Sync Fix)
 - **HUD Stability**: Fixed a race condition that caused the navigation HUD to disappear when switching routes quickly.
 - **Forced Sync**: Ensured all 1-step direct flight routes for Magister's Terrace and local dungeons are correctly deployed.
