@@ -176,38 +176,9 @@ statusFrame:SetScript("OnLeave", GameTooltip_Hide)
 local pendingHideTimer = nil
 statusFrame:Hide()
 
-function UpdateStatusFrame(dungeonName, stepDesc, stepNum, stepTotal)
-    if not AutoDungeonWaypointDB.ShowStatusFrame then return end
     if pendingHideTimer then pendingHideTimer:Cancel() pendingHideTimer = nil end
-    local isCompact = AutoDungeonWaypointDB.CompactMode
-    if dungeonName then titleText:SetText(ADDON_COLOR .. dungeonName .. "|r") end
-    if stepDesc then
-        stepText:SetText(stepDesc)
-        local desc = stepDesc:lower()
-        if desc:find("portal") or desc:find("gate") then
-            stepIcon:SetTexture("Interface\\Icons\\Spell_Arcane_PortalDalaran")
-        elseif desc:find("entrance") or desc:find("is here") then
-            stepIcon:SetTexture("Interface\\Icons\\INV_Misc_GroupLookingForGroup")
-        elseif desc:find("fly") or desc:find("travel") then
-            stepIcon:SetTexture("Interface\\Icons\\Ability_Mount_MechaStrider")
-        else
-            stepIcon:SetTexture("Interface\\Icons\\INV_Misc_Compass_01")
-        end
-    end
-    if isCompact then
-        titleText:Hide() stepText:Hide() stepIcon:Hide()
-        statusFrame:SetHeight(26) statusFrame:SetWidth(200)
-    else
-        titleText:Show() stepText:Show() stepIcon:Show()
-        local textHeight = stepText:GetStringHeight() or 12
-        statusFrame:SetHeight(math.max(50, 36 + textHeight)) statusFrame:SetWidth(300)
-    end
-    if not statusFrame:IsShown() then
-        statusFrame:SetAlpha(0) statusFrame:Show()
-        UIFrameFadeIn(statusFrame, 0.2, 0, 1)
-    else
-        statusFrame:SetAlpha(1)
-    end
+    statusFrame:Show()
+    statusFrame:SetAlpha(1)
 end
 
 function HideStatusFrame()

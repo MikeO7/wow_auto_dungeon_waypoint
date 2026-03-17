@@ -1,5 +1,9 @@
 # Changelog
 
+## v5.1.7 (HUD & Sync Fix)
+- **HUD Stability**: Fixed a race condition that caused the navigation HUD to disappear when switching routes quickly.
+- **Forced Sync**: Ensured all 1-step direct flight routes for Magister's Terrace and local dungeons are correctly deployed.
+
 ## v5.1.6 (Direct Flight Optimization)
 - **1-Step Travel**: Consolidated Magister's Terrace, Windrunner Spire, Maisara Caverns, and Nexus-Point Xenas into single-step direct flight waypoints.
 - **Portal Cleanup**: Removed redundant portal room detours for all local Quel'Thalas dungeons to support seamless Midnight flying.
