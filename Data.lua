@@ -25,31 +25,27 @@ ADW.RouteNames = {
 
 ADW.Routes = {
     -- =========================================================================
-    -- Midnight Expansion Dungeons (Direct Access)
+    -- Midnight Expansion Dungeons (Direct Flight Access)
     -- =========================================================================
 
-    -- Windrunner Spire: Silvermoon -> Eversong
+    -- Windrunner Spire: Direct Flight from Silvermoon
     ["windrunner"] = {
-        { mapID = 2393, x = 0.5510, y = 0.7030, desc = "Exit via South Gate (Shepherd's Gate)" },
-        { mapID = 2395, x = 0.3563, y = 0.7887, desc = "Fly to the Spire Entrance in Eversong Woods" },
+        { mapID = 2395, x = 0.3563, y = 0.7887, desc = "Fly directly to the Spire Entrance in Eversong Woods" },
     },
 
-    -- Magister's Terrace: Silvermoon -> Timeways -> Isle
+    -- Magister's Terrace: Direct Flight from Silvermoon
     ["magisters"] = {
-        { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Isle of Quel'Danas portal (Timeways Building)" },
-        { mapID = 2424, x = 0.6239, y = 0.1455, desc = "Fly to the Magister's Terrace entrance" },
+        { mapID = 2424, x = 0.6239, y = 0.1455, desc = "Fly directly to the Magister's Terrace entrance (Isle)" },
     },
 
-    -- Maisara Caverns: Silvermoon -> Eversong
+    -- Maisara Caverns: Direct Flight from Silvermoon
     ["maisara"] = {
-        { mapID = 2393, x = 0.5510, y = 0.7030, desc = "Exit via South Gate (Shepherd's Gate)" },
-        { mapID = 2437, x = 0.4393, y = 0.3971, desc = "Fly to the Caverns entrance" },
+        { mapID = 2437, x = 0.4393, y = 0.3971, desc = "Fly directly to the Caverns entrance" },
     },
 
-    -- Nexus-Point Xenas: Silvermoon -> Voidstorm Portal -> Entrance
+    -- Nexus-Point Xenas: Direct Flight from Silvermoon
     ["nexuspoint"] = {
-        { mapID = 2393, x = 0.3528, y = 0.6565, desc = "Take the Voidstorm Portal (Gardens of Remembrance)" },
-        { mapID = 2405, x = 0.5362, y = 0.3545, desc = "Fly to the Nexus-Point Xenas entrance" },
+        { mapID = 2405, x = 0.5362, y = 0.3545, desc = "Fly directly to the Nexus-Point Xenas entrance" },
     },
 
     -- =========================================================================

@@ -1,5 +1,9 @@
 # Changelog
 
+## v5.1.6 (Direct Flight Optimization)
+- **1-Step Travel**: Consolidated Magister's Terrace, Windrunner Spire, Maisara Caverns, and Nexus-Point Xenas into single-step direct flight waypoints.
+- **Portal Cleanup**: Removed redundant portal room detours for all local Quel'Thalas dungeons to support seamless Midnight flying.
+
 ## v5.1.5 (Surgical Audit Complete)
 - **Pixel-Perfect Hubs**: Every portal in Silvermoon (Midnight) and Orgrimmar (Pathfinder's Den) has been audited for 100% accuracy.
 - **Relay Optimization**: Refined the Orgrimmar Relay steps to ensure you land exactly on the portal triggers for Valdrakken, Dalaran, and Ashran.
