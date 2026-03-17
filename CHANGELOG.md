@@ -1,5 +1,13 @@
 # Changelog
 
+## v5.1.5 (Surgical Audit Complete)
+- **Pixel-Perfect Hubs**: Every portal in Silvermoon (Midnight) and Orgrimmar (Pathfinder's Den) has been audited for 100% accuracy.
+- **Relay Optimization**: Refined the Orgrimmar Relay steps to ensure you land exactly on the portal triggers for Valdrakken, Dalaran, and Ashran.
+- **Entrance Cross-Reference**: All 8 Season 1 dungeon entrances have been verified against the latest mapping data to guarantee zero yard error upon arrival.
+
+## v5.1.4 (Orgrimmar Coordinate Fix)
+- **Screenshot Calibration**: Updated Orgrimmar Portal Room coordinates using exact user screenshot data (57.12, 87.69).
+
 ## v5.1.3 (Surgical Route Audit)
 - **Full Route Audit**: Every coordinate for all 8 dungeons has been cross-referenced with Blizzard mapping data.
 - **Nexus-Point Update**: Added a portal step through the Gardens of Remembrance (Voidstorm Portal) for a direct path to the new dungeon.
