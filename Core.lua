@@ -232,6 +232,22 @@ menuBtn:SetSize(46, 26)
 menuBtn:SetPoint("LEFT", autoBtn, "RIGHT", 4, 0)
 menuBtn:SetText("List")
 
+autoBtn:RegisterForDrag("LeftButton")
+autoBtn:SetScript("OnDragStart", function() if IsShiftKeyDown() then controlBar:StartMoving() end end)
+autoBtn:SetScript("OnDragStop", function()
+    controlBar:StopMovingOrSizing()
+    local point, _, relPoint, x, y = controlBar:GetPoint()
+    if AutoDungeonWaypointDB then AutoDungeonWaypointDB.ToggleButtonPos = { point, relPoint, x, y } end
+end)
+
+menuBtn:RegisterForDrag("LeftButton")
+menuBtn:SetScript("OnDragStart", function() if IsShiftKeyDown() then controlBar:StartMoving() end end)
+menuBtn:SetScript("OnDragStop", function()
+    controlBar:StopMovingOrSizing()
+    local point, _, relPoint, x, y = controlBar:GetPoint()
+    if AutoDungeonWaypointDB then AutoDungeonWaypointDB.ToggleButtonPos = { point, relPoint, x, y } end
+end)
+
 function UpdateToggleButton()
     if not AutoDungeonWaypointDB then return end
     if AutoDungeonWaypointDB.AutoRouteEnabled then
@@ -560,15 +576,18 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
             end
         end
         if bestKey then StartRoute(bestKey) else Print(RED .. "No nearby dungeon routes found.|r") end
-    elseif cmd == "debuglog" then
-        Print(YELLOW .. "Recent Addon Logs:|r")
-        local logs = AutoDungeonWaypointDB.Logs or {}
-        local start = math.max(1, #logs - 10)
-        for i = start, #logs do
-            Print(GRAY .. logs[i] .. "|r")
+    elseif cmd == "move" then
+        if statusFrame:IsShown() then
+            HideStatusFrame()
+            Print("HUD hidden.")
+        else
+            UpdateStatusFrame("HUD Positioning", "Hold SHIFT and drag to move this frame. Type /adw move again to hide.", 1, 1)
+            statusFrame:Show()
+            statusFrame:SetAlpha(1)
+            Print("HUD shown for positioning.")
         end
     else
-        Print("Commands: /adw route <id>, /adw list, /adw nearest, /adw stop, /adw toggle, /adw debuglog")
+        Print("Commands: /adw route <id>, /adw list, /adw nearest, /adw stop, /adw toggle, /adw move, /adw debuglog")
     end
 end
 
