@@ -26,7 +26,7 @@ local tomtomUID = nil  -- Optional TomTom waypoint UID
 local lastStepAdvance = 0 -- Timestamp of last forward step
 
 -- Forward declarations to prevent nil errors (SetWaypointStep, etc.)
-local SetWaypointStep, UpdateToggleButton, UpdateStatusFrame, HideStatusFrame
+local SetWaypointStep, UpdateToggleButton, UpdateStatusFrame, HideStatusFrame, ShowStatusFrame
 
 -- ============================================================================
 -- Defaults for SavedVariables
@@ -137,6 +137,7 @@ stepText:SetPoint("RIGHT", statusFrame, "RIGHT", -10, 0)
 stepText:SetJustifyH("LEFT")
 stepText:SetWordWrap(true)
 stepText:SetText("")
+statusFrame:Hide()
 
 function ADW.ToggleHUD(enabled)
     local db = AutoDungeonWaypointDB
@@ -174,11 +175,27 @@ end)
 statusFrame:SetScript("OnLeave", GameTooltip_Hide)
 
 local pendingHideTimer = nil
-statusFrame:Hide()
 
+function ShowStatusFrame()
     if pendingHideTimer then pendingHideTimer:Cancel() pendingHideTimer = nil end
     statusFrame:Show()
     statusFrame:SetAlpha(1)
+end
+
+function UpdateStatusFrame(title, desc, current, total)
+    if not AutoDungeonWaypointDB or not AutoDungeonWaypointDB.ShowStatusFrame then return end
+    
+    if AutoDungeonWaypointDB.CompactMode then
+        titleText:SetText(string.format("|cFF00FF00%d/%d|r %s", current, total, title))
+        stepText:SetText("")
+        statusFrame:SetHeight(40)
+    else
+        titleText:SetText(title)
+        stepText:SetText(string.format("|cFFFFD100Step %d/%d:|r %s", current, total, desc or ""))
+        statusFrame:SetHeight(70)
+    end
+    
+    if not statusFrame:IsShown() then ShowStatusFrame() end
 end
 
 function HideStatusFrame()
