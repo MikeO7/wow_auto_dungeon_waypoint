@@ -32,26 +32,28 @@ ADW.Routes = {
     ["windrunner"] = {
         { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Silvermoon Portal Room (Wayfarer's Rest)" },
         { mapID = 2393, x = 0.5510, y = 0.7030, desc = "Exit via South Gate (Shepherd's Gate)" },
-        { mapID = 2395, x = 0.3560, y = 0.7880, desc = "Fly to the Spire Entrance in Eversong Woods" },
+        { mapID = 2395, x = 0.3563, y = 0.7887, desc = "Fly to the Spire Entrance in Eversong Woods" },
     },
 
     -- Magister's Terrace: Silvermoon -> Timeways -> Isle
     ["magisters"] = {
         { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Silvermoon Portal Room (Wayfarer's Rest)" },
-        { mapID = 2393, x = 0.4080, y = 0.5940, desc = "Take the Isle of Quel'Danas portal (Timeways Building)" },
-        { mapID = 2424, x = 0.6240, y = 0.1450, desc = "Fly to the Magister's Terrace entrance" },
+        { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Isle of Quel'Danas portal (Timeways Building)" },
+        { mapID = 2424, x = 0.6239, y = 0.1455, desc = "Fly to the Magister's Terrace entrance" },
     },
 
     -- Maisara Caverns: Silvermoon -> Eversong
     ["maisara"] = {
         { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Silvermoon Portal Room (Wayfarer's Rest)" },
         { mapID = 2393, x = 0.5510, y = 0.7030, desc = "Exit via South Gate (Shepherd's Gate)" },
-        { mapID = 2437, x = 0.4390, y = 0.3970, desc = "Fly to the Caverns entrance" },
+        { mapID = 2437, x = 0.4393, y = 0.3971, desc = "Fly to the Caverns entrance" },
     },
 
-    -- Nexus-Point Xenas: West Silvermoon Portal -> Entrance
+    -- Nexus-Point Xenas: West Silvermoon -> Voidstorm -> Entrance
     ["nexuspoint"] = {
-        { mapID = 2405, x = 0.6475, y = 0.6175, desc = "Fly to the Nexus-Point Xenas entrance" },
+        { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Silvermoon Portal Room (Wayfarer's Rest)" },
+        { mapID = 2393, x = 0.3528, y = 0.6565, desc = "Take the Voidstorm Portal (Gardens of Remembrance)" },
+        { mapID = 2405, x = 0.5362, y = 0.3545, desc = "Fly to the Nexus-Point Xenas entrance" },
     },
 
     -- =========================================================================
@@ -61,29 +63,29 @@ ADW.Routes = {
     -- Algeth'ar Academy: Silvermoon -> Orgrimmar -> Valdrakken -> Entrance
     ["algethar"] = {
         { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Take the Orgrimmar portal (Portal Room)" },
-        { mapID = 85,   x = 0.4800, y = 0.9000, desc = "Take the Valdrakken portal (Orgrimmar Portal Room)" },
-        { mapID = 2025, x = 0.5820, y = 0.4240, desc = "Fly North-East from Valdrakken to the Tower" },
+        { mapID = 85,   x = 0.4820, y = 0.9010, desc = "Take the Valdrakken portal (Orgrimmar Portal Room)" },
+        { mapID = 2025, x = 0.5810, y = 0.4260, desc = "Fly North-East from Valdrakken to the Tower" },
     },
 
     -- Seat of the Triumvirate: Silvermoon -> Orgrimmar -> Dalaran -> Entrance
     ["seattriumvirate"] = {
         { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Take the Orgrimmar portal (Portal Room)" },
-        { mapID = 85,   x = 0.4800, y = 0.9000, desc = "Take the Azsuna/Dalaran portal (Orgrimmar Portal Room)" },
-        { mapID = 882,  x = 0.2230, y = 0.5610, desc = "Take Argus portal (Krasus' Landing) -> Entrance" },
+        { mapID = 85,   x = 0.4930, y = 0.7670, desc = "Take the Azsuna/Dalaran portal (Orgrimmar Portal Room)" },
+        { mapID = 882,  x = 0.2186, y = 0.5718, desc = "Take Argus portal (Krasus' Landing) -> Entrance" },
     },
 
     -- Skyreach: Silvermoon -> Orgrimmar -> Ashran -> Entrance
     ["skyreach"] = {
         { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Take the Orgrimmar portal (Portal Room)" },
-        { mapID = 85,   x = 0.4850, y = 0.9000, desc = "Take the Ashran portal (Orgrimmar Portal Room)" },
-        { mapID = 542,  x = 0.3550, y = 0.3350, desc = "Fly directly South to the Skyreach entrance" },
+        { mapID = 85,   x = 0.4930, y = 0.8410, desc = "Take the Ashran portal (Orgrimmar Portal Room)" },
+        { mapID = 542,  x = 0.3557, y = 0.3349, desc = "Fly directly South to the Skyreach entrance" },
     },
 
     -- Pit of Saron: Silvermoon -> Orgrimmar -> Dalaran -> Entrance
     ["pitofsaron"] = {
         { mapID = 2393, x = 0.5333, y = 0.6624, desc = "Take the Orgrimmar portal (Portal Room)" },
-        { mapID = 85,   x = 0.5850, y = 0.8950, desc = "Take the Dalaran portal (Lower Portal Room)" },
-        { mapID = 118,  x = 0.5380, y = 0.8710, desc = "Fly South-East to Icecrown Citadel (Frozen Halls)" },
+        { mapID = 85,   x = 0.5840, y = 0.8940, desc = "Take the Dalaran portal (Lower Portal Room)" },
+        { mapID = 118,  x = 0.5458, y = 0.9143, desc = "Fly South-East to Icecrown Citadel (Frozen Halls)" },
     },
 }
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## v5.1.3 (Surgical Route Audit)
+- **Full Route Audit**: Every coordinate for all 8 dungeons has been cross-referenced with Blizzard mapping data.
+- **Nexus-Point Update**: Added a portal step through the Gardens of Remembrance (Voidstorm Portal) for a direct path to the new dungeon.
+- **Portal Precision**: Refined Orgrimmar and Silvermoon coordinates to sub-yard precision for perfect "on-target" landing.
+- **Timeways Building**: Magister's Terrace now uses the exact Timeways Portal coordinates (42.4, 58.3).
+
 ## v5.1.2 (Orgrimmar Coordinate Fix)
 - **Portal Precision**: Fixed the Orgrimmar Portal Room waypoint which was displaced due to an incorrect Map ID.
 - **Accurate Branding**: Waypoints for Valdrakken, Dalaran, and Ashran now point exactly to their portal objects within the Orgrimmar city map (ID 85).
