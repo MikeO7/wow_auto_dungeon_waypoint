@@ -1,12 +1,18 @@
 <Bindings>
-	<Binding id="ADW_TOGGLEHUD" header="ADW">
-		if ADWStatusFrame:IsShown() then
-			ADWStatusFrame:Hide()
-		else
-			ADWStatusFrame:Show()
-		end
+	<!--
+		============================================================================
+		IMPORTANT: BINDING NAME WARNING
+		============================================================================
+		If you see "LUA_WARNING: Found binding with no name" here, ensure that:
+		1. Every <Binding> tag uses the 'name' attribute (NOT 'id').
+		2. The file is NOT listed in the .toc file (WoW loads it automatically).
+		3. The 'header' attribute should ONLY be on the FIRST binding of an addon.
+		============================================================================
+	-->
+	<Binding name="ADW_TOGGLEHUD" header="ADW">
+		ADW_ToggleHUD_Binding()
 	</Binding>
-	<Binding id="ADW_STOP" header="ADW">
-		SlashCmdList["AUTODUNGEONWAYPOINT"]("stop")
+	<Binding name="ADW_STOP">
+		ADW_Stop_Binding()
 	</Binding>
 </Bindings>

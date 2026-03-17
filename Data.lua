@@ -1,5 +1,10 @@
 local _, ADW = ...
 
+-- Global strings for BindingsUI (must be defined before Bindings.xml loads)
+_G["BINDING_HEADER_ADW"] = "Auto Dungeon Waypoint"
+_G["BINDING_NAME_ADW_TOGGLEHUD"] = "Toggle HUD"
+_G["BINDING_NAME_ADW_STOP"] = "Stop Route"
+
 -- We will store everything in the ADW namespace.
 -- Route Database
 -- Each route is an array of steps: { mapID, x, y, desc }
@@ -20,84 +25,59 @@ ADW.RouteNames = {
 
 ADW.Routes = {
     -- =========================================================================
-    -- Midnight Expansion Dungeons
+    -- Midnight Expansion Dungeons (Optimized for Speed)
     -- =========================================================================
 
-    -- Windrunner Spire: Silvermoon South → Eversong Woods → Entrance
-    -- Validated: entrance at /way #2395 35.5 78.8 (icy-veins, method.gg)
+    -- Windrunner Spire: Silvermoon South Gate -> Entrance
     ["windrunner"] = {
-        { mapID = 2393, x = 0.5510, y = 0.7030, desc = "Head to the south gate (Shepherd's Gate) of Silvermoon City" },
-        { mapID = 2395, x = 0.4800, y = 0.5500, desc = "You're in Eversong Woods — fly south-west toward the spire" },
-        { mapID = 2395, x = 0.3800, y = 0.7000, desc = "Approach the outer defenses of the Spire" },
-        { mapID = 2395, x = 0.3560, y = 0.7880, desc = "Windrunner Spire entrance is here" },
+        { mapID = 2395, x = 0.3560, y = 0.7880, desc = "Fly to the Spire Entrance in Eversong Woods" },
     },
 
-    -- Magister's Terrace: Silvermoon North → Isle of Quel'Danas → Entrance
-    -- Validated: Isle of Quel'Danas is directly NORTH of Silvermoon, no portal needed (games.gg)
+    -- Magister's Terrace: Silvermoon North Gate -> Entrance
     ["magisters"] = {
-        { mapID = 2393, x = 0.5000, y = 0.1500, desc = "Head to the north gate of Silvermoon City toward the Isle of Quel'Danas" },
-        { mapID = 2424, x = 0.5000, y = 0.5000, desc = "You're on the Isle of Quel'Danas — fly north-east to the Terrace" },
-        { mapID = 2424, x = 0.6240, y = 0.1450, desc = "Magister's Terrace entrance is here" },
+        { mapID = 2424, x = 0.6240, y = 0.1450, desc = "Fly to the Magister's Terrace entrance" },
     },
 
-    -- Maisara Caverns: Silvermoon South → Eversong Woods → Zul'Aman → Entrance
-    -- Validated: entrance at /way #2437 43.93 39.71 (method.gg)
+    -- Maisara Caverns: Silvermoon South Gate -> Entrance
     ["maisara"] = {
-        { mapID = 2393, x = 0.5510, y = 0.7030, desc = "Head to the south gate (Shepherd's Gate) of Silvermoon City" },
-        { mapID = 2395, x = 0.7200, y = 0.4500, desc = "You're in Eversong Woods — fly east toward Zul'Aman" },
-        { mapID = 2437, x = 0.4390, y = 0.3970, desc = "Maisara Caverns entrance is here" },
+        { mapID = 2437, x = 0.4390, y = 0.3970, desc = "Fly to the Caverns entrance" },
     },
 
-    -- Nexus-Point Xenas: Silvermoon Voidstorm Portal → Voidstorm → Entrance
-    -- Validated: entrance at /way #2405 63.9 15.8 (conquestcapped.com)
+    -- Nexus-Point Xenas: West Silvermoon Portal -> Entrance
     ["nexuspoint"] = {
-        { mapID = 2393, x = 0.3528, y = 0.6565, desc = "Take the Voidstorm Portal on the west side of Silvermoon" },
-        { mapID = 2405, x = 0.5000, y = 0.5000, desc = "You're in Voidstorm — fly south-east toward the dungeon" },
-        { mapID = 2405, x = 0.6475, y = 0.6175, desc = "Nexus-Point Xenas entrance is here" },
+        { mapID = 2405, x = 0.6475, y = 0.6175, desc = "Fly to the Nexus-Point Xenas entrance" },
     },
 
     -- =========================================================================
-    -- Legacy Mythic+ Dungeons
+    -- Legacy Mythic+ Dungeons (Optimized for Speed)
     -- =========================================================================
 
-    -- Algeth'ar Academy: Silvermoon Portal Room → Valdrakken → Thaldraszus → Entrance
-    -- Validated: short dragonriding flight NE of Valdrakken, entrance at 58.2 42.4 (arcaneintellect.com)
+    -- Algeth'ar Academy: Portal Room Valdrakken -> Entrance
     ["algethar"] = {
-        { mapID = 2393, x = 0.5330, y = 0.6610, desc = "Go to the Portal Room and take the Valdrakken portal" },
-        { mapID = 2112, x = 0.5800, y = 0.4800, desc = "You're in Valdrakken — fly north-east into Thaldraszus" },
-        { mapID = 2025, x = 0.5820, y = 0.4240, desc = "Algeth'ar Academy entrance is at the base of the tower" },
+        { mapID = 2393, x = 0.5330, y = 0.6610, desc = "Take the Valdrakken portal in the Portal Room" },
+        { mapID = 2025, x = 0.5820, y = 0.4240, desc = "Fly North-East from Valdrakken to the Tower" },
     },
 
-    -- Seat of the Triumvirate: Silvermoon → Dalaran (Legion) → Argus portal → Eredath → Entrance
-    -- Validated: entrance at 22.3 56.1, western Eredath (youtube, fandom). Argus portal is on Krasus' Landing in Dalaran.
-    -- Note: Requires Argus questline to be completed to unlock the Argus portal in Dalaran.
+    -- Seat of the Triumvirate: Portal Room Dalaran (Legion) -> Entrance
     ["seattriumvirate"] = {
-        { mapID = 2393, x = 0.5330, y = 0.6610, desc = "Go to the Portal Room and take the Dalaran (Legion) portal" },
-        { mapID = 1536, x = 0.5070, y = 0.3670, desc = "You're in Dalaran — head to Krasus' Landing and take the Argus portal" },
-        { mapID = 882,  x = 0.2230, y = 0.5610, desc = "Seat of the Triumvirate entrance is here — far west of Eredath through Triad's Conservatory" },
+        { mapID = 2393, x = 0.5330, y = 0.6610, desc = "Take the Dalaran (Legion) portal" },
+        { mapID = 882,  x = 0.2230, y = 0.5610, desc = "Take Argus portal (Krasus' Landing) -> Entrance" },
     },
 
-    -- Skyreach: Silvermoon Portal Room → Ashran → Spires of Arak → Entrance
-    -- Validated: Ashran portal exists, flying in Draenor no longer requires Pathfinder — fly directly south (quora.com)
-    -- Entrance at /way Spires of Arak 35 33 (youtube)
+    -- Skyreach: Portal Room Ashran -> Entrance
     ["skyreach"] = {
-        { mapID = 2393, x = 0.5330, y = 0.6610, desc = "Go to the Portal Room and take the Ashran portal" },
-        { mapID = 588,  x = 0.5000, y = 0.8000, desc = "You're in Ashran — fly directly south into Spires of Arak (no Pathfinder needed)" },
-        { mapID = 542,  x = 0.3550, y = 0.3350, desc = "Skyreach entrance is here" },
+        { mapID = 2393, x = 0.5330, y = 0.6610, desc = "Take the Ashran portal in the Portal Room" },
+        { mapID = 542,  x = 0.3550, y = 0.3350, desc = "Fly directly South to the Skyreach entrance" },
     },
 
-    -- Pit of Saron: Silvermoon Portal Room → Dalaran (WotLK) → Icecrown → Entrance
-    -- Validated: Fly south-east from Dalaran into Icecrown. Pit of Saron is in the Frozen Halls side entrance of Icecrown Citadel.
-    -- Entrance near /way Icecrown 53.8 87.1 (arcaneintellect.com)
+    -- Pit of Saron: Portal Room Dalaran (Northrend) -> Entrance
     ["pitofsaron"] = {
-        { mapID = 2393, x = 0.5330, y = 0.6610, desc = "Go to the Portal Room and take the Dalaran (Northrend) portal" },
-        { mapID = 125,  x = 0.6700, y = 0.4500, desc = "You're in Dalaran (Northrend) — fly south-east to Icecrown" },
-        { mapID = 118,  x = 0.5380, y = 0.8710, desc = "Pit of Saron is inside Icecrown Citadel — enter via the Frozen Halls side entrance" },
+        { mapID = 2393, x = 0.5330, y = 0.6610, desc = "Take the Dalaran (Northrend) portal" },
+        { mapID = 118,  x = 0.5380, y = 0.8710, desc = "Fly South-East to Icecrown Citadel (Frozen Halls)" },
     },
 }
 
 -- LFG Activity ID -> Route Key mapping
--- Mythic Keystone (difficulty = 4) Activity IDs sourced from premade-groups-filter Activity.lua
 ADW.LFGToRoute = {
     [1143] = "magisters",       -- Magister's Terrace (Normal)
     [1144] = "magisters",       -- Magister's Terrace (Heroic)

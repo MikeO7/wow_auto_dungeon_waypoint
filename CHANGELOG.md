@@ -1,5 +1,15 @@
 # Changelog
 
+## v5.1.0 (Navigation & LFG Overhaul)
+- **High-Speed Optimized**: Optimized heartbeat (0.1s) and arrival radius (25yd) for Skyriding at 830% speed.
+- **Loop Prevention**: Consolidated simple routes to single-step targets to eliminate "snap-back" loops.
+- **LFG Detection Fix**: Updated engine to handle modern WoW's `activityIDs` table and improved name matching (ignores punctuation).
+- **SuperTrack Enforcement**: Waypoints now forcefully re-assert focus to stay visible over quest objectives.
+- **Snap-Back Immunity**: Added 5s immunity and 100-yard buffer to prevent accidental route resets.
+- **New Debug Tool**: Added `/adw debuglog` to view real-time internal status in chat.
+- **Clean UI**: Removed distance meter and navigation arrows for a more streamlined HUD.
+- **Stability**: Fixed random nil errors in `SetWaypointStep` during zone transitions.
+
 ## v4.3.5 (Zone Transition Fix)
 - **Sticky Waypoints**: Implemented a "heartbeat" check that ensures the Blizzard and TomTom waypoints are re-applied if cleared by zone transitions, continent boundaries, or loading screens.
 - **Improved Map Sync**: Enhanced `ZONE_CHANGED_NEW_AREA` and `PLAYER_ENTERING_WORLD` handlers to bridge loading screens more reliably.
