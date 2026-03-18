@@ -362,9 +362,15 @@ function SetWaypointStep(index)
         tomtomUID = TomTom:AddWaypoint(step.mapID, step.x, step.y, { title = step.desc, source = "ADW", persistent = false })
     end
     local dungeonName = ADW.RouteNames[activeRouteKey] or activeRouteKey
-    Print(YELLOW .. "Step " .. index .. "/" .. totalSteps .. ":|r " .. WHITE .. step.desc .. "|r")
-    LogInfo("ADVANCE: Step " .. index .. "/" .. totalSteps .. " (" .. step.desc .. ")")
-    UpdateStatusFrame(dungeonName, step.desc, index, totalSteps)
+    local desc = step.desc
+    local nextStep = activeRoute[index + 1]
+    if nextStep and nextStep.mapID ~= step.mapID then
+        desc = "|cFF00FFFF[PORTAL]|r " .. desc
+    end
+    
+    Print(YELLOW .. "Step " .. index .. "/" .. totalSteps .. ":|r " .. WHITE .. desc .. "|r")
+    LogInfo("ADVANCE: Step " .. index .. "/" .. totalSteps .. " (" .. desc .. ")")
+    UpdateStatusFrame(dungeonName, desc, index, totalSteps)
     if index > 1 then PlaySound(850) end
 end
 
@@ -437,16 +443,32 @@ local function CheckDistance()
             local distSq = dx * dx + dy * dy
             if debugMode then Print(string.format("DEBUG: Step %d DistSq: %.2f (Target: < 10.0) Map: %d", currentStepIndex, distSq, currentMapID)) end
             if distSq < 10.0 then
-                LogInfo(string.format("ARRIVAL: Step %d reached (DistSq: %.2f)", currentStepIndex, distSq))
-                if currentStepIndex < totalSteps then
-                    currentStepIndex = currentStepIndex + 1
-                    lastStepAdvance = GetTime() -- Set immunity timestamp
-                    SetWaypointStep(currentStepIndex)
-                    UpdateToggleButton() PulseGlow()
-                else
-                    Print(GREEN .. "You have arrived! Route complete.|r")
-                    LogInfo("Route complete: " .. tostring(activeRouteKey))
-                    PlaySound(8659) ClearRoute()
+                local nextStep = activeRoute[currentStepIndex + 1]
+                -- STICKY LOGIC: If next step is stay-on-map, advance normally.
+                -- If next step is CROSS-MAP, only advance if we are ALREADY on that map (i.e. we just ported).
+                local shouldAdvance = true
+                if nextStep and nextStep.mapID ~= step.mapID then
+                    if currentMapID ~= nextStep.mapID then
+                        shouldAdvance = false -- Stay on portal marker until map change
+                        if not step.stickyMsgShown then
+                            Print(CYAN .. "Arrived at portal location. Marker will remain until you enter the portal.|r")
+                            step.stickyMsgShown = true
+                        end
+                    end
+                end
+
+                if shouldAdvance then
+                    LogInfo(string.format("ARRIVAL: Step %d reached (DistSq: %.2f)", currentStepIndex, distSq))
+                    if currentStepIndex < totalSteps then
+                        currentStepIndex = currentStepIndex + 1
+                        lastStepAdvance = GetTime()
+                        SetWaypointStep(currentStepIndex)
+                        UpdateToggleButton() PulseGlow()
+                    else
+                        Print(GREEN .. "You have arrived! Route complete.|r")
+                        LogInfo("Route complete: " .. tostring(activeRouteKey))
+                        PlaySound(8659) ClearRoute()
+                    end
                 end
             end
         end
