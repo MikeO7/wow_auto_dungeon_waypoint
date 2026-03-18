@@ -367,9 +367,15 @@ function SetWaypointStep(index)
     local step = activeRoute[index]
     local point = UiMapPoint.CreateFromCoordinates(step.mapID, step.x, step.y)
     C_Map.SetUserWaypoint(point)
-    local hasWaypoint = C_Map.HasUserWaypoint()
-    if debugMode then Print("DEBUG: SetUserWaypoint map=" .. step.mapID .. " success=" .. tostring(hasWaypoint)) end
-    C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+    
+    -- Verify and Force SuperTrack
+    if C_Map.HasUserWaypoint() then
+        C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+        if debugMode then Print("DEBUG: SetUserWaypoint map=" .. step.mapID .. " [SUCCESS]") end
+    else
+        LogError("Failed to set Blizzard waypoint for map " .. tostring(step.mapID))
+    end
+
     if TomTom and TomTom.AddWaypoint then
         if tomtomUID then TomTom:RemoveWaypoint(tomtomUID) end
         tomtomUID = TomTom:AddWaypoint(step.mapID, step.x, step.y, { title = step.desc, source = "ADW", persistent = false })
@@ -389,13 +395,26 @@ end
 
 local function ReApplyWaypointIfMissing()
     if not activeRoute or not activeRoute[currentStepIndex] then return end
-    if not C_Map.HasUserWaypoint() then
-        local step = activeRoute[currentStepIndex]
+    local step = activeRoute[currentStepIndex]
+    
+    local hasWaypoint = C_Map.HasUserWaypoint()
+    local needsUpdate = not hasWaypoint
+    
+    if hasWaypoint then
+        local waypoint = C_Map.GetUserWaypoint()
+        if waypoint and waypoint.uiMapID ~= step.mapID then
+            needsUpdate = true
+        end
+    end
+
+    if needsUpdate then
         local point = UiMapPoint.CreateFromCoordinates(step.mapID, step.x, step.y)
         C_Map.SetUserWaypoint(point)
-        LogInfo("Waypoint re-applied (detected missing)")
+        C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+        LogInfo("Waypoint enforced: Map=" .. step.mapID)
     end
-    -- Always re-assert SuperTrack if we are the active waypoint
+    
+    -- Always re-assert SuperTrack to stay ahead of other tracked objectives
     if C_Map.HasUserWaypoint() then
         C_SuperTrack.SetSuperTrackedUserWaypoint(true)
     end

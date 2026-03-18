@@ -1,5 +1,10 @@
 # Changelog
 
+## v5.6.0 (Robust Waypoints)
+- **Aggressive Waypoint Enforcement**: Completely redesigned the waypoint persistence engine. The addon now actively monitors if the Blizzard waypoint is on the correct map and re-asserts it instantly if it is cleared or displaced by other quest markers.
+- **SuperTrack Dominance**: Forced SuperTrack enforcement ensures the yellow navigation arrow remains focused during active routes.
+- **Improved Reliability**: Enhanced waypoint placement and verification logic in all capital city hubs and dungeon sub-zones.
+
 ## v5.5.0 (Golden Data Release)
 - **100% Precision**: Conducted a comprehensive audit cross-referencing authoritative sources (Method, ConquestCapped) to establish a "Golden Data" coordinate set.
 - **Nexus-Point Xenas Fix**: Critical correction to the entrance coordinates for Nexus-Point Xenas.
