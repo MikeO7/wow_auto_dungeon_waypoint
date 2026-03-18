@@ -1,5 +1,11 @@
 # Changelog
 
+## v5.5.0 (Golden Data Release)
+- **100% Precision**: Conducted a comprehensive audit cross-referencing authoritative sources (Method, ConquestCapped) to establish a "Golden Data" coordinate set.
+- **Nexus-Point Xenas Fix**: Critical correction to the entrance coordinates for Nexus-Point Xenas.
+- **Timeways Refinement**: Precise alignment for all Timeways relay portal destinations (Algeth'ar Academy, Skyreach, Pit of Saron, Seat of the Triumvirate).
+- **Portal Accuracy**: All waypoints now sit exactly on the instance portal triggers for frame-perfect arrival.
+
 ## v5.4.8 (Coordinate Audit)
 - **Precision Fix**: Restored high-precision coordinates for all dungeons after a full audit.
 - **Maisara Caverns**: Fixed incorrect entrance coordinates for Maisara Caverns.
