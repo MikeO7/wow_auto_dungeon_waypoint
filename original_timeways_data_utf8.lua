@@ -1,4 +1,4 @@
-local _, ADW = ...
+﻿local _, ADW = ...
 
 -- Global strings for BindingsUI (must be defined before Bindings.xml loads)
 _G["BINDING_HEADER_ADW"] = "Auto Dungeon Waypoint"
@@ -30,23 +30,23 @@ ADW.Routes = {
 
     -- Windrunner Spire: Direct Flight from Silvermoon
     ["windrunner"] = {
-        { mapID = 2395, x = 0.3520, y = 0.7840, desc = "Fly directly to the Spire Entrance in Eversong Woods" },
+        { mapID = 2395, x = 0.3563, y = 0.7887, desc = "Fly directly to the Spire Entrance in Eversong Woods" },
     },
 
     -- Magister's Terrace: Direct Flight from Silvermoon
     ["magisters"] = {
-        { mapID = 2424, x = 0.6390, y = 0.1580, desc = "Fly directly to the Magister's Terrace entrance (Isle)" },
+        { mapID = 2424, x = 0.6239, y = 0.1455, desc = "Fly directly to the Magister's Terrace entrance (Isle)" },
     },
 
     -- Maisara Caverns: Direct Flight from Silvermoon
     ["maisara"] = {
-        { mapID = 2437, x = 0.2970, y = 0.8490, desc = "Fly directly to the Caverns entrance" },
+        { mapID = 2437, x = 0.4393, y = 0.3971, desc = "Fly directly to the Caverns entrance" },
     },
 
     -- Nexus-Point Xenas: Silvermoon -> Voidstorm Portal -> Entrance
     ["nexuspoint"] = {
         { mapID = 2393, x = 0.3530, y = 0.6550, desc = "Take the Voidstorm Portal (Gardens of Remembrance)" },
-        { mapID = 2405, x = 0.6500, y = 0.6170, desc = "Fly directly to the Nexus-Point Xenas entrance" },
+        { mapID = 2405, x = 0.5362, y = 0.3545, desc = "Fly directly to the Nexus-Point Xenas entrance" },
     },
 
     -- =========================================================================
@@ -56,29 +56,29 @@ ADW.Routes = {
     -- Algeth'ar Academy: Silvermoon -> Timeways -> Entrance
     ["algethar"] = {
         { mapID = 2393, x = 0.4230, y = 0.5830, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-        { mapID = 2339, x = 0.7032, y = 0.7123, desc = "Take the Algeth'ar Academy portal" },
+        { mapID = 2339, x = 0.6390, y = 0.1580, desc = "Take the Algeth'ar Academy portal" },
         { mapID = 2025, x = 0.5830, y = 0.4240, desc = "Fly North-East to the Academy entrance" },
     },
 
     -- Seat of the Triumvirate: Silvermoon -> Timeways -> Entrance
     ["seattriumvirate"] = {
         { mapID = 2393, x = 0.4230, y = 0.5830, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-        { mapID = 2339, x = 0.6075, y = 0.6923, desc = "Take the Seat of the Triumvirate portal" },
+        { mapID = 2339, x = 0.5700, y = 0.6090, desc = "Take the Seat of the Triumvirate portal" },
         { mapID = 882,  x = 0.2220, y = 0.5620, desc = "Fly to the Triumvirate entrance" },
     },
 
     -- Skyreach: Silvermoon -> Timeways -> Entrance
     ["skyreach"] = {
         { mapID = 2393, x = 0.4230, y = 0.5830, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-        { mapID = 2339, x = 0.6459, y = 0.4319, desc = "Take the Skyreach portal" },
+        { mapID = 2339, x = 0.3520, y = 0.7840, desc = "Take the Skyreach portal" },
         { mapID = 542,  x = 0.3560, y = 0.3360, desc = "Fly South-East to the Skyreach entrance" },
     },
 
     -- Pit of Saron: Silvermoon -> Timeways -> Entrance
     ["pitofsaron"] = {
         { mapID = 2393, x = 0.4230, y = 0.5830, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-        { mapID = 2339, x = 0.7406, y = 0.4760, desc = "Take the Pit of Saron portal" },
-        { mapID = 118,  x = 0.5226, y = 0.8930, desc = "Fly to the Frozen Halls (Pit of Saron)" },
+        { mapID = 2339, x = 0.2640, y = 0.7810, desc = "Take the Pit of Saron portal" },
+        { mapID = 118,  x = 0.5200, y = 0.8900, desc = "Fly to the Frozen Halls (Pit of Saron)" },
     },
 }
 

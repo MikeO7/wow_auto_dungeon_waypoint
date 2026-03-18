@@ -1,5 +1,9 @@
 # Changelog
 
+## v5.4.7 (Timeways Waypoint Fix)
+- **Portal Precision**: Fixed an issue where Timeways portal waypoints were not being added to the Blizzard map by reverting the Map ID to 2339 while maintaining high-precision coordinates.
+- **Improved HUD**: Minor visual alignment for the navigation HUD.
+
 ## v5.4.2 (Instance Guard)
 - **Instance Detection**: The addon now checks if you are already inside a dungeon or raid instance before starting a route. This prevents the HUD from popping up when you re-queue or when someone joins the group while you're already at your destination.
 

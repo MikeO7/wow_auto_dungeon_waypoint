@@ -633,6 +633,9 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
             statusFrame:SetAlpha(1)
             Print("HUD shown for positioning.")
         end
+    elseif cmd == "debug" then
+        debugMode = not debugMode
+        Print("Debug mode " .. (debugMode and GREEN .. "enabled|r" or RED .. "disabled|r"))
     elseif cmd == "mapid" then
         local currentMapID = C_Map.GetBestMapForUnit("player")
         local info = C_Map.GetMapInfo(currentMapID)
