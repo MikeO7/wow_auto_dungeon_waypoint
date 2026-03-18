@@ -278,6 +278,18 @@ function ADW.GetMapContinent(mapID)
     return mapInfo and mapInfo.mapID or nil
 end
 
+local function IsMapOrChild(currentID, targetID)
+    if currentID == targetID then return true end
+    local info = C_Map.GetMapInfo(currentID)
+    local safety = 0
+    while info and info.parentMapID and safety < 10 do
+        if info.parentMapID == targetID then return true end
+        info = C_Map.GetMapInfo(info.parentMapID)
+        safety = safety + 1
+    end
+    return false
+end
+
 function ADW.GetBestStepIndex(route)
     if not route then return 1 end
     local currentMapID = C_Map.GetBestMapForUnit("player")
@@ -292,7 +304,7 @@ function ADW.GetBestStepIndex(route)
     -- First, check if we are on the current map
     local foundOnMap = false
     for i, step in ipairs(route) do
-        if step.mapID == currentMapID then
+        if IsMapOrChild(currentMapID, step.mapID) then
             foundOnMap = true
             if pos then
                 local dx = (pos.x - step.x) * 1000
@@ -309,7 +321,7 @@ function ADW.GetBestStepIndex(route)
     -- If we found steps on the map but have no position (loading), default to the FIRST step of that map
     if foundOnMap and not pos then
         for i, step in ipairs(route) do
-            if step.mapID == currentMapID then
+            if IsMapOrChild(currentMapID, step.mapID) then
                 return i
             end
         end
@@ -625,7 +637,12 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
         end
     elseif cmd == "mapid" then
         local currentMapID = C_Map.GetBestMapForUnit("player")
-        Print("Current Map ID: " .. (currentMapID or "nil"))
+        local info = C_Map.GetMapInfo(currentMapID)
+        Print("Current Map ID: " .. (currentMapID or "nil") .. " (" .. (info and info.name or "Unknown") .. ")")
+        if info and info.parentMapID then
+            local pInfo = C_Map.GetMapInfo(info.parentMapID)
+            Print("Parent Map ID: " .. info.parentMapID .. " (" .. (pInfo and pInfo.name or "Unknown") .. ")")
+        end
     else
         Print("Commands: /adw route <id>, /adw list, /adw nearest, /adw stop, /adw toggle, /adw move, /adw mapid")
     end
