@@ -623,8 +623,11 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
             statusFrame:SetAlpha(1)
             Print("HUD shown for positioning.")
         end
+    elseif cmd == "mapid" then
+        local currentMapID = C_Map.GetBestMapForUnit("player")
+        Print("Current Map ID: " .. (currentMapID or "nil"))
     else
-        Print("Commands: /adw route <id>, /adw list, /adw nearest, /adw stop, /adw toggle, /adw move, /adw debuglog")
+        Print("Commands: /adw route <id>, /adw list, /adw nearest, /adw stop, /adw toggle, /adw move, /adw mapid")
     end
 end
 
