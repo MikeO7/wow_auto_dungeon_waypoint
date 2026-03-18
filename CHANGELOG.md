@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.4.2 (Instance Guard)
+- **Instance Detection**: The addon now checks if you are already inside a dungeon or raid instance before starting a route. This prevents the HUD from popping up when you re-queue or when someone joins the group while you're already at your destination.
+
 ## v5.4.1 (Precision Entrances)
 - **Portal Alignment**: Refined coordinates for **Pit of Saron**, **Maisara Caverns**, **Windrunner Spire**, and **Magister's Terrace** to sit exactly on the instance portals.
 
