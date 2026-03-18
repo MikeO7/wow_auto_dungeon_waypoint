@@ -29,25 +29,25 @@ ADW.Routes = {
     -- =========================================================================
 
     -- Windrunner Spire: Direct Flight from Silvermoon
-    -- Source: method.gg/guides/midnight, conquestcapped.com
+    -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations
     ["windrunner"] = {
         { mapID = 2395, x = 0.3563, y = 0.7887, desc = "Fly directly to the Spire Entrance in Eversong Woods" },
     },
 
     -- Magister's Terrace: Direct Flight from Silvermoon
-    -- Source: method.gg/guides/midnight, conquestcapped.com
+    -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations
     ["magisters"] = {
         { mapID = 2424, x = 0.6239, y = 0.1455, desc = "Fly directly to the Magister's Terrace entrance (Isle)" },
     },
 
     -- Maisara Caverns: Direct Flight from Silvermoon
-    -- Source: method.gg/guides/midnight, conquestcapped.com
+    -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations
     ["maisara"] = {
         { mapID = 2437, x = 0.4393, y = 0.3971, desc = "Fly directly to the Caverns entrance" },
     },
 
     -- Nexus-Point Xenas: Silvermoon -> Voidstorm Portal -> Entrance
-    -- Source: conquestcapped.com, method.gg/guides/midnight
+    -- Source: https://www.conquestcapped.com/midnight-dungeons-season-1-dungeon-entrances-locations/
     ["nexuspoint"] = {
         { mapID = 2393, x = 0.3530, y = 0.6550, desc = "Take the Voidstorm Portal (Gardens of Remembrance)" },
         { mapID = 2405, x = 0.6500, y = 0.6170, desc = "Fly directly to the Nexus-Point Xenas entrance" },
@@ -58,7 +58,7 @@ ADW.Routes = {
     -- =========================================================================
 
     -- Algeth'ar Academy: Silvermoon -> Timeways -> Entrance
-    -- Source: method.gg/guides/midnight (Timeways Hub)
+    -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["algethar"] = {
         { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
         { mapID = 2339, x = 0.6390, y = 0.1580, desc = "Take the Algeth'ar Academy portal" },
@@ -66,7 +66,7 @@ ADW.Routes = {
     },
 
     -- Seat of the Triumvirate: Silvermoon -> Timeways -> Entrance
-    -- Source: method.gg/guides/midnight (Timeways Hub)
+    -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["seattriumvirate"] = {
         { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
         { mapID = 2339, x = 0.5700, y = 0.6090, desc = "Take the Seat of the Triumvirate portal" },
@@ -74,7 +74,7 @@ ADW.Routes = {
     },
 
     -- Skyreach: Silvermoon -> Timeways -> Entrance
-    -- Source: method.gg/guides/midnight (Timeways Hub)
+    -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["skyreach"] = {
         { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
         { mapID = 2339, x = 0.3520, y = 0.7840, desc = "Take the Skyreach portal" },
@@ -82,7 +82,7 @@ ADW.Routes = {
     },
 
     -- Pit of Saron: Silvermoon -> Timeways -> Entrance
-    -- Source: method.gg/guides/midnight (Timeways Hub)
+    -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["pitofsaron"] = {
         { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
         { mapID = 2339, x = 0.2640, y = 0.7810, desc = "Take the Pit of Saron portal" },

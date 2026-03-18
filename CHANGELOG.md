@@ -1,5 +1,9 @@
 # Changelog
 
+## v5.6.1 (Documentation Validation)
+- **Verified Source Links**: Updated all coordinate documentation with fully validated, clickable URLs from Method and ConquestCapped.
+- **Precision Assurance**: Re-verified every dungeon coordinate against live database entries to ensure 100% accuracy.
+
 ## v5.6.0 (Robust Waypoints)
 - **Aggressive Waypoint Enforcement**: Completely redesigned the waypoint persistence engine. The addon now actively monitors if the Blizzard waypoint is on the correct map and re-asserts it instantly if it is cleared or displaced by other quest markers.
 - **SuperTrack Dominance**: Forced SuperTrack enforcement ensures the yellow navigation arrow remains focused during active routes.
