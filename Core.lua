@@ -53,6 +53,7 @@ local GREEN       = "|cFF00FF00"
 local RED         = "|cFFFF4444"
 local YELLOW      = "|cFFFFCC00"
 local GRAY        = "|cFF888888"
+local CYAN        = "|cFF00FFFF"
 
 local function Print(msg)
     DEFAULT_CHAT_FRAME:AddMessage(ADDON_COLOR .. "[Auto Dungeon Waypoint]|r " .. msg)
