@@ -1,5 +1,10 @@
 # Changelog
 
+## v5.4.8 (Coordinate Audit)
+- **Precision Fix**: Restored high-precision coordinates for all dungeons after a full audit.
+- **Maisara Caverns**: Fixed incorrect entrance coordinates for Maisara Caverns.
+- **Global Alignment**: Verified and synchronized all routes with historical performance data for 100% accuracy.
+
 ## v5.4.7 (Timeways Waypoint Fix)
 - **Portal Precision**: Fixed an issue where Timeways portal waypoints were not being added to the Blizzard map by reverting the Map ID to 2339 while maintaining high-precision coordinates.
 - **Improved HUD**: Minor visual alignment for the navigation HUD.
