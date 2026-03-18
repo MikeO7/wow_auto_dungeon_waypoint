@@ -24,6 +24,8 @@ local checkTicker = nil
 local debugMode = false
 local tomtomUID = nil  -- Optional TomTom waypoint UID
 local lastStepAdvance = 0 -- Timestamp of last forward step
+local lastMapChangeTime = 0
+local lastMapID = nil
 
 -- Forward declarations to prevent nil errors (SetWaypointStep, etc.)
 local SetWaypointStep, UpdateToggleButton, UpdateStatusFrame, HideStatusFrame, ShowStatusFrame
@@ -393,6 +395,12 @@ local function CheckDistance()
     ReApplyWaypointIfMissing()
     local currentMapID = C_Map.GetBestMapForUnit("player")
     if not currentMapID then return end
+
+    if currentMapID ~= lastMapID then
+        lastMapID = currentMapID
+        lastMapChangeTime = GetTime()
+        if debugMode then Print("DEBUG: Map change detected. Buffer active.") end
+    end
     if debugMode then Print(string.format("DEBUG: Map: %d | Step: %d", currentMapID, currentStepIndex)) end
     local bestIdx = ADW.GetBestStepIndex(activeRoute)
     if bestIdx > currentStepIndex then
@@ -443,6 +451,12 @@ local function CheckDistance()
             local distSq = dx * dx + dy * dy
             if debugMode then Print(string.format("DEBUG: Step %d DistSq: %.2f (Target: < 10.0) Map: %d", currentStepIndex, distSq, currentMapID)) end
             if distSq < 10.0 then
+                -- Buffer Check: If we just changed maps, wait 3 seconds before allowing arrival.
+                if GetTime() - lastMapChangeTime < 3 then
+                    if debugMode then Print("DEBUG: Arrival ignored (Map change buffer active)") end
+                    return
+                end
+
                 local nextStep = activeRoute[currentStepIndex + 1]
                 -- STICKY LOGIC: If next step is stay-on-map, advance normally.
                 -- If next step is CROSS-MAP, only advance if we are ALREADY on that map (i.e. we just ported).
