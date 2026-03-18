@@ -632,6 +632,14 @@ end
 -- ============================================================================
 function ADW.ProcessActivityID(activityID, isSilent)
     if not activityID then return end
+    
+    -- Prevent auto-routing if already inside a dungeon or raid
+    local _, instanceType = IsInInstance()
+    if instanceType == "party" or instanceType == "raid" then
+        LogInfo("ProcessActivityID: Already in instance (" .. instanceType .. "), skipping.")
+        return
+    end
+
     local routeKey = ADW.LFGToRoute[activityID]
     LogInfo("ProcessActivityID: ID=" .. tostring(activityID) .. " Key=" .. tostring(routeKey))
     if not routeKey then
