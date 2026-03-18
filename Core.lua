@@ -296,48 +296,44 @@ function ADW.GetBestStepIndex(route)
     if not currentMapID then return 1 end
     local pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
     local currentCont = ADW.GetMapContinent(currentMapID)
+    
     local bestIdx = currentStepIndex
     if bestIdx == 0 then bestIdx = 1 end
     local bestScore = -1
     local minDistSq = math.huge
-    
-    -- First, check if we are on the current map
-    local foundOnMap = false
+
     for i, step in ipairs(route) do
-        if IsMapOrChild(currentMapID, step.mapID) then
-            foundOnMap = true
-            if pos then
-                local dx = (pos.x - step.x) * 1000
-                local dy = (pos.y - step.y) * 1000
-                local d2 = dx*dx + dy*dy
-                if d2 < minDistSq then
-                    minDistSq = d2
-                    bestIdx = i
-                end
-            end
+        local score = 0
+        if step.mapID == currentMapID then
+            score = 100 -- Exact match
+        elseif IsMapOrChild(currentMapID, step.mapID) then
+            score = 75 -- Parent match
+        elseif ADW.GetMapContinent(step.mapID) == currentCont then
+            score = 50 -- Continent match
         end
-    end
-    
-    -- If we found steps on the map but have no position (loading), default to the FIRST step of that map
-    if foundOnMap and not pos then
-        for i, step in ipairs(route) do
-            if IsMapOrChild(currentMapID, step.mapID) then
-                return i
-            end
-        end
-    end
-    
-    -- If not on map, or no specific distance found, look for continent score
-    if bestScore == -1 and not foundOnMap then
-        for i, step in ipairs(route) do
-            local score = 0
-            if ADW.GetMapContinent(step.mapID) == currentCont then
-                score = 50
-            end
-            -- Only allow skipping FORWARD for continent-level matches
-            if score > bestScore and i >= currentStepIndex then
+
+        if score > 0 then
+            -- Prioritize higher score (Exact > Parent > Continent)
+            if score > bestScore then
                 bestScore = score
                 bestIdx = i
+                minDistSq = math.huge
+                if pos and step.mapID == currentMapID then
+                    local dx = (pos.x - step.x) * 1000
+                    local dy = (pos.y - step.y) * 1000
+                    minDistSq = dx*dx + dy*dy
+                end
+            elseif score == bestScore then
+                -- Same score? Pick by distance if exact, else keep current
+                if pos and step.mapID == currentMapID then
+                    local dx = (pos.x - step.x) * 1000
+                    local dy = (pos.y - step.y) * 1000
+                    local d2 = dx*dx + dy*dy
+                    if d2 < minDistSq then
+                        minDistSq = d2
+                        bestIdx = i
+                    end
+                end
             end
         end
     end
