@@ -1,6 +1,29 @@
 # Changelog
 
-## v5.1.8 (Nexus-Point Portal Restore)
+## v5.4.1 (Precision Entrances)
+- **Portal Alignment**: Refined coordinates for **Pit of Saron**, **Maisara Caverns**, **Windrunner Spire**, and **Magister's Terrace** to sit exactly on the instance portals.
+
+## v5.4.0 (Skip Protection)
+- **Map Entry Buffer**: Added a 3-second buffer after teleporting/zoning. This ensures the addon doesn't "arrive" at the next waypoint instantly if you spawn on top of it.
+- **Improved SmartSync**: Enhanced zone-change detection for faster HUD updates in capital cities.
+
+## v5.3.1 (Sticky Portals)
+- **Sticky Waypoints**: Current waypoint now remains locked on the portal until you actually transition to the destination map.
+- **HUD [PORTAL] Prefix**: Added cyan indicator to the HUD for portal-based steps.
+
+## v5.3.0 (Midnight Route Overhaul)
+- **Timeways Hub Integration**: All legacy Mythic+ dungeons now route through **The Timeways** hub in Silvermoon City, replacing the outdated Orgrimmar path.
+- **Midnight Dungeons**: Updated and validated all new *Midnight* expansion dungeon entrance coordinates.
+
+## v5.2.1 (Sync & Maintenance)
+- **Project Audit**: Updated TOC and validated core function declarations.
+
+## v5.2.0 (UI Movement)
+- **Shift-Drag**: You can now move the Control Bar and HUD anytime by holding **Shift** and dragging.
+- **`/adw move`**: Added command to toggle the HUD for easy positioning without an active route.
+
+## v5.1.9 (HUD Visibility)
+- **Smart HUD**: The HUD now automatically hides when no route is active and reappears only when navigation starts.
 - **Nexus-Point Fix**: Restored the portal step for Nexus-Point Xenas. Since this dungeon is in Voidstorm and not reachable via direct flight from Silvermoon, the Gardens of Remembrance portal is now back in the route.
 
 ## v5.1.7 (HUD & Sync Fix)
