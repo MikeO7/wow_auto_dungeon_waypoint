@@ -56,28 +56,28 @@ ADW.Routes = {
     -- Algeth'ar Academy: Silvermoon -> Timeways -> Entrance
     ["algethar"] = {
         { mapID = 2393, x = 0.4230, y = 0.5830, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-        { mapID = 2339, x = 0.7032, y = 0.7123, desc = "Take the Algeth'ar Academy portal" },
+        { mapID = 2266, x = 0.7032, y = 0.7123, desc = "Take the Algeth'ar Academy portal" },
         { mapID = 2025, x = 0.5830, y = 0.4240, desc = "Fly North-East to the Academy entrance" },
     },
 
     -- Seat of the Triumvirate: Silvermoon -> Timeways -> Entrance
     ["seattriumvirate"] = {
         { mapID = 2393, x = 0.4230, y = 0.5830, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-        { mapID = 2339, x = 0.6075, y = 0.6923, desc = "Take the Seat of the Triumvirate portal" },
+        { mapID = 2266, x = 0.6075, y = 0.6923, desc = "Take the Seat of the Triumvirate portal" },
         { mapID = 882,  x = 0.2220, y = 0.5620, desc = "Fly to the Triumvirate entrance" },
     },
 
     -- Skyreach: Silvermoon -> Timeways -> Entrance
     ["skyreach"] = {
         { mapID = 2393, x = 0.4230, y = 0.5830, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-        { mapID = 2339, x = 0.6459, y = 0.4319, desc = "Take the Skyreach portal" },
+        { mapID = 2266, x = 0.6459, y = 0.4319, desc = "Take the Skyreach portal" },
         { mapID = 542,  x = 0.3560, y = 0.3360, desc = "Fly South-East to the Skyreach entrance" },
     },
 
     -- Pit of Saron: Silvermoon -> Timeways -> Entrance
     ["pitofsaron"] = {
         { mapID = 2393, x = 0.4230, y = 0.5830, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-        { mapID = 2339, x = 0.7406, y = 0.4760, desc = "Take the Pit of Saron portal" },
+        { mapID = 2266, x = 0.7406, y = 0.4760, desc = "Take the Pit of Saron portal" },
         { mapID = 118,  x = 0.5226, y = 0.8930, desc = "Fly to the Frozen Halls (Pit of Saron)" },
     },
 }
