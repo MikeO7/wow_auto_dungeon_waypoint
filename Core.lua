@@ -367,6 +367,8 @@ function SetWaypointStep(index)
     local step = activeRoute[index]
     local point = UiMapPoint.CreateFromCoordinates(step.mapID, step.x, step.y)
     C_Map.SetUserWaypoint(point)
+    local hasWaypoint = C_Map.HasUserWaypoint()
+    if debugMode then Print("DEBUG: SetUserWaypoint map=" .. step.mapID .. " success=" .. tostring(hasWaypoint)) end
     C_SuperTrack.SetSuperTrackedUserWaypoint(true)
     if TomTom and TomTom.AddWaypoint then
         if tomtomUID then TomTom:RemoveWaypoint(tomtomUID) end
