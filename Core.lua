@@ -354,6 +354,13 @@ local function SyncRouteProgress()
     if not activeRoute then return end
     local best = ADW.GetBestStepIndex(activeRoute)
     if best ~= currentStepIndex then
+        -- Respect forward-skip immunity: don't jump forward past portal steps
+        if best > currentStepIndex and GetTime() - lastStepAdvance < 8 then
+            if debugMode then Print("DEBUG: SyncRouteProgress forward-skip blocked by immunity.") end
+            -- Still re-apply the current waypoint so the marker stays visible
+            SetWaypointStep(currentStepIndex)
+            return
+        end
         currentStepIndex = best
         SetWaypointStep(currentStepIndex)
     end
@@ -441,9 +448,16 @@ local function CheckDistance()
     
     local bestIdx = ADW.GetBestStepIndex(activeRoute)
     if bestIdx > currentStepIndex then
-        LogInfo(string.format("SmartSync: SKIP FORWARD from %d to %d (Map: %d)", currentStepIndex, bestIdx, currentMapID))
-        currentStepIndex = bestIdx
-        SetWaypointStep(currentStepIndex)
+        -- Forward-skip immunity: Don't allow SmartSync to jump forward
+        -- within 8 seconds of a step advance. This prevents portal transitions
+        -- (like Timeways) from triggering continent-match skips past Step 2.
+        if GetTime() - lastStepAdvance < 8 then
+            if debugMode then Print("DEBUG: Forward-skip immunity active (" .. bestIdx .. " blocked).") end
+        else
+            LogInfo(string.format("SmartSync: SKIP FORWARD from %d to %d (Map: %d)", currentStepIndex, bestIdx, currentMapID))
+            currentStepIndex = bestIdx
+            SetWaypointStep(currentStepIndex)
+        end
         return
     elseif bestIdx < currentStepIndex then
         if currentMapID ~= step.mapID then
@@ -764,7 +778,10 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             local _, instanceType = IsInInstance()
             if (instanceType == "party" or instanceType == "raid") and activeRoute then
                 Print(GREEN .. "Entered dungeon! Route cleared.|r") ClearRoute()
-            elseif activeRoute then SetWaypointStep(currentStepIndex) end
+            elseif activeRoute then
+                -- After a zone transition, re-sync position instead of blindly re-setting
+                SyncRouteProgress()
+            end
         end
         return
     end
