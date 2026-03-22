@@ -318,6 +318,24 @@ menuBtn:SetScript("OnDragStop", function()
     if AutoDungeonWaypointDB then AutoDungeonWaypointDB.ToggleButtonPos = { point, relPoint, x, y } end
 end)
 
+autoBtn:SetScript("OnEnter", function(self)
+    GameTooltip_SetDefaultAnchor(GameTooltip, self)
+    GameTooltip:SetText("Toggle Auto-Routing", 0.0, 0.75, 1.0)
+    GameTooltip:AddLine("Click to enable/disable automatic dungeon detection.", 1, 1, 1, true)
+    GameTooltip:AddLine("Hold |cFFFFD100Shift|r and drag to move.", 1, 1, 1, true)
+    GameTooltip:Show()
+end)
+autoBtn:SetScript("OnLeave", GameTooltip_Hide)
+
+menuBtn:SetScript("OnEnter", function(self)
+    GameTooltip_SetDefaultAnchor(GameTooltip, self)
+    GameTooltip:SetText("Route List", 0.0, 0.75, 1.0)
+    GameTooltip:AddLine("Click to view and manually start routes.", 1, 1, 1, true)
+    GameTooltip:AddLine("Hold |cFFFFD100Shift|r and drag to move.", 1, 1, 1, true)
+    GameTooltip:Show()
+end)
+menuBtn:SetScript("OnLeave", GameTooltip_Hide)
+
 function UpdateToggleButton()
     if not AutoDungeonWaypointDB then return end
     if AutoDungeonWaypointDB.AutoRouteEnabled then
