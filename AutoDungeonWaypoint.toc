@@ -2,7 +2,7 @@
 ## Title: Auto Dungeon Waypoint
 ## Notes: Automatic step-by-step navigation to Mythic+ dungeons. Auto-activates when joining groups.
 ## Author: mikeo
-## Version: 5.6.1
+## Version: 5.6.2
 ## SavedVariables: AutoDungeonWaypointDB
 ## IconTexture: 134440
 ## X-Category: Dungeon
@@ -15,7 +15,6 @@
 libs\LibStub\LibStub.lua
 libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
-libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
 
 Data.lua
 Core.lua

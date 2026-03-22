@@ -170,7 +170,7 @@ function ADW_Stop_Binding()
 end
 
 statusFrame:SetScript("OnEnter", function(self)
-    GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+    GameTooltip_SetDefaultAnchor(GameTooltip, self)
     GameTooltip:SetText("Navigation HUD", 0.0, 0.75, 1.0)
     GameTooltip:AddLine("Hold |cFFFFD100Shift|r and drag to move.", 1, 1, 1, true)
     GameTooltip:Show()
@@ -412,11 +412,16 @@ local function ReApplyWaypointIfMissing()
         C_Map.SetUserWaypoint(point)
         C_SuperTrack.SetSuperTrackedUserWaypoint(true)
         LogInfo("Waypoint enforced: Map=" .. step.mapID)
+        if debugMode then Print("DEBUG: Waypoint enforced (Map=" .. step.mapID .. ")") end
     end
     
-    -- Always re-assert SuperTrack to stay ahead of other tracked objectives
+    -- ONLY re-assert SuperTrack if we have a waypoint but it somehow lost track.
+    -- Re-asserting every 0.1s can cause the golden marker to flicker or fail to render.
     if C_Map.HasUserWaypoint() then
-        C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+        if not C_SuperTrack.IsSuperTrackingUserWaypoint() then
+            C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+            if debugMode then Print("DEBUG: SuperTrack re-asserted.") end
+        end
     end
 end
 
@@ -557,25 +562,35 @@ local function CreateOptionsPanel()
     panel.name = "Auto Dungeon Waypoint"
     local title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 16, -16) title:SetText("Auto Dungeon Waypoint Settings")
-    local autoCheck = CreateFrame("CheckButton", "ADWAutoRoutingCheck", panel, "InterfaceOptionsCheckButtonTemplate")
+    local autoCheck = CreateFrame("CheckButton", "ADWAutoRoutingCheck", panel, "UICheckButtonTemplate")
     autoCheck:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -20)
     _G[autoCheck:GetName() .. "Text"]:SetText("Enable Auto-Routing")
     autoCheck:SetScript("OnClick", function(self) ADW.ToggleAutoRoute(self:GetChecked()) end)
     autoCheck:SetScript("OnShow", function(self) self:SetChecked(AutoDungeonWaypointDB.AutoRouteEnabled) end)
-    local hudCheck = CreateFrame("CheckButton", "ADWShowHUDCheck", panel, "InterfaceOptionsCheckButtonTemplate")
+    local hudCheck = CreateFrame("CheckButton", "ADWShowHUDCheck", panel, "UICheckButtonTemplate")
     hudCheck:SetPoint("TOPLEFT", autoCheck, "BOTTOMLEFT", 0, -8)
     _G[hudCheck:GetName() .. "Text"]:SetText("Show Navigation HUD")
     hudCheck:SetScript("OnClick", function(self)
         AutoDungeonWaypointDB.ShowStatusFrame = self:GetChecked()
-        if activeRoute and AutoDungeonWaypointDB.ShowStatusFrame then statusFrame:Show() else statusFrame:Hide() end
+        if AutoDungeonWaypointDB.ShowStatusFrame then
+            UpdateStatusFrame("HUD Preview", "This is how the HUD looks.", 1, 5)
+            statusFrame:Show()
+            statusFrame:SetAlpha(1)
+        else
+            HideStatusFrame()
+        end
     end)
     hudCheck:SetScript("OnShow", function(self) self:SetChecked(AutoDungeonWaypointDB.ShowStatusFrame) end)
-    local compactCheck = CreateFrame("CheckButton", "ADWCompactModeCheck", panel, "InterfaceOptionsCheckButtonTemplate")
+    local compactCheck = CreateFrame("CheckButton", "ADWCompactModeCheck", panel, "UICheckButtonTemplate")
     compactCheck:SetPoint("TOPLEFT", hudCheck, "BOTTOMLEFT", 0, -8)
     _G[compactCheck:GetName() .. "Text"]:SetText("Compact HUD")
     compactCheck:SetScript("OnClick", function(self)
         AutoDungeonWaypointDB.CompactMode = self:GetChecked()
-        if activeRoute then UpdateStatusFrame(ADW.RouteNames[activeRouteKey] or activeRouteKey, nil, currentStepIndex, totalSteps) end
+        if AutoDungeonWaypointDB.ShowStatusFrame then
+            UpdateStatusFrame("HUD Preview", "This is how the HUD looks.", 1, 5)
+            statusFrame:Show()
+            statusFrame:SetAlpha(1)
+        end
     end)
     compactCheck:SetScript("OnShow", function(self) self:SetChecked(AutoDungeonWaypointDB.CompactMode) end)
     local resetBtn = CreateFrame("Button", "ADWResetBtn", panel, "UIPanelButtonTemplate")
@@ -591,27 +606,19 @@ local function CreateOptionsPanel()
     else InterfaceOptions_AddCategory(panel) end
 end
 
-local adwMenuFrame = CreateFrame("Frame", "ADWMenuFrame", UIParent, "UIDropDownMenuTemplate")
-local function ADWMenu_Initialize(self, level)
-    local info = UIDropDownMenu_CreateInfo()
-    info.text = "|cFF00BFFFAll Dungeons|r" info.isTitle = true info.notCheckable = true
-    UIDropDownMenu_AddButton(info)
-    local keys = {}
-    for k in pairs(ADW.RouteNames) do table.insert(keys, k) end
-    table.sort(keys, function(a, b) return ADW.RouteNames[a] < ADW.RouteNames[b] end)
-    for _, key in ipairs(keys) do
-        info = UIDropDownMenu_CreateInfo()
-        info.text = ADW.RouteNames[key]
-        info.func = function() StartRoute(key) end
-        info.notCheckable = true
-        UIDropDownMenu_AddButton(info)
-    end
-end
-
 autoBtn:SetScript("OnClick", function() ADW.ToggleAutoRoute() end)
 menuBtn:SetScript("OnClick", function(self)
-    UIDropDownMenu_Initialize(adwMenuFrame, ADWMenu_Initialize, "MENU")
-    ToggleDropDownMenu(1, nil, adwMenuFrame, self, 0, 0)
+    if MenuUtil then
+        MenuUtil.CreateContextMenu(self, function(owner, rootDescription)
+            rootDescription:CreateTitle("|cFF00BFFFAll Dungeons|r")
+            local keys = {}
+            for k in pairs(ADW.RouteNames) do table.insert(keys, k) end
+            table.sort(keys, function(a, b) return ADW.RouteNames[a] < ADW.RouteNames[b] end)
+            for _, key in ipairs(keys) do
+                rootDescription:CreateButton(ADW.RouteNames[key], function() StartRoute(key) end)
+            end
+        end)
+    end
 end)
 
 SLASH_AUTODUNGEONWAYPOINT1 = "/adw"
@@ -730,23 +737,22 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         UpdateToggleButton() CreateOptionsPanel()
         local LDB = LibStub and LibStub("LibDataBroker-1.1", true)
         local LDBIcon = LibStub and LibStub("LibDBIcon-1.0", true)
-        if LDBIcon and not LDBIcon.GetButtonList then
-            LDBIcon.GetButtonList = function(self)
-                local t = {} if self.objects then for name in pairs(self.objects) do table.insert(t, name) end end
-                return t
-            end
-        end
-        if LDBIcon and not LDBIcon.RegisterCallback then
-            local CallbackHandler = LibStub and LibStub("CallbackHandler-1.0", true)
-            if CallbackHandler then CallbackHandler:New(LDBIcon) end
-        end
         if LDB and LDBIcon then
             local adwBroker = LDB:NewDataObject("AutoDungeonWaypoint", {
                 type = "launcher", text = "Auto Dungeon Waypoint", icon = "Interface\\Icons\\INV_Misc_Map_01",
-                OnClick = function(_, button)
+                OnClick = function(self, button)
                     if button == "LeftButton" then
-                        UIDropDownMenu_Initialize(adwMenuFrame, ADWMenu_Initialize, "MENU")
-                        ToggleDropDownMenu(1, nil, adwMenuFrame, "cursor", 0, 0)
+                        if MenuUtil then
+                            MenuUtil.CreateContextMenu(self, function(owner, rootDescription)
+                                rootDescription:CreateTitle("|cFF00BFFFAll Dungeons|r")
+                                local keys = {}
+                                for k in pairs(ADW.RouteNames) do table.insert(keys, k) end
+                                table.sort(keys, function(a, b) return ADW.RouteNames[a] < ADW.RouteNames[b] end)
+                                for _, key in ipairs(keys) do
+                                    rootDescription:CreateButton(ADW.RouteNames[key], function() StartRoute(key) end)
+                                end
+                            end)
+                        end
                     elseif button == "RightButton" then ADW.ToggleAutoRoute() end
                 end,
                 OnTooltipShow = function(tooltip)
