@@ -366,11 +366,20 @@ local function IsMapOrChild(currentID, targetID)
     return isChild
 end
 
-function ADW.GetBestStepIndex(route)
+function ADW.GetBestStepIndex(route, currentMapID, pos)
     if not route then return 1 end
-    local currentMapID = C_Map.GetBestMapForUnit("player")
-    if not currentMapID then return 1 end
-    local pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
+
+    -- Use provided map ID and position if passed (performance optimization),
+    -- otherwise fetch them via Blizzard API.
+    if not currentMapID then
+        currentMapID = C_Map.GetBestMapForUnit("player")
+        if not currentMapID then return 1 end
+    end
+
+    if not pos and pos ~= false then
+        pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
+    end
+
     local currentCont = ADW.GetMapContinent(currentMapID)
     
     local bestIdx = currentStepIndex
@@ -520,7 +529,7 @@ local function CheckDistance()
     local pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
     if debugMode then Print(string.format("DEBUG: Map: %d | Step: %d", currentMapID, currentStepIndex)) end
     
-    local bestIdx = ADW.GetBestStepIndex(activeRoute)
+    local bestIdx = ADW.GetBestStepIndex(activeRoute, currentMapID, pos)
     if bestIdx > currentStepIndex then
         -- Forward-skip immunity: Don't allow SmartSync to jump forward
         -- within 8 seconds of a step advance. This prevents portal transitions
