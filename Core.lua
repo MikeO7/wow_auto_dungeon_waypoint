@@ -427,20 +427,6 @@ local function CheckDistance()
     if not step then return end
     
     local currentMapID = C_Map.GetBestMapForUnit("player")
-
-    -- NATIVE PORTAL ADVANCE (Failsafe for Instance/Phase Transitions like Timeways)
-    local nextStep = activeRoute[currentStepIndex + 1]
-    if nextStep and step.mapID ~= nextStep.mapID then
-        if not currentMapID or (currentMapID ~= step.mapID and not IsMapOrChild(currentMapID, step.mapID) and ADW.GetMapContinent(currentMapID) ~= ADW.GetMapContinent(step.mapID)) then
-            -- We recently zoned entirely off the origin portal map
-            LogInfo(string.format("Portal traverse natively detected (left map %d). Advancing.", step.mapID))
-            currentStepIndex = currentStepIndex + 1
-            lastStepAdvance = GetTime()
-            SetWaypointStep(currentStepIndex)
-            return
-        end
-    end
-
     if not currentMapID then return end
 
     if currentMapID ~= lastMapID then
@@ -505,31 +491,16 @@ local function CheckDistance()
                     return
                 end
 
-                -- STICKY LOGIC: If next step is stay-on-map, advance normally.
-                -- If next step is CROSS-MAP, only advance if we are ALREADY on that map (i.e. we just ported).
-                local shouldAdvance = true
-                if nextStep and nextStep.mapID ~= step.mapID then
-                    if currentMapID ~= nextStep.mapID then
-                        shouldAdvance = false -- Stay on portal marker until map change
-                        if not step.stickyMsgShown then
-                            Print(CYAN .. "Arrived at portal location. Marker will remain until you enter the portal.|r")
-                            step.stickyMsgShown = true
-                        end
-                    end
-                end
-
-                if shouldAdvance then
-                    LogInfo(string.format("ARRIVAL: Step %d reached (DistSq: %.2f)", currentStepIndex, distSq))
-                    if currentStepIndex < totalSteps then
-                        currentStepIndex = currentStepIndex + 1
-                        lastStepAdvance = GetTime()
-                        SetWaypointStep(currentStepIndex)
-                        UpdateToggleButton() PulseGlow()
-                    else
-                        Print(GREEN .. "You have arrived! Route complete.|r")
-                        LogInfo("Route complete: " .. tostring(activeRouteKey))
-                        PlaySound(8659) ClearRoute()
-                    end
+                LogInfo(string.format("ARRIVAL: Step %d reached (DistSq: %.2f)", currentStepIndex, distSq))
+                if currentStepIndex < totalSteps then
+                    currentStepIndex = currentStepIndex + 1
+                    lastStepAdvance = GetTime()
+                    SetWaypointStep(currentStepIndex)
+                    UpdateToggleButton() PulseGlow()
+                else
+                    Print(GREEN .. "You have arrived! Route complete.|r")
+                    LogInfo("Route complete: " .. tostring(activeRouteKey))
+                    PlaySound(8659) ClearRoute()
                 end
             end
         end
