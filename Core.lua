@@ -210,6 +210,76 @@ function HideStatusFrame()
 end
 
 -- ============================================================================
+-- Timeways Portal Map (visual overlay)
+-- ============================================================================
+local TIMEWAYS_MAP_ID = 2266
+local portalMap = CreateFrame("Frame", "ADWPortalMap", statusFrame)
+portalMap:SetSize(220, 90)
+portalMap:SetPoint("TOP", statusFrame, "BOTTOM", 0, -4)
+portalMap:Hide()
+
+local pmBg = portalMap:CreateTexture(nil, "BACKGROUND")
+pmBg:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
+pmBg:SetAllPoints()
+pmBg:SetVertexColor(0.02, 0.02, 0.05, 0.9)
+
+local pmGlass = portalMap:CreateTexture(nil, "BORDER")
+pmGlass:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal")
+pmGlass:SetAllPoints()
+pmGlass:SetAlpha(0.05)
+pmGlass:SetBlendMode("ADD")
+
+local pmTitle = portalMap:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+pmTitle:SetPoint("TOP", 0, -6)
+pmTitle:SetTextColor(0.4, 0.4, 0.4)
+pmTitle:SetText("TIMEWAYS HUB")
+
+local portalBadges = {}
+local function CreatePortalBadge(key, label, xOff, yOff)
+    local badge = CreateFrame("Frame", nil, portalMap)
+    badge:SetSize(90, 20)
+    badge:SetPoint("CENTER", portalMap, "CENTER", xOff, yOff)
+    local bg = badge:CreateTexture(nil, "BACKGROUND", nil, 1)
+    bg:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
+    bg:SetAllPoints()
+    bg:SetVertexColor(0.12, 0.12, 0.12, 0.8)
+    badge.bg = bg
+    local text = badge:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    text:SetPoint("CENTER")
+    text:SetText(label)
+    badge.text = text
+    portalBadges[key] = badge
+end
+
+-- Layout matches physical arrangement (back row = farther from entrance)
+CreatePortalBadge("skyreach",        "Skyreach",      -50,  10)
+CreatePortalBadge("pitofsaron",      "Pit of Saron",   50,  10)
+CreatePortalBadge("seattriumvirate", "Seat of Tri.",   -50, -14)
+CreatePortalBadge("algethar",        "Algeth'ar",       50, -14)
+
+local pmEntrance = portalMap:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+pmEntrance:SetPoint("BOTTOM", 0, 5)
+pmEntrance:SetTextColor(0.3, 0.3, 0.3)
+pmEntrance:SetText("▼ entrance")
+
+local function ShowPortalMap(routeKey)
+    for key, badge in pairs(portalBadges) do
+        if key == routeKey then
+            badge.bg:SetVertexColor(0.0, 0.45, 0.35, 0.95)
+            badge.text:SetTextColor(0, 1, 0.7)
+        else
+            badge.bg:SetVertexColor(0.08, 0.08, 0.08, 0.6)
+            badge.text:SetTextColor(0.3, 0.3, 0.3)
+        end
+    end
+    portalMap:Show()
+end
+
+local function HidePortalMap()
+    portalMap:Hide()
+end
+
+-- ============================================================================
 -- Control Bar
 -- ============================================================================
 local controlBar = CreateFrame("Frame", "ADWControlBar", UIParent)
@@ -371,7 +441,7 @@ local function ClearRoute()
     if checkTicker then checkTicker:Cancel() checkTicker = nil end
     if tomtomUID and TomTom and TomTom.RemoveWaypoint then TomTom:RemoveWaypoint(tomtomUID) end
     tomtomUID = nil activeRoute = nil activeRouteKey = nil currentStepIndex = 0 totalSteps = 0
-    HideStatusFrame() UpdateToggleButton()
+    HidePortalMap() HideStatusFrame() UpdateToggleButton()
 end
 
 function SetWaypointStep(index)
@@ -408,6 +478,13 @@ function SetWaypointStep(index)
     LogInfo("ADVANCE: Step " .. index .. "/" .. totalSteps .. " (" .. desc .. ")")
     UpdateStatusFrame(dungeonName, desc, index, totalSteps)
     if index > 1 then PlaySound(850) end
+
+    -- Show/hide Timeways portal map
+    if step.mapID == TIMEWAYS_MAP_ID and activeRouteKey then
+        ShowPortalMap(activeRouteKey)
+    else
+        HidePortalMap()
+    end
 end
 
 local function ReApplyWaypointIfMissing()
