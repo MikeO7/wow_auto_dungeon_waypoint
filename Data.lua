@@ -61,7 +61,7 @@ ADW.Routes = {
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["algethar"] = {
         { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-        { mapID = 2266, x = 0.6390, y = 0.1580, desc = "Take the Algeth'ar Academy portal" },
+        { mapID = 2266, x = 0.7030, y = 0.7188, desc = "Take the Algeth'ar Academy portal" },
         { mapID = 2025, x = 0.5810, y = 0.4260, desc = "Fly North-East to the Academy entrance" },
     },
 
@@ -69,7 +69,7 @@ ADW.Routes = {
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["seattriumvirate"] = {
         { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-        { mapID = 2266, x = 0.5700, y = 0.6090, desc = "Take the Seat of the Triumvirate portal" },
+        { mapID = 2266, x = 0.6090, y = 0.6884, desc = "Take the Seat of the Triumvirate portal" },
         { mapID = 882,  x = 0.2186, y = 0.5718, desc = "Fly to the Triumvirate entrance" },
     },
 
@@ -77,7 +77,7 @@ ADW.Routes = {
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["skyreach"] = {
         { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-        { mapID = 2266, x = 0.3520, y = 0.7840, desc = "Take the Skyreach portal" },
+        { mapID = 2266, x = 0.6478, y = 0.4468, desc = "Take the Skyreach portal" },
         { mapID = 542,  x = 0.3557, y = 0.3349, desc = "Fly South-East to the Skyreach entrance" },
     },
 
@@ -85,7 +85,7 @@ ADW.Routes = {
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["pitofsaron"] = {
         { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-        { mapID = 2266, x = 0.2640, y = 0.7810, desc = "Take the Pit of Saron portal" },
+        { mapID = 2266, x = 0.7372, y = 0.4811, desc = "Take the Pit of Saron portal" },
         { mapID = 118,  x = 0.5458, y = 0.9143, desc = "Fly to the Frozen Halls (Pit of Saron)" },
     },
 }
