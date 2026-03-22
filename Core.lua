@@ -668,8 +668,20 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
             local pInfo = C_Map.GetMapInfo(info.parentMapID)
             Print("Parent Map ID: " .. info.parentMapID .. " (" .. (pInfo and pInfo.name or "Unknown") .. ")")
         end
+    elseif cmd == "pos" then
+        local currentMapID = C_Map.GetBestMapForUnit("player")
+        if currentMapID then
+            local pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
+            if pos then
+                Print(string.format("Position: mapID=%d  x=%.4f  y=%.4f", currentMapID, pos.x, pos.y))
+            else
+                Print(RED .. "Cannot get position on this map.|r")
+            end
+        else
+            Print(RED .. "No map detected.|r")
+        end
     else
-        Print("Commands: /adw route <id>, /adw list, /adw nearest, /adw stop, /adw toggle, /adw move, /adw mapid")
+        Print("Commands: /adw route <id>, /adw list, /adw nearest, /adw stop, /adw toggle, /adw move, /adw mapid, /adw pos")
     end
 end
 
