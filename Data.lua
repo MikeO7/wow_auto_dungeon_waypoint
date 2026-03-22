@@ -61,7 +61,7 @@ ADW.Routes = {
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["algethar"] = {
         { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-        { mapID = 2266, x = 0.7030, y = 0.7188, desc = "Algeth'ar Academy portal (3rd from left)" },
+        { mapID = 2266, x = 0.7030, y = 0.7188, desc = "Algeth'ar Academy portal (4th from left)" },
         { mapID = 2025, x = 0.5810, y = 0.4260, desc = "Fly North-East to the Academy entrance" },
     },
 
@@ -69,7 +69,7 @@ ADW.Routes = {
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["seattriumvirate"] = {
         { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-        { mapID = 2266, x = 0.6090, y = 0.6884, desc = "Seat of the Triumvirate portal (1st from left)" },
+        { mapID = 2266, x = 0.6090, y = 0.6884, desc = "Seat of the Triumvirate portal (5th from left)" },
         { mapID = 882,  x = 0.2186, y = 0.5718, desc = "Fly to the Triumvirate entrance" },
     },
 

@@ -214,7 +214,7 @@ end
 -- ============================================================================
 local TIMEWAYS_MAP_ID = 2266
 local portalMap = CreateFrame("Frame", "ADWPortalMap", statusFrame)
-portalMap:SetSize(220, 90)
+portalMap:SetSize(300, 56)
 portalMap:SetPoint("TOP", statusFrame, "BOTTOM", 0, -4)
 portalMap:Hide()
 
@@ -230,15 +230,17 @@ pmGlass:SetAlpha(0.05)
 pmGlass:SetBlendMode("ADD")
 
 local pmTitle = portalMap:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-pmTitle:SetPoint("TOP", 0, -6)
+pmTitle:SetPoint("TOP", 0, -5)
 pmTitle:SetTextColor(0.4, 0.4, 0.4)
 pmTitle:SetText("TIMEWAYS HUB")
 
 local portalBadges = {}
-local function CreatePortalBadge(key, label, xOff, yOff)
+local function CreatePortalBadge(key, label, slot)
+    -- 5 slots spread across 300px width: slot 1-5, centered at slot 3
+    local xOff = (slot - 3) * 58
     local badge = CreateFrame("Frame", nil, portalMap)
-    badge:SetSize(90, 20)
-    badge:SetPoint("CENTER", portalMap, "CENTER", xOff, yOff)
+    badge:SetSize(54, 20)
+    badge:SetPoint("CENTER", portalMap, "CENTER", xOff, -10)
     local bg = badge:CreateTexture(nil, "BACKGROUND", nil, 1)
     bg:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
     bg:SetAllPoints()
@@ -251,16 +253,18 @@ local function CreatePortalBadge(key, label, xOff, yOff)
     portalBadges[key] = badge
 end
 
--- Layout matches physical arrangement (back row = farther from entrance)
-CreatePortalBadge("skyreach",        "Skyreach",      -50,  10)
-CreatePortalBadge("pitofsaron",      "Pit of Saron",   50,  10)
-CreatePortalBadge("seattriumvirate", "Seat of Tri.",   -50, -14)
-CreatePortalBadge("algethar",        "Algeth'ar",       50, -14)
+-- Single row layout matching in-game arrangement (left to right facing portals):
+-- Slot 1: Skyreach | Slot 2: Pit of Saron | Slot 3: (empty) | Slot 4: Algeth'ar | Slot 5: Seat
+CreatePortalBadge("skyreach",        "Sky",    1)
+CreatePortalBadge("pitofsaron",      "Pit",    2)
+CreatePortalBadge("algethar",        "Alg",    4)
+CreatePortalBadge("seattriumvirate", "Seat",   5)
 
-local pmEntrance = portalMap:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-pmEntrance:SetPoint("BOTTOM", 0, 5)
-pmEntrance:SetTextColor(0.3, 0.3, 0.3)
-pmEntrance:SetText("▼ entrance")
+-- Empty slot 3 indicator
+local emptySlot = portalMap:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+emptySlot:SetPoint("CENTER", portalMap, "CENTER", 0, -10)
+emptySlot:SetTextColor(0.2, 0.2, 0.2)
+emptySlot:SetText("·")
 
 local function ShowPortalMap(routeKey)
     for key, badge in pairs(portalBadges) do
