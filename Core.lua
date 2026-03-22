@@ -214,7 +214,7 @@ end
 -- ============================================================================
 local TIMEWAYS_MAP_ID = 2266
 local portalMap = CreateFrame("Frame", "ADWPortalMap", statusFrame)
-portalMap:SetSize(300, 56)
+portalMap:SetSize(240, 50)
 portalMap:SetPoint("TOP", statusFrame, "BOTTOM", 0, -4)
 portalMap:Hide()
 
@@ -229,51 +229,44 @@ pmGlass:SetAllPoints()
 pmGlass:SetAlpha(0.05)
 pmGlass:SetBlendMode("ADD")
 
-local pmTitle = portalMap:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-pmTitle:SetPoint("TOP", 0, -5)
-pmTitle:SetTextColor(0.4, 0.4, 0.4)
-pmTitle:SetText("TIMEWAYS HUB")
+-- Portal slot data: slot position -> { routeKey, shortName, circleChar }
+local PORTAL_SLOTS = {
+    { key = "skyreach",        name = "Skyreach",       circle = "①" },
+    { key = "pitofsaron",      name = "Pit of Saron",   circle = "②" },
+    { key = nil,               name = nil,              circle = "·"  },  -- empty slot
+    { key = "algethar",        name = "Algeth'ar",      circle = "④" },
+    { key = "seattriumvirate", name = "Seat of Tri.",   circle = "⑤" },
+}
 
-local portalBadges = {}
-local function CreatePortalBadge(key, label, slot)
-    -- 5 slots spread across 300px width: slot 1-5, centered at slot 3
-    local xOff = (slot - 3) * 58
-    local badge = CreateFrame("Frame", nil, portalMap)
-    badge:SetSize(54, 20)
-    badge:SetPoint("CENTER", portalMap, "CENTER", xOff, -10)
-    local bg = badge:CreateTexture(nil, "BACKGROUND", nil, 1)
-    bg:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
-    bg:SetAllPoints()
-    bg:SetVertexColor(0.12, 0.12, 0.12, 0.8)
-    badge.bg = bg
-    local text = badge:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    text:SetPoint("CENTER")
-    text:SetText(label)
-    badge.text = text
-    portalBadges[key] = badge
+-- Create a font string for each slot
+local slotLabels = {}
+for i, slot in ipairs(PORTAL_SLOTS) do
+    local xOff = (i - 3) * 40  -- spread 5 slots across the frame
+    local label = portalMap:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    label:SetPoint("CENTER", portalMap, "CENTER", xOff, 2)
+    label:SetText(slot.circle)
+    label:SetTextColor(0.25, 0.25, 0.25)
+    slotLabels[i] = label
 end
 
--- Single row layout matching in-game arrangement (left to right facing portals):
--- Slot 1: Skyreach | Slot 2: Pit of Saron | Slot 3: (empty) | Slot 4: Algeth'ar | Slot 5: Seat
-CreatePortalBadge("skyreach",        "Sky",    1)
-CreatePortalBadge("pitofsaron",      "Pit",    2)
-CreatePortalBadge("algethar",        "Alg",    4)
-CreatePortalBadge("seattriumvirate", "Seat",   5)
-
--- Empty slot 3 indicator
-local emptySlot = portalMap:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-emptySlot:SetPoint("CENTER", portalMap, "CENTER", 0, -10)
-emptySlot:SetTextColor(0.2, 0.2, 0.2)
-emptySlot:SetText("·")
+-- Active portal name displayed below the circles
+local activeLabel = portalMap:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+activeLabel:SetPoint("BOTTOM", portalMap, "BOTTOM", 0, 5)
+activeLabel:SetTextColor(0, 0.9, 0.7)
+activeLabel:SetText("")
 
 local function ShowPortalMap(routeKey)
-    for key, badge in pairs(portalBadges) do
-        if key == routeKey then
-            badge.bg:SetVertexColor(0.0, 0.45, 0.35, 0.95)
-            badge.text:SetTextColor(0, 1, 0.7)
+    for i, slot in ipairs(PORTAL_SLOTS) do
+        if slot.key == routeKey then
+            slotLabels[i]:SetTextColor(0, 1, 0.7)
+            slotLabels[i]:SetFont("Fonts\\FRIZQT__.TTF", 22, "OUTLINE")
+            activeLabel:SetText("▲ " .. slot.name)
+        elseif slot.key then
+            slotLabels[i]:SetTextColor(0.3, 0.3, 0.3)
+            slotLabels[i]:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
         else
-            badge.bg:SetVertexColor(0.08, 0.08, 0.08, 0.6)
-            badge.text:SetTextColor(0.3, 0.3, 0.3)
+            slotLabels[i]:SetTextColor(0.15, 0.15, 0.15)
+            slotLabels[i]:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
         end
     end
     portalMap:Show()
