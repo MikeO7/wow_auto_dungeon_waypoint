@@ -269,25 +269,34 @@ end
 -- ============================================================================
 -- SmartSync Engine
 -- ============================================================================
+ADW.ContinentCache = {}
 function ADW.GetMapContinent(mapID)
     if not mapID then return nil end
+    if ADW.ContinentCache[mapID] ~= nil then return ADW.ContinentCache[mapID] end
     local mapInfo = C_Map.GetMapInfo(mapID)
     while mapInfo and mapInfo.mapType ~= 2 do
         mapInfo = C_Map.GetMapInfo(mapInfo.parentMapID)
     end
-    return mapInfo and mapInfo.mapID or nil
+    local contID = mapInfo and mapInfo.mapID or false
+    ADW.ContinentCache[mapID] = contID
+    return contID
 end
 
+ADW.MapParentCache = {}
 local function IsMapOrChild(currentID, targetID)
     if currentID == targetID then return true end
+    local cacheKey = currentID .. "_" .. targetID
+    if ADW.MapParentCache[cacheKey] ~= nil then return ADW.MapParentCache[cacheKey] == true end
     local info = C_Map.GetMapInfo(currentID)
     local safety = 0
+    local isChild = false
     while info and info.parentMapID and safety < 10 do
-        if info.parentMapID == targetID then return true end
+        if info.parentMapID == targetID then isChild = true break end
         info = C_Map.GetMapInfo(info.parentMapID)
         safety = safety + 1
     end
-    return false
+    ADW.MapParentCache[cacheKey] = isChild
+    return isChild
 end
 
 function ADW.GetBestStepIndex(route)
@@ -365,8 +374,9 @@ function SetWaypointStep(index)
         PlaySound(8659) ClearRoute() return
     end
     local step = activeRoute[index]
-    local point = UiMapPoint.CreateFromCoordinates(step.mapID, step.x, step.y)
-    C_Map.SetUserWaypoint(point)
+    -- Cache UiMapPoint so it isn't repeatedly allocated during the ticker
+    step.uiMapPoint = step.uiMapPoint or UiMapPoint.CreateFromCoordinates(step.mapID, step.x, step.y)
+    C_Map.SetUserWaypoint(step.uiMapPoint)
     
     -- Verify and Force SuperTrack
     if C_Map.HasUserWaypoint() then
@@ -398,37 +408,39 @@ local function ReApplyWaypointIfMissing()
     local step = activeRoute[currentStepIndex]
     
     local hasWaypoint = C_Map.HasUserWaypoint()
-    local needsUpdate = not hasWaypoint
-    
-    if hasWaypoint then
-        local waypoint = C_Map.GetUserWaypoint()
-        if waypoint and waypoint.uiMapID ~= step.mapID then
-            needsUpdate = true
-        end
-    end
-
-    if needsUpdate then
-        local point = UiMapPoint.CreateFromCoordinates(step.mapID, step.x, step.y)
-        C_Map.SetUserWaypoint(point)
+    if not hasWaypoint then
+        step.uiMapPoint = step.uiMapPoint or UiMapPoint.CreateFromCoordinates(step.mapID, step.x, step.y)
+        C_Map.SetUserWaypoint(step.uiMapPoint)
         C_SuperTrack.SetSuperTrackedUserWaypoint(true)
-        LogInfo("Waypoint enforced: Map=" .. step.mapID)
-        if debugMode then Print("DEBUG: Waypoint enforced (Map=" .. step.mapID .. ")") end
+        LogInfo("Waypoint enforced automatically")
     end
     
-    -- ONLY re-assert SuperTrack if we have a waypoint but it somehow lost track.
-    -- Re-asserting every 0.1s can cause the golden marker to flicker or fail to render.
-    if C_Map.HasUserWaypoint() then
-        if not C_SuperTrack.IsSuperTrackingUserWaypoint() then
-            C_SuperTrack.SetSuperTrackedUserWaypoint(true)
-            if debugMode then Print("DEBUG: SuperTrack re-asserted.") end
-        end
+    if C_Map.HasUserWaypoint() and not C_SuperTrack.IsSuperTrackingUserWaypoint() then
+        C_SuperTrack.SetSuperTrackedUserWaypoint(true)
     end
 end
 
 local function CheckDistance()
     if not activeRoute then return end
     ReApplyWaypointIfMissing()
+    local step = activeRoute[currentStepIndex]
+    if not step then return end
+    
     local currentMapID = C_Map.GetBestMapForUnit("player")
+
+    -- NATIVE PORTAL ADVANCE (Failsafe for Instance/Phase Transitions like Timeways)
+    local nextStep = activeRoute[currentStepIndex + 1]
+    if nextStep and step.mapID ~= nextStep.mapID then
+        if not currentMapID or (currentMapID ~= step.mapID and not IsMapOrChild(currentMapID, step.mapID) and ADW.GetMapContinent(currentMapID) ~= ADW.GetMapContinent(step.mapID)) then
+            -- We recently zoned entirely off the origin portal map
+            LogInfo(string.format("Portal traverse natively detected (left map %d). Advancing.", step.mapID))
+            currentStepIndex = currentStepIndex + 1
+            lastStepAdvance = GetTime()
+            SetWaypointStep(currentStepIndex)
+            return
+        end
+    end
+
     if not currentMapID then return end
 
     if currentMapID ~= lastMapID then
@@ -436,7 +448,11 @@ local function CheckDistance()
         lastMapChangeTime = GetTime()
         if debugMode then Print("DEBUG: Map change detected. Buffer active.") end
     end
+    
+    -- Cache player pos early so fallback buffers don't crash from nil pointer
+    local pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
     if debugMode then Print(string.format("DEBUG: Map: %d | Step: %d", currentMapID, currentStepIndex)) end
+    
     local bestIdx = ADW.GetBestStepIndex(activeRoute)
     if bestIdx > currentStepIndex then
         LogInfo(string.format("SmartSync: SKIP FORWARD from %d to %d (Map: %d)", currentStepIndex, bestIdx, currentMapID))
@@ -444,8 +460,7 @@ local function CheckDistance()
         SetWaypointStep(currentStepIndex)
         return
     elseif bestIdx < currentStepIndex then
-        local currentStep = activeRoute[currentStepIndex]
-        if currentStep and currentMapID ~= currentStep.mapID then
+        if currentMapID ~= step.mapID then
             -- 1. Immunity Period: Don't snap back for 5 seconds after an advance.
             if GetTime() - lastStepAdvance < 5 then
                 if debugMode then Print("DEBUG: Snap-back immunity active.") end
@@ -476,10 +491,8 @@ local function CheckDistance()
             end
         end
     end
-    local step = activeRoute[currentStepIndex]
-    if not step then return end
+
     if currentMapID == step.mapID then
-        local pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
         if pos then
             local dx = (pos.x - step.x) * 1000
             local dy = (pos.y - step.y) * 1000
@@ -492,7 +505,6 @@ local function CheckDistance()
                     return
                 end
 
-                local nextStep = activeRoute[currentStepIndex + 1]
                 -- STICKY LOGIC: If next step is stay-on-map, advance normally.
                 -- If next step is CROSS-MAP, only advance if we are ALREADY on that map (i.e. we just ported).
                 local shouldAdvance = true
@@ -521,7 +533,6 @@ local function CheckDistance()
                 end
             end
         end
-    else
     end
 end
 
@@ -542,7 +553,9 @@ local function StartRoute(routeKey)
     Print(msg)
     LogInfo("Route started: " .. dungeonName .. " (Step: " .. currentStepIndex .. "/" .. totalSteps .. ")")
     PlaySound(846) SetWaypointStep(currentStepIndex) UpdateToggleButton()
-    checkTicker = C_Timer.NewTicker(0.1, CheckDistance)
+    
+    -- Throttled from 10Hz (0.1s) to 4Hz (0.25s) for performance
+    checkTicker = C_Timer.NewTicker(0.25, CheckDistance)
     if IsInGroup() then C_ChatInfo.SendAddonMessage("ADW", "ROUTE:" .. routeKey, "PARTY") end
 end
 
