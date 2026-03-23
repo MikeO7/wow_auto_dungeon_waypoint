@@ -869,6 +869,9 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                 OnTooltipShow = function(tooltip)
                     tooltip:SetText("Auto Dungeon Waypoint", 0.0, 0.75, 1.0)
                     if activeRoute then tooltip:AddLine("Active: " .. (ADW.RouteNames[activeRouteKey] or activeRouteKey)) end
+                    tooltip:AddLine(" ")
+                    tooltip:AddLine("|cFFFFD100Left-Click:|r Open route menu", 1, 1, 1)
+                    tooltip:AddLine("|cFFFFD100Right-Click:|r Toggle auto-routing", 1, 1, 1)
                 end,
             })
             LDBIcon:Register("AutoDungeonWaypoint", adwBroker, AutoDungeonWaypointDB.MinimapIcon)
