@@ -370,8 +370,13 @@ end
 ADW.MapParentCache = {}
 local function IsMapOrChild(currentID, targetID)
     if currentID == targetID then return true end
-    local cacheKey = currentID .. "_" .. targetID
-    if ADW.MapParentCache[cacheKey] ~= nil then return ADW.MapParentCache[cacheKey] == true end
+    -- Use 2D table to avoid string concatenation in polling loop
+    if not ADW.MapParentCache[currentID] then
+        ADW.MapParentCache[currentID] = {}
+    end
+    if ADW.MapParentCache[currentID][targetID] ~= nil then
+        return ADW.MapParentCache[currentID][targetID]
+    end
     local info = C_Map.GetMapInfo(currentID)
     local safety = 0
     local isChild = false
@@ -380,7 +385,7 @@ local function IsMapOrChild(currentID, targetID)
         info = C_Map.GetMapInfo(info.parentMapID)
         safety = safety + 1
     end
-    ADW.MapParentCache[cacheKey] = isChild
+    ADW.MapParentCache[currentID][targetID] = isChild
     return isChild
 end
 
