@@ -169,9 +169,18 @@ function ADW_Stop_Binding()
     end
 end
 
+statusFrame:SetScript("OnMouseUp", function(self, button)
+    if button == "RightButton" and activeRoute then
+        ADW_Stop_Binding()
+    end
+end)
+
 statusFrame:SetScript("OnEnter", function(self)
     GameTooltip_SetDefaultAnchor(GameTooltip, self)
     GameTooltip:SetText("Navigation HUD", 0.0, 0.75, 1.0)
+    if activeRoute then
+        GameTooltip:AddLine("|cFFFFD100Right-Click:|r Cancel route", 1, 1, 1, true)
+    end
     GameTooltip:AddLine("Hold |cFFFFD100Shift|r and drag to move.", 1, 1, 1, true)
     GameTooltip:Show()
 end)
@@ -869,7 +878,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                                 end
                             end)
                         end
-                    elseif button == "RightButton" then ADW.ToggleAutoRoute() end
+                    elseif button == "RightButton" then ADW.ToggleAutoRoute()
+                    elseif button == "MiddleButton" then ADW_Stop_Binding() end
                 end,
                 OnTooltipShow = function(tooltip)
                     tooltip:SetText("Auto Dungeon Waypoint", 0.0, 0.75, 1.0)
@@ -877,6 +887,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                     tooltip:AddLine(" ")
                     tooltip:AddLine("|cFFFFD100Left-Click:|r Open route menu", 1, 1, 1)
                     tooltip:AddLine("|cFFFFD100Right-Click:|r Toggle auto-routing", 1, 1, 1)
+                    if activeRoute then tooltip:AddLine("|cFFFFD100Middle-Click:|r Cancel route", 1, 1, 1) end
                 end,
             })
             LDBIcon:Register("AutoDungeonWaypoint", adwBroker, AutoDungeonWaypointDB.MinimapIcon)
