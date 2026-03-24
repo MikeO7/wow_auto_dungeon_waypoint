@@ -525,10 +525,11 @@ local function ReApplyWaypointIfMissing()
         step.uiMapPoint = step.uiMapPoint or UiMapPoint.CreateFromCoordinates(step.mapID, step.x, step.y)
         C_Map.SetUserWaypoint(step.uiMapPoint)
         C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+        hasWaypoint = true
         LogInfo("Waypoint enforced automatically")
     end
     
-    if C_Map.HasUserWaypoint() and not C_SuperTrack.IsSuperTrackingUserWaypoint() then
+    if hasWaypoint and not C_SuperTrack.IsSuperTrackingUserWaypoint() then
         C_SuperTrack.SetSuperTrackedUserWaypoint(true)
     end
 end
@@ -539,12 +540,13 @@ local function CheckDistance()
     local step = activeRoute[currentStepIndex]
     if not step then return end
     
+    local now = GetTime()
     local currentMapID = C_Map.GetBestMapForUnit("player")
     if not currentMapID then return end
 
     if currentMapID ~= lastMapID then
         lastMapID = currentMapID
-        lastMapChangeTime = GetTime()
+        lastMapChangeTime = now
         if debugMode then Print("DEBUG: Map change detected. Buffer active.") end
     end
     
@@ -557,7 +559,7 @@ local function CheckDistance()
         -- Forward-skip immunity: Don't allow SmartSync to jump forward
         -- within 8 seconds of a step advance. This prevents portal transitions
         -- (like Timeways) from triggering continent-match skips past Step 2.
-        if GetTime() - lastStepAdvance < 8 then
+        if now - lastStepAdvance < 8 then
             if debugMode then Print("DEBUG: Forward-skip immunity active (" .. bestIdx .. " blocked).") end
         else
             LogInfo(string.format("SmartSync: SKIP FORWARD from %d to %d (Map: %d)", currentStepIndex, bestIdx, currentMapID))
@@ -568,7 +570,7 @@ local function CheckDistance()
     elseif bestIdx < currentStepIndex then
         if currentMapID ~= step.mapID then
             -- 1. Immunity Period: Don't snap back for 5 seconds after an advance.
-            if GetTime() - lastStepAdvance < 5 then
+            if now - lastStepAdvance < 5 then
                 if debugMode then Print("DEBUG: Snap-back immunity active.") end
                 return
             end
@@ -606,7 +608,7 @@ local function CheckDistance()
             if debugMode then Print(string.format("DEBUG: Step %d DistSq: %.2f (Target: < 10.0) Map: %d", currentStepIndex, distSq, currentMapID)) end
             if distSq < 10.0 then
                 -- Buffer Check: If we just changed maps, wait 3 seconds before allowing arrival.
-                if GetTime() - lastMapChangeTime < 3 then
+                if now - lastMapChangeTime < 3 then
                     if debugMode then Print("DEBUG: Arrival ignored (Map change buffer active)") end
                     return
                 end
@@ -614,7 +616,7 @@ local function CheckDistance()
                 LogInfo(string.format("ARRIVAL: Step %d reached (DistSq: %.2f)", currentStepIndex, distSq))
                 if currentStepIndex < totalSteps then
                     currentStepIndex = currentStepIndex + 1
-                    lastStepAdvance = GetTime()
+                    lastStepAdvance = now
                     SetWaypointStep(currentStepIndex)
                     UpdateToggleButton() PulseGlow()
                 else
