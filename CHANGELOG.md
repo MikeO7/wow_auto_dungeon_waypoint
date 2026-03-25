@@ -1,5 +1,33 @@
 # Changelog
 
+## v5.7.6 (LDB & Tooltip UX)
+- **LDB Tooltip UX**: Optimized tooltip polling and added current map awareness to ensure the HUD remains accurate during transitions.
+- **Orgrimmar Portal Precision**: Verified and corrected portal coordinates in the Orgrimmar Portal Room.
+- **Performance Optimization**: Refined `GetBestStepIndex` for faster route calculation at high speeds.
+- **Quick Cancel**: Added a quick cancel button to the palette UX for easier route management.
+
+## v5.7.5 (Timeways Portal Map)
+- **Timeways Portal Map**: Added a visual map overlay to the HUD to display portal arrangements.
+
+## v5.7.4 (Coordinate Audit)
+- **Global Precision**: Verified all dungeon coordinates against live database entries.
+
+## v5.7.3 (Orgrimmar Coordinate Fix)
+- **Portal Alignment**: Refined Orgrimmar and Silvermoon portal triggers for better landing.
+
+## v5.7.2 (Orgrimmar Coordinate Fix)
+- **Map ID Update**: Corrected Orgrimmar Portal Room waypoint Map ID.
+
+## v5.7.1 (Surgical Route Audit)
+- **Precision Validation**: Re-verified every dungeon entrance manually.
+
+## v5.7.0 (Navigation & LFG Overhaul)
+- **High-Speed Optimized**: Optimized heartbeat and arrival radius for Skyriding.
+- **Snap-Back Immunity**: Added distance buffers to prevent accidental route resets.
+
+## v5.6.2 (Zone Transition Fix)
+- **Sticky Waypoints**: Improved reliability of waypoints during fast zone transitions.
+
 ## v5.6.1 (Documentation Validation)
 - **Verified Source Links**: Updated all coordinate documentation with fully validated, clickable URLs from Method and ConquestCapped.
 - **Precision Assurance**: Re-verified every dungeon coordinate against live database entries to ensure 100% accuracy.
