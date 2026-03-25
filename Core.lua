@@ -816,17 +816,36 @@ function ADW.ProcessActivityID(activityID, isSilent)
     end
 
     local routeKey = ADW.LFGToRoute[activityID]
+
+    -- If we've already cached that this ID has no matching route, skip parsing
+    if routeKey == false then return end
+
     LogInfo("ProcessActivityID: ID=" .. tostring(activityID) .. " Key=" .. tostring(routeKey))
-    if not routeKey then
+
+    if routeKey == nil then
         local info = C_LFGList.GetActivityInfoTable(activityID)
         if info and info.fullName then
             LogInfo("ProcessActivityID: Name=" .. info.fullName)
             local lowerName = info.fullName:lower():gsub("[%p%s]", "")
+
+            -- Initialize clean names cache if missing
+            ADW.RouteNamesClean = ADW.RouteNamesClean or {}
+
             for key, name in pairs(ADW.RouteNames) do
-                local cleanTarget = name:lower():gsub("[%p%s]", "")
-                if lowerName:find(cleanTarget, 1, true) then routeKey = key break end
+                local cleanTarget = ADW.RouteNamesClean[key]
+                if not cleanTarget then
+                    cleanTarget = name:lower():gsub("[%p%s]", "")
+                    ADW.RouteNamesClean[key] = cleanTarget
+                end
+
+                if lowerName:find(cleanTarget, 1, true) then
+                    routeKey = key
+                    break
+                end
             end
         end
+        -- Cache the result so we don't parse this ID again (true or false)
+        ADW.LFGToRoute[activityID] = routeKey or false
     end
     if routeKey then
         if activeRouteKey == routeKey then return end
