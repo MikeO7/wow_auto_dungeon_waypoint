@@ -10,3 +10,7 @@
 ## 2024-05-20 - Cache string processing in frequent loops
 **Learning:** Performing string manipulation functions like `lower` and `gsub` inside loops running on repetitive event triggers (e.g. `LFG_LIST_ACTIVE_ENTRY_UPDATE`) creates unnecessary string allocations. This generates garbage for the Lua garbage collector and can result in micro-stutters.
 **Action:** Cache the resulting strings from repeated parsing operations (like mapping an unknown LFG activity ID) and early-return if the result is already known to prevent redundant text matching.
+
+## 2024-05-21 - Avoid Unnecessary Garbage in Frequent Callbacks
+**Learning:** High-frequency event handlers, such as `LFG_LIST_ACTIVE_ENTRY_UPDATE` or `ProcessActivityID`, may trigger many times a second. Performing string concatenation inside these callbacks generates useless string allocations for the Lua garbage collector and can result in micro-stutters.
+**Action:** Remove or conditionally wrap debug logging and string-building inside extremely frequent event handlers or data processors. Additionally, order `return` or short-circuit checks properly to skip heavy operations (like `IsInInstance`) if already cached or known.

@@ -840,17 +840,17 @@ end
 function ADW.ProcessActivityID(activityID, isSilent)
     if not activityID then return end
     
+    local routeKey = ADW.LFGToRoute[activityID]
+
+    -- If we've already cached that this ID has no matching route, skip parsing
+    if routeKey == false then return end
+
     -- Prevent auto-routing if already inside a dungeon or raid
     local _, instanceType = IsInInstance()
     if instanceType == "party" or instanceType == "raid" then
         LogInfo("ProcessActivityID: Already in instance (" .. instanceType .. "), skipping.")
         return
     end
-
-    local routeKey = ADW.LFGToRoute[activityID]
-
-    -- If we've already cached that this ID has no matching route, skip parsing
-    if routeKey == false then return end
 
     LogInfo("ProcessActivityID: ID=" .. tostring(activityID) .. " Key=" .. tostring(routeKey))
 
@@ -981,7 +981,6 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "LFG_LIST_ACTIVE_ENTRY_UPDATE" then
         if AutoDungeonWaypointDB.AutoRouteEnabled then
             local activeEntry = C_LFGList.GetActiveEntryInfo()
-            LogInfo("LFG_LIST_ACTIVE_ENTRY_UPDATE: Found=" .. tostring(activeEntry ~= nil))
             if activeEntry and activeEntry.activityIDs then
                 for _, id in ipairs(activeEntry.activityIDs) do
                     ADW.ProcessActivityID(id)
