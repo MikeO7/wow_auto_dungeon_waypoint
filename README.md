@@ -23,14 +23,13 @@ No more alt-tabbing. No more asking "where is this one again?"
 | Feature | Description |
 |---------|-------------|
 | 🚀 **Auto-Routing** | Detects dungeon on group join — zero input required |
-| ⏱️ **ETA Timer** | Shows estimated arrival time based on movement speed |
-| 📊 **Progress Bar** | Visual step completion bar in the HUD |
 | 🗺️ **Smart Routing** | Works from anywhere — syncs to the correct step based on your location |
 | 📡 **Party Sharing** | Automatically shares routes with party members |
-| 📋 **Route History** | Quick access to your last 5 used routes |
 | 📍 **`/adw nearest`** | Auto-start the closest dungeon route |
-| 🔲 **Compact Mode** | Minimal HUD with just arrow + distance |
-| 🎨 **Premium UI** | Glassmorphism HUD, color-coded distance, smooth animations |
+| 🔲 **Compact Mode** | Minimal HUD with just step counter + title |
+| 🎨 **Premium UI** | Glassmorphism HUD, color-coded steps, smooth animations |
+| 🗼 **Timeways Map** | Visual portal overlay when routing through The Timeways |
+| ⌨️ **Keybindings** | Assign hotkeys for HUD toggle and route cancel |
 
 ---
 
@@ -66,10 +65,15 @@ All coordinates verified against method.gg, icy-veins.com, and wowhead.
 | `/adw nearest` | Start the closest dungeon route |
 | `/adw stop` | Cancel current route |
 | `/adw toggle` | Toggle auto-routing |
-| `/adw compact` | Toggle compact HUD |
-| `/adw hide` / `show` | Hide/show control bar |
-| `/adw log` | View recent events |
+| `/adw hide` | Hide all UI elements |
+| `/adw show` | Restore all UI elements |
+| `/adw move` | Toggle HUD for positioning |
+| `/adw version` | Show addon version |
+| `/adw log` | Show recent log entries |
+| `/adw reset` | Reset all settings to defaults |
 | `/adw debug` | Toggle debug mode |
+| `/adw mapid` | Show current map ID |
+| `/adw pos` | Show current position |
 
 **Route IDs:** `windrunner` · `magisters` · `maisara` · `nexuspoint` · `algethar` · `seattriumvirate` · `skyreach` · `pitofsaron`
 
@@ -91,8 +95,21 @@ All coordinates verified against method.gg, icy-veins.com, and wowhead.
 1. Listens for `LFG_LIST_JOINED_GROUP` to detect dungeon groups
 2. Matches Activity IDs to verified dungeon routes
 3. Sets waypoints via `C_Map.SetUserWaypoint` + `C_SuperTrack`
-4. Polls position 5x/second for smooth arrow tracking and auto-advancement
+4. Polls position 4x/second for smooth arrow tracking and auto-advancement
 5. Auto-clears the route when you enter the dungeon instance
+
+---
+
+## Architecture
+
+```
+Data.lua       — Route definitions, LFG mappings, sorted key cache
+Core.lua       — State management, navigation engine, events, slash commands
+UI.lua         — HUD frame, control bar, Timeways portal map
+Options.lua    — Interface settings panel
+Menus.lua      — Context menus (List button, addon compartment, LDB)
+Bindings.xml   — Keybinding definitions
+```
 
 ---
 

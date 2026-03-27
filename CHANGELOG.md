@@ -1,5 +1,16 @@
 # Changelog
 
+## v6.0.0 (Architecture Refactor)
+- **Module Split**: Split the 1,100-line `Core.lua` monolith into 5 focused modules: `Data.lua`, `Core.lua`, `UI.lua`, `Options.lua`, `Menus.lua`.
+- **Eliminated Code Duplication**: Consolidated 3 identical context menu builders into a single shared `BuildRouteMenu()` helper. Consolidated 3 identical drag handlers into shared functions.
+- **Removed Dead Code**: Cleaned up unused `GetAddOnMetadata` API shim, unused `LogWarn` function, duplicate binding string definitions, and unused color constants.
+- **Fixed Duplicate Bindings**: `BINDING_HEADER_ADW` and `BINDING_NAME_*` were defined in both `Data.lua` and `Core.lua` with conflicting text. Now defined once in `Core.lua`.
+- **New Commands**: Added `/adw version` and `/adw log` slash commands.
+- **Pre-sorted Route Cache**: Route keys are now sorted once at load time instead of on every menu open.
+- **Updated Interface Version**: `120001` → `120100` for current WoW Midnight.
+- **README Accuracy**: Removed documentation for features that never existed (ETA timer, progress bar, route history). Added documentation for all actual commands.
+- **Packaging**: Added `.Jules` directory and PNG icons to `.pkgmeta` ignore list.
+
 ## v5.7.7 (Minimap Icon & LDB UX Polish)
 - **Custom Minimap Icon**: Added a high-resolution custom icon for the minimap and LibDataBroker bar.
 - **LDB Launcher Integration**: Properly registered ADW as an LDB Launcher for better compatibility with addon bars like Titan Panel and Bazooka.
@@ -145,10 +156,6 @@
 - **Removed Recent Routes**: Simplified the UI by removing the "Recent" section and underlying history tracking.
 - **Fixed Binding Warnings**: Resolved "Binding header ADW was attempted to be loaded more than once" warning in `Bindings.xml`.
 - **Code Optimization**: General cleanup and removal of unused state variables.
-
-## v1.2.0
-- **Global Smart Routing (Continent-Aware)**: The addon no longer gets "stuck" if you start a route from a different zone. It now detects your continent and automatically syncs to the first relevant step for your current location.
-- Added `ADW.GetMapContinent` helper for smarter zone-to-continent mapping.
 
 ## v4.2.1 (Bug Fix)
 - **Critical Fix**: Resolved a Lua "nil value" error when using the `/adw toggle` command or the auto-route button. This was caused by a forward-declaration issue in `Core.lua`.

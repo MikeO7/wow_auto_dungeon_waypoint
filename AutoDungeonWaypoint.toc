@@ -1,8 +1,8 @@
-## Interface: 120001
+## Interface: 120100
 ## Title: Auto Dungeon Waypoint
 ## Notes: Automatic step-by-step navigation to Mythic+ dungeons. Auto-activates when joining groups.
 ## Author: mikeo
-## Version: 5.7.7
+## Version: 6.0.0
 ## SavedVariables: AutoDungeonWaypointDB
 ## IconTexture: Interface\AddOns\AutoDungeonWaypoint\icon.tga
 ## AddonCompartmentFunc: ADW_OnAddonCompartmentClick
@@ -18,5 +18,13 @@ libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 libs\LibDBIcon-1.0\lib.xml
 
+# Data must load first (route definitions, sorted keys)
 Data.lua
+
+# Core engine (state, navigation, events, slash commands)
 Core.lua
+
+# UI modules (depend on Core API)
+UI.lua
+Options.lua
+Menus.lua

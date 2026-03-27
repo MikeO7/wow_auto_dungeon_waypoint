@@ -1,11 +1,6 @@
 local _, ADW = ...
 
--- Global strings for BindingsUI (must be defined before Bindings.xml loads)
-_G["BINDING_HEADER_ADW"] = "Auto Dungeon Waypoint"
-_G["BINDING_NAME_ADW_TOGGLEHUD"] = "Toggle HUD"
-_G["BINDING_NAME_ADW_STOP"] = "Stop Route"
-
--- We will store everything in the ADW namespace.
+-- ============================================================================
 -- Route Database
 -- Each route is an array of steps: { mapID, x, y, desc }
 -- ROUTES ARE DYNAMIC: They can have any number of steps (1, 3, 10, etc.)
@@ -106,3 +101,35 @@ ADW.LFGToRoute = {
     [ 182] = "skyreach",        -- Skyreach (Mythic Keystone)
     [1770] = "pitofsaron",      -- Pit of Saron (Mythic Keystone)
 }
+
+-- ============================================================================
+-- Pre-sorted route keys (computed once, reused by all menus)
+-- ============================================================================
+ADW.SortedRouteKeys = {}
+for k in pairs(ADW.RouteNames) do
+    table.insert(ADW.SortedRouteKeys, k)
+end
+table.sort(ADW.SortedRouteKeys, function(a, b)
+    return ADW.RouteNames[a] < ADW.RouteNames[b]
+end)
+
+-- ============================================================================
+-- Route Data Validation (runs once at load; catches typos before they crash)
+-- ============================================================================
+do
+    for key, name in pairs(ADW.RouteNames) do
+        local route = ADW.Routes[key]
+        if not route then
+            -- This fires as a Lua warning visible in BugSack/BugGrabber
+            error("ADW Data Error: RouteNames['" .. key .. "'] ('" .. name .. "') has no matching Routes entry.", 0)
+        end
+        for i, step in ipairs(route) do
+            if not step.mapID or not step.x or not step.y or not step.desc then
+                error("ADW Data Error: Routes['" .. key .. "'][" .. i .. "] is missing mapID, x, y, or desc.", 0)
+            end
+            if step.x < 0 or step.x > 1 or step.y < 0 or step.y > 1 then
+                error("ADW Data Error: Routes['" .. key .. "'][" .. i .. "] has out-of-range coordinates (x=" .. step.x .. ", y=" .. step.y .. "). Must be 0-1.", 0)
+            end
+        end
+    end
+end

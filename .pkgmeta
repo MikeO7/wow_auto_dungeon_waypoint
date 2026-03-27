@@ -5,7 +5,12 @@ ignore:
   - .github
   - .gitignore
   - .pkgmeta
+  - .Jules
+  - .agent
   - README.md
   - CHANGELOG.md
+  - ARCHITECTURE.md
   - LICENSE
   - CurseForgeSetup.md
+  - icon.png
+  - icon64.png
