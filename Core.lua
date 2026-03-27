@@ -13,6 +13,11 @@ local GetAddOnMetadata = GetAddOnMetadata or (C_AddOns and C_AddOns.GetAddOnMeta
 -- Expose to global for SavedVariables, debugging, and Bindings.xml
 AutoDungeonWaypoint = ADW
 
+-- Global binding localization strings
+BINDING_HEADER_ADW = "Auto Dungeon Waypoint"
+BINDING_NAME_ADW_TOGGLEHUD = "Toggle Navigation HUD"
+BINDING_NAME_ADW_STOP = "Cancel Route"
+
 -- ============================================================================
 -- State
 -- ============================================================================
@@ -155,6 +160,12 @@ function ADW.ToggleHUD(enabled)
         UpdateStatusFrame(ADW.RouteNames[activeRouteKey] or activeRouteKey, activeRoute[currentStepIndex].desc, currentStepIndex, totalSteps)
     else
         HideStatusFrame()
+    end
+
+    if db.ShowStatusFrame then
+        Print("Navigation HUD " .. GREEN .. "shown|r.")
+    else
+        Print("Navigation HUD " .. RED .. "hidden|r.")
     end
 end
 
