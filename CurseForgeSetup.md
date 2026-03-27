@@ -5,7 +5,7 @@ Everything you need to fill out your CurseForge project page. Just copy-paste.
 ## Form Fields
 
 *   **Project name:** Auto Dungeon Waypoint
-*   **Logo:** Use `assets/logo_400.png`
+*   **Logo:** Use `icon.png`
 *   **Summary:** Automatic step-by-step dungeon navigation for Mythic+. Join a group and get routed instantly — ETA timer, progress bar, party sharing, and more.
 *   **Class:** Addons
 *   **Main category:** Dungeons & Raids
