@@ -1,4 +1,4 @@
-## Interface: 120100
+## Interface: 120001
 ## Title: Auto Dungeon Waypoint
 ## Notes: Automatic step-by-step navigation to Mythic+ dungeons. Auto-activates when joining groups.
 ## Author: mikeo
