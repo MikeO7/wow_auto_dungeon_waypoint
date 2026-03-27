@@ -1,3 +1,7 @@
+## 2024-05-23 - Keybinding Localization for Discoverability
+**Learning:** WoW keybindings without global localization strings (e.g., `BINDING_NAME_` and `BINDING_HEADER_`) display raw XML variable names in the default Key Bindings interface, resulting in poor UX and discoverability.
+**Action:** Always provide explicit `BINDING_HEADER_` and `BINDING_NAME_` global string definitions when adding keybindings via `Bindings.xml` to ensure human-readable settings menus.
+
 ## 2026-03-24 - Explicit Hidden Mouse Interactions
 **Learning:** Hidden mouse interactions like Right-Click or Middle-Click on HUD elements and minimap icons are not easily discoverable by users unless explicitly documented in their respective tooltips.
 **Action:** Always document hidden interactions directly inside the `OnEnter` or `OnTooltipShow` methods of UI elements to ensure discoverability.
