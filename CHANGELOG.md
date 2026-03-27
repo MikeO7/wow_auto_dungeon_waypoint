@@ -1,5 +1,11 @@
 # Changelog
 
+## v5.7.7 (Minimap Icon & LDB UX Polish)
+- **Custom Minimap Icon**: Added a high-resolution custom icon for the minimap and LibDataBroker bar.
+- **LDB Launcher Integration**: Properly registered ADW as an LDB Launcher for better compatibility with addon bars like Titan Panel and Bazooka.
+- **Icon Asset Bundle**: Bundled all required TGA/PNG assets for consistent cross-version visibility.
+- **Bundled LibDBIcon**: Integrated the latest LibDBIcon-1.0 to ensure the minimap button works out-of-the-box.
+
 ## v5.7.6 (LDB & Tooltip UX)
 - **LDB Tooltip UX**: Optimized tooltip polling and added current map awareness to ensure the HUD remains accurate during transitions.
 - **Orgrimmar Portal Precision**: Verified and corrected portal coordinates in the Orgrimmar Portal Room.

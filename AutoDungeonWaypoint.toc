@@ -2,9 +2,10 @@
 ## Title: Auto Dungeon Waypoint
 ## Notes: Automatic step-by-step navigation to Mythic+ dungeons. Auto-activates when joining groups.
 ## Author: mikeo
-## Version: 5.7.6
+## Version: 5.7.7
 ## SavedVariables: AutoDungeonWaypointDB
-## IconTexture: 134440
+## IconTexture: Interface\AddOns\AutoDungeonWaypoint\icon.tga
+## AddonCompartmentFunc: ADW_OnAddonCompartmentClick
 ## X-Category: Dungeon
 ## X-Website: https://github.com/mikeo/wow_auto_dungeon_waypoint
 ## X-License: MIT
@@ -15,6 +16,7 @@
 libs\LibStub\LibStub.lua
 libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+libs\LibDBIcon-1.0\lib.xml
 
 Data.lua
 Core.lua

@@ -41,6 +41,8 @@ local SetWaypointStep, UpdateToggleButton, UpdateStatusFrame, HideStatusFrame, S
 local DEFAULTS = {
     AutoRouteEnabled = true,
     ShowStatusFrame = true,
+    ShowControlBar = true,
+    ShowChatText = true,
     CompactMode = false,
     Log = {},       -- Persistent event log
     LogMaxLines = 200,
@@ -60,8 +62,13 @@ local YELLOW      = "|cFFFFCC00"
 local GRAY        = "|cFF888888"
 local CYAN        = "|cFF00FFFF"
 
-local function Print(msg)
+local function ForcePrint(msg)
     DEFAULT_CHAT_FRAME:AddMessage(ADDON_COLOR .. "[Auto Dungeon Waypoint]|r " .. msg)
+end
+
+local function Print(msg)
+    if AutoDungeonWaypointDB and AutoDungeonWaypointDB.ShowChatText == false then return end
+    ForcePrint(msg)
 end
 
 -- ============================================================================
@@ -743,13 +750,43 @@ local function CreateOptionsPanel()
         GameTooltip:Show()
     end)
     compactCheck:SetScript("OnLeave", GameTooltip_Hide)
+
+    local controlBarCheck = CreateFrame("CheckButton", "ADWShowControlBarCheck", panel, "UICheckButtonTemplate")
+    controlBarCheck:SetPoint("TOPLEFT", compactCheck, "BOTTOMLEFT", 0, -8)
+    _G[controlBarCheck:GetName() .. "Text"]:SetText("Show Control Bar")
+    controlBarCheck:SetScript("OnClick", function(self)
+        AutoDungeonWaypointDB.ShowControlBar = self:GetChecked()
+        if AutoDungeonWaypointDB.ShowControlBar then controlBar:Show() else controlBar:Hide() end
+    end)
+    controlBarCheck:SetScript("OnShow", function(self) self:SetChecked(AutoDungeonWaypointDB.ShowControlBar ~= false) end)
+    controlBarCheck:SetScript("OnEnter", function(self)
+        GameTooltip_SetDefaultAnchor(GameTooltip, self)
+        GameTooltip:SetText("Show Control Bar", 1, 1, 1)
+        GameTooltip:AddLine("Shows the movable bar with Auto-Routing toggle and List buttons.", nil, nil, nil, true)
+        GameTooltip:Show()
+    end)
+    controlBarCheck:SetScript("OnLeave", GameTooltip_Hide)
+
+    local chatCheck = CreateFrame("CheckButton", "ADWShowChatTextCheck", panel, "UICheckButtonTemplate")
+    chatCheck:SetPoint("TOPLEFT", controlBarCheck, "BOTTOMLEFT", 0, -8)
+    _G[chatCheck:GetName() .. "Text"]:SetText("Enable Chat Announcements")
+    chatCheck:SetScript("OnClick", function(self) AutoDungeonWaypointDB.ShowChatText = self:GetChecked() end)
+    chatCheck:SetScript("OnShow", function(self) self:SetChecked(AutoDungeonWaypointDB.ShowChatText ~= false) end)
+    chatCheck:SetScript("OnEnter", function(self)
+        GameTooltip_SetDefaultAnchor(GameTooltip, self)
+        GameTooltip:SetText("Chat Announcements", 1, 1, 1)
+        GameTooltip:AddLine("Shows text in your chat box when a route starts or a step advances.", nil, nil, nil, true)
+        GameTooltip:Show()
+    end)
+    chatCheck:SetScript("OnLeave", GameTooltip_Hide)
+
     local resetBtn = CreateFrame("Button", "ADWResetBtn", panel, "UIPanelButtonTemplate")
-    resetBtn:SetSize(120, 26) resetBtn:SetPoint("TOPLEFT", compactCheck, "BOTTOMLEFT", 0, -20) resetBtn:SetText("Reset Positions")
+    resetBtn:SetSize(120, 26) resetBtn:SetPoint("TOPLEFT", chatCheck, "BOTTOMLEFT", 0, -20) resetBtn:SetText("Reset Positions")
     resetBtn:SetScript("OnClick", function()
         AutoDungeonWaypointDB.StatusFramePos = nil AutoDungeonWaypointDB.ToggleButtonPos = nil
         statusFrame:ClearAllPoints() statusFrame:SetPoint("TOP", UIParent, "TOP", 0, -60)
         controlBar:ClearAllPoints() controlBar:SetPoint("TOP", UIParent, "TOP", 0, -20)
-        Print("HUD and Control Bar positions have been reset.")
+        ForcePrint("HUD and Control Bar positions have been reset.")
     end)
     resetBtn:SetScript("OnEnter", function(self)
         GameTooltip_SetDefaultAnchor(GameTooltip, self)
@@ -761,6 +798,7 @@ local function CreateOptionsPanel()
     if Settings and Settings.RegisterCanvasLayoutCategory then
         local category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
         Settings.RegisterAddOnCategory(category)
+        ADW.settingsCategory = category
     else InterfaceOptions_AddCategory(panel) end
 end
 
@@ -784,13 +822,25 @@ SLASH_AUTODUNGEONWAYPOINT2 = "/autodungeonwaypoint"
 SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
     local cmd, arg = strsplit(" ", (msg or ""):lower(), 2)
     if cmd == "route" and arg then StartRoute(arg)
-    elseif cmd == "stop" then ClearRoute() Print("Route cancelled.")
+    elseif cmd == "stop" then ClearRoute() ForcePrint("Route cancelled.")
     elseif cmd == "toggle" then ADW.ToggleAutoRoute()
+    elseif cmd == "hide" then
+        if AutoDungeonWaypointDB then
+            AutoDungeonWaypointDB.ShowStatusFrame = false
+            AutoDungeonWaypointDB.ShowControlBar = false
+            AutoDungeonWaypointDB.ShowChatText = false
+            HideStatusFrame()
+            if controlBar then controlBar:Hide() end
+            if ADWShowHUDCheck then ADWShowHUDCheck:SetChecked(false) end
+            if ADWShowControlBarCheck then ADWShowControlBarCheck:SetChecked(false) end
+            if ADWShowChatTextCheck then ADWShowChatTextCheck:SetChecked(false) end
+            ForcePrint("HUD, Control Bar, and Chat Text hidden.")
+        end
     elseif cmd == "list" then
-        Print("Available routes:")
+        ForcePrint("Available routes:")
         for key, name in pairs(ADW.RouteNames) do
             local steps = ADW.Routes[key] and #ADW.Routes[key] or 0
-            Print("  " .. YELLOW .. key .. "|r — " .. WHITE .. name .. "|r " .. GRAY .. "(" .. steps .. " steps)|r")
+            ForcePrint("  " .. YELLOW .. key .. "|r — " .. WHITE .. name .. "|r " .. GRAY .. "(" .. steps .. " steps)|r")
         end
     elseif cmd == "nearest" then
         local currentMapID = C_Map.GetBestMapForUnit("player")
@@ -806,42 +856,69 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
                 if d < bestDist then bestDist = d bestKey = key end
             end
         end
-        if bestKey then StartRoute(bestKey) else Print(RED .. "No nearby dungeon routes found.|r") end
+        if bestKey then StartRoute(bestKey) else ForcePrint(RED .. "No nearby dungeon routes found.|r") end
     elseif cmd == "move" then
         if statusFrame:IsShown() then
             HideStatusFrame()
-            Print("HUD hidden.")
+            ForcePrint("HUD hidden.")
         else
             UpdateStatusFrame("HUD Positioning", "Hold SHIFT and drag to move this frame. Type /adw move again to hide.", 1, 1)
             statusFrame:Show()
             statusFrame:SetAlpha(1)
-            Print("HUD shown for positioning.")
+            ForcePrint("HUD shown for positioning.")
         end
     elseif cmd == "debug" then
         debugMode = not debugMode
-        Print("Debug mode " .. (debugMode and GREEN .. "enabled|r" or RED .. "disabled|r"))
+        ForcePrint("Debug mode " .. (debugMode and GREEN .. "enabled|r" or RED .. "disabled|r"))
     elseif cmd == "mapid" then
         local currentMapID = C_Map.GetBestMapForUnit("player")
         local info = C_Map.GetMapInfo(currentMapID)
-        Print("Current Map ID: " .. (currentMapID or "nil") .. " (" .. (info and info.name or "Unknown") .. ")")
+        ForcePrint("Current Map ID: " .. (currentMapID or "nil") .. " (" .. (info and info.name or "Unknown") .. ")")
         if info and info.parentMapID then
             local pInfo = C_Map.GetMapInfo(info.parentMapID)
-            Print("Parent Map ID: " .. info.parentMapID .. " (" .. (pInfo and pInfo.name or "Unknown") .. ")")
+            ForcePrint("Parent Map ID: " .. info.parentMapID .. " (" .. (pInfo and pInfo.name or "Unknown") .. ")")
         end
     elseif cmd == "pos" then
         local currentMapID = C_Map.GetBestMapForUnit("player")
         if currentMapID then
             local pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
             if pos then
-                Print(string.format("Position: mapID=%d  x=%.4f  y=%.4f", currentMapID, pos.x, pos.y))
+                ForcePrint(string.format("Position: mapID=%d  x=%.4f  y=%.4f", currentMapID, pos.x, pos.y))
             else
-                Print(RED .. "Cannot get position on this map.|r")
+                ForcePrint(RED .. "Cannot get position on this map.|r")
             end
         else
-            Print(RED .. "No map detected.|r")
+            ForcePrint(RED .. "No map detected.|r")
         end
     else
-        Print("Commands: /adw route <id>, /adw list, /adw nearest, /adw stop, /adw toggle, /adw move, /adw mapid, /adw pos")
+        ForcePrint("Commands: /adw route <id>, /adw list, /adw nearest, /adw stop, /adw toggle, /adw hide, /adw move, /adw mapid, /adw pos")
+    end
+end
+
+function ADW_OnAddonCompartmentClick(addonName, buttonName)
+    if buttonName == "RightButton" then
+        ADW.ToggleAutoRoute()
+    else
+        if MenuUtil then
+            MenuUtil.CreateContextMenu(MinimapCluster or UIParent, function(owner, rootDescription)
+                rootDescription:CreateTitle("|cFF00BFFFAuto Dungeon Waypoint|r")
+                rootDescription:CreateButton("|cFFFFD100Toggle Auto-Routing|r", function() ADW.ToggleAutoRoute() end)
+                local keys = {}
+                for k in pairs(ADW.RouteNames) do table.insert(keys, k) end
+                table.sort(keys, function(a, b) return ADW.RouteNames[a] < ADW.RouteNames[b] end)
+                for _, key in ipairs(keys) do
+                    rootDescription:CreateButton("Route: " .. ADW.RouteNames[key], function() StartRoute(key) end)
+                end
+                rootDescription:CreateDivider()
+                rootDescription:CreateButton("|cFFFFD100Open Settings|r", function() 
+                    if ADW.settingsCategory then 
+                        Settings.OpenToCategory(ADW.settingsCategory:GetID()) 
+                    end 
+                end)
+            end)
+        else
+            ForcePrint("Addon compartment menu is unavailable. Type /adw list instead.")
+        end
     end
 end
 
@@ -923,12 +1000,17 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             local p = AutoDungeonWaypointDB.ToggleButtonPos
             controlBar:ClearAllPoints() controlBar:SetPoint(p[1], UIParent, p[2], p[3], p[4])
         end
+        if AutoDungeonWaypointDB.ShowControlBar == false then
+            controlBar:Hide()
+        else
+            controlBar:Show()
+        end
         UpdateToggleButton() CreateOptionsPanel()
         local LDB = LibStub and LibStub("LibDataBroker-1.1", true)
         local LDBIcon = LibStub and LibStub("LibDBIcon-1.0", true)
         if LDB and LDBIcon then
             local adwBroker = LDB:NewDataObject("AutoDungeonWaypoint", {
-                type = "launcher", text = "Auto Dungeon Waypoint", icon = "Interface\\Icons\\INV_Misc_Map_01",
+                type = "launcher", text = "Auto Dungeon Waypoint", icon = "Interface\\AddOns\\AutoDungeonWaypoint\\icon.tga",
                 OnClick = function(self, button)
                     if button == "LeftButton" then
                         if MenuUtil then
@@ -940,6 +1022,12 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                                 for _, key in ipairs(keys) do
                                     rootDescription:CreateButton(ADW.RouteNames[key], function() StartRoute(key) end)
                                 end
+                                rootDescription:CreateDivider()
+                                rootDescription:CreateButton("|cFFFFD100Open Settings|r", function()
+                                    if ADW.settingsCategory then
+                                        Settings.OpenToCategory(ADW.settingsCategory:GetID())
+                                    end
+                                end)
                             end)
                         end
                     elseif button == "RightButton" then ADW.ToggleAutoRoute()
