@@ -845,19 +845,10 @@ function ADW.ProcessActivityID(activityID, isSilent)
     -- If we've already cached that this ID has no matching route, skip parsing
     if routeKey == false then return end
 
-    -- Prevent auto-routing if already inside a dungeon or raid
-    local _, instanceType = IsInInstance()
-    if instanceType == "party" or instanceType == "raid" then
-        LogInfo("ProcessActivityID: Already in instance (" .. instanceType .. "), skipping.")
-        return
-    end
-
-    LogInfo("ProcessActivityID: ID=" .. tostring(activityID) .. " Key=" .. tostring(routeKey))
-
     if routeKey == nil then
         local info = C_LFGList.GetActivityInfoTable(activityID)
         if info and info.fullName then
-            LogInfo("ProcessActivityID: Name=" .. info.fullName)
+            if debugMode then LogInfo("ProcessActivityID: Name=" .. info.fullName) end
             local lowerName = info.fullName:lower():gsub("[%p%s]", "")
 
             -- Initialize clean names cache if missing
@@ -879,12 +870,21 @@ function ADW.ProcessActivityID(activityID, isSilent)
         -- Cache the result so we don't parse this ID again (true or false)
         ADW.LFGToRoute[activityID] = routeKey or false
     end
-    if routeKey then
-        if activeRouteKey == routeKey then return end
-        local name = ADW.RouteNames[routeKey] or routeKey
-        if not isSilent then Print(GREEN .. "Dungeon detected:|r " .. WHITE .. name .. "|r — auto-starting!") end
-        StartRoute(routeKey)
+
+    if not routeKey or activeRouteKey == routeKey then return end
+
+    -- Prevent auto-routing if already inside a dungeon or raid
+    local _, instanceType = IsInInstance()
+    if instanceType == "party" or instanceType == "raid" then
+        if debugMode then LogInfo("ProcessActivityID: Already in instance (" .. instanceType .. "), skipping.") end
+        return
     end
+
+    if debugMode then LogInfo("ProcessActivityID: ID=" .. tostring(activityID) .. " Key=" .. tostring(routeKey)) end
+
+    local name = ADW.RouteNames[routeKey] or routeKey
+    if not isSilent then Print(GREEN .. "Dungeon detected:|r " .. WHITE .. name .. "|r — auto-starting!") end
+    StartRoute(routeKey)
 end
 
 -- ============================================================================
