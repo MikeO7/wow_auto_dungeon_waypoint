@@ -14,3 +14,7 @@
 ## 2024-05-21 - Avoid Unnecessary Garbage in Frequent Callbacks
 **Learning:** High-frequency event handlers, such as `LFG_LIST_ACTIVE_ENTRY_UPDATE` or `ProcessActivityID`, may trigger many times a second. Performing string concatenation inside these callbacks generates useless string allocations for the Lua garbage collector and can result in micro-stutters.
 **Action:** Remove or conditionally wrap debug logging and string-building inside extremely frequent event handlers or data processors. Additionally, order `return` or short-circuit checks properly to skip heavy operations (like `IsInInstance`) if already cached or known.
+
+## 2026-03-28 - Cache Global State to Optimize Callbacks
+**Learning:** High-frequency event handlers like LFG_LIST_ACTIVE_ENTRY_UPDATE can cause micro-stutters when making redundant Blizzard API calls like `IsInInstance()`.
+**Action:** When caching global state like `IsInInstance()` to optimize high-frequency handlers in World of Warcraft addons, update the cache during the `PLAYER_ENTERING_WORLD` event to safely handle teleports, logins, and UI reloads.
