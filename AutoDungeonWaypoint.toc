@@ -6,6 +6,8 @@
 ## SavedVariables: AutoDungeonWaypointDB
 ## IconTexture: Interface\AddOns\AutoDungeonWaypoint\icon.tga
 ## AddonCompartmentFunc: ADW_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: ADW_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: ADW_OnAddonCompartmentLeave
 ## X-Category: Dungeon
 ## X-Website: https://github.com/mikeo/wow_auto_dungeon_waypoint
 ## X-License: MIT
