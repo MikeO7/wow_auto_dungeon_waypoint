@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.0.1 (Maintenance)
+- **Maintenance**: General release metadata polish and workflow refresh.
+
 ## v6.0.0 (Architecture Refactor)
 - **Module Split**: Split the 1,100-line `Core.lua` monolith into 5 focused modules: `Data.lua`, `Core.lua`, `UI.lua`, `Options.lua`, `Menus.lua`.
 - **Eliminated Code Duplication**: Consolidated 3 identical context menu builders into a single shared `BuildRouteMenu()` helper. Consolidated 3 identical drag handlers into shared functions.
@@ -7,7 +10,7 @@
 - **Fixed Duplicate Bindings**: `BINDING_HEADER_ADW` and `BINDING_NAME_*` were defined in both `Data.lua` and `Core.lua` with conflicting text. Now defined once in `Core.lua`.
 - **New Commands**: Added `/adw version` and `/adw log` slash commands.
 - **Pre-sorted Route Cache**: Route keys are now sorted once at load time instead of on every menu open.
-- **Updated Interface Version**: `120001` → `120100` for current WoW Midnight.
+- **Interface Version**: Maintained at `120001` for maximum compatibility with the current client.
 - **README Accuracy**: Removed documentation for features that never existed (ETA timer, progress bar, route history). Added documentation for all actual commands.
 - **Packaging**: Added `.Jules` directory and PNG icons to `.pkgmeta` ignore list.
 
