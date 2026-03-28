@@ -922,6 +922,19 @@ function ADW_OnAddonCompartmentClick(addonName, buttonName)
     end
 end
 
+function ADW_OnAddonCompartmentEnter(addonName, button)
+    GameTooltip_SetDefaultAnchor(GameTooltip, button)
+    GameTooltip:SetText("Auto Dungeon Waypoint", 0.0, 0.75, 1.0)
+    GameTooltip:AddLine(" ")
+    GameTooltip:AddLine("|cFFFFD100Left-Click:|r Open route menu", 1, 1, 1)
+    GameTooltip:AddLine("|cFFFFD100Right-Click:|r Toggle auto-routing", 1, 1, 1)
+    GameTooltip:Show()
+end
+
+function ADW_OnAddonCompartmentLeave(addonName, button)
+    GameTooltip_Hide()
+end
+
 -- ============================================================================
 -- LFG Processor
 -- ============================================================================
