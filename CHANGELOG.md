@@ -1,5 +1,9 @@
 # Changelog
 
+## v6.2.0 (The Restoration Release)
+- **Rollback to Monolith**: Reverted the module-split architecture from v6.0.0. The addon now returns to its stable, single-file `Core.lua` monolith to ensure CurseForge compatibility and performance.
+- **Stable Navigation**: All coordinate validation and LDB features from v5.7.7 are fully restored.
+
 ## v5.7.7 (Minimap Icon & LDB UX Polish)
 - **Custom Minimap Icon**: Added a high-resolution custom icon for the minimap and LibDataBroker bar.
 - **LDB Launcher Integration**: Properly registered ADW as an LDB Launcher for better compatibility with addon bars like Titan Panel and Bazooka.
