@@ -31,6 +31,7 @@ local tomtomUID = nil  -- Optional TomTom waypoint UID
 local lastStepAdvance = 0 -- Timestamp of last forward step
 local lastMapChangeTime = 0
 local lastMapID = nil
+local isPlayerInInstance = false
 
 -- Forward declarations to prevent nil errors (SetWaypointStep, etc.)
 local SetWaypointStep, UpdateToggleButton, UpdateStatusFrame, HideStatusFrame, ShowStatusFrame
@@ -927,6 +928,11 @@ end
 -- ============================================================================
 function ADW.ProcessActivityID(activityID, isSilent)
     if not activityID then return end
+
+    if isPlayerInInstance then
+        -- Avoid unnecessary string allocations and debug logging here in frequent loops.
+        return
+    end
     
     local routeKey = ADW.LFGToRoute[activityID]
 
@@ -960,13 +966,6 @@ function ADW.ProcessActivityID(activityID, isSilent)
     end
 
     if not routeKey or activeRouteKey == routeKey then return end
-
-    -- Prevent auto-routing if already inside a dungeon or raid
-    local _, instanceType = IsInInstance()
-    if instanceType == "party" or instanceType == "raid" then
-        if debugMode then LogInfo("ProcessActivityID: Already in instance (" .. instanceType .. "), skipping.") end
-        return
-    end
 
     if debugMode then LogInfo("ProcessActivityID: ID=" .. tostring(activityID) .. " Key=" .. tostring(routeKey)) end
 
@@ -1048,6 +1047,9 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     end
     if event == "PLAYER_ENTERING_WORLD" then
         local isLogin, isReload = ...
+        local _, instanceType = IsInInstance()
+        isPlayerInInstance = (instanceType == "party" or instanceType == "raid")
+
         if isLogin or isReload then
             Print("Loaded — Type /adw list to see routes.")
             if AutoDungeonWaypointDB.AutoRouteEnabled then
@@ -1059,8 +1061,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                 end
             end
         else
-            local _, instanceType = IsInInstance()
-            if (instanceType == "party" or instanceType == "raid") and activeRoute then
+            if isPlayerInInstance and activeRoute then
                 Print(GREEN .. "Entered dungeon! Route cleared.|r") ClearRoute()
             elseif activeRoute then
                 -- After a zone transition, re-sync position instead of blindly re-setting
