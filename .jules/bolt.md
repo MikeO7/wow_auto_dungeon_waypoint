@@ -18,3 +18,7 @@
 ## 2026-03-28 - Cache Global State to Optimize Callbacks
 **Learning:** High-frequency event handlers like LFG_LIST_ACTIVE_ENTRY_UPDATE can cause micro-stutters when making redundant Blizzard API calls like `IsInInstance()`.
 **Action:** When caching global state like `IsInInstance()` to optimize high-frequency handlers in World of Warcraft addons, update the cache during the `PLAYER_ENTERING_WORLD` event to safely handle teleports, logins, and UI reloads.
+
+## 2024-05-22 - Avoid Table Allocations in LFG Handlers
+**Learning:** Blizzard APIs that return tables (like C_LFGList.GetActiveEntryInfo()) allocate memory and should be avoided inside high-frequency event handlers if the result is going to be discarded anyway.
+**Action:** Add early returns (e.g., checking isPlayerInInstance) before calling API functions that return tables in high-frequency event handlers.
