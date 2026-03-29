@@ -263,10 +263,30 @@ statusFrame:SetScript("OnMouseUp", function(self, button)
     end
 end)
 
-ADW.SetTooltip(statusFrame,
-    "Navigation HUD",
-    "Right-click to cancel the active route.",
-    "Hold |cFFFFD100Shift|r and drag to move.")
+statusFrame:SetScript("OnEnter", function(self)
+    GameTooltip_SetDefaultAnchor(GameTooltip, self)
+    GameTooltip:SetText("Navigation HUD", 0.0, 0.75, 1.0)
+
+    if AutoDungeonWaypointDB and AutoDungeonWaypointDB.CompactMode then
+        local currentStepDesc = ""
+        if activeRoute and activeRoute[currentStepIndex] then
+            currentStepDesc = activeRoute[currentStepIndex].desc or ""
+        elseif titleText:GetText() and string.find(titleText:GetText(), "HUD Preview") then
+            currentStepDesc = "This is how the HUD looks."
+        elseif titleText:GetText() and string.find(titleText:GetText(), "HUD Positioning") then
+            currentStepDesc = "Hold SHIFT and drag to move this frame. Type /adw move again to hide."
+        end
+        if currentStepDesc ~= "" then
+            GameTooltip:AddLine(currentStepDesc, 1, 1, 1, true)
+            GameTooltip:AddLine(" ")
+        end
+    end
+
+    GameTooltip:AddLine("Right-click to cancel the active route.", 1, 1, 1, true)
+    GameTooltip:AddLine("Hold |cFFFFD100Shift|r and drag to move.", 1, 0.8, 0, true)
+    GameTooltip:Show()
+end)
+statusFrame:SetScript("OnLeave", GameTooltip_Hide)
 
 local pendingHideTimer = nil
 
