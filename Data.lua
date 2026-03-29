@@ -2,8 +2,8 @@ local _, ADW = ...
 
 -- Global strings for BindingsUI (must be defined before Bindings.xml loads)
 _G["BINDING_HEADER_ADW"] = "Auto Dungeon Waypoint"
-_G["BINDING_NAME_ADW_TOGGLEHUD"] = "Toggle HUD"
-_G["BINDING_NAME_ADW_STOP"] = "Stop Route"
+_G["BINDING_NAME_ADW_TOGGLEHUD"] = "Toggle Navigation HUD"
+_G["BINDING_NAME_ADW_STOP"] = "Cancel Route"
 
 -- We will store everything in the ADW namespace.
 -- Route Database
@@ -11,6 +11,22 @@ _G["BINDING_NAME_ADW_STOP"] = "Stop Route"
 -- ROUTES ARE DYNAMIC: They can have any number of steps (1, 3, 10, etc.)
 -- All routes assume the player starts in Silvermoon City (UiMapID 2393)
 -- ============================================================================
+
+-- Common shared steps to reduce redundancy
+ADW.CommonSteps = {
+    TimewaysPortal = { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
+    VoidstormPortal = { mapID = 2393, x = 0.3530, y = 0.6550, desc = "Take the Voidstorm Portal (Gardens of Remembrance)" },
+}
+
+-- Timeways Visual Layout (Moved from Core.lua for easier updates)
+ADW.TIMEWAYS_MAP_ID = 2266
+ADW.PortalLayout = {
+    { key = "skyreach",        name = "Skyreach",       circle = "①" },
+    { key = "pitofsaron",      name = "Pit of Saron",   circle = "②" },
+    { key = nil,               name = nil,              circle = "·"  },  -- empty slot
+    { key = "algethar",        name = "Algeth'ar",      circle = "④" },
+    { key = "seattriumvirate", name = "Seat of Tri.",   circle = "⑤" },
+}
 
 ADW.RouteNames = {
     windrunner      = "Windrunner Spire",
@@ -49,7 +65,7 @@ ADW.Routes = {
     -- Nexus-Point Xenas: Silvermoon -> Voidstorm Portal -> Entrance
     -- Source: https://www.conquestcapped.com/midnight-dungeons-season-1-dungeon-entrances-locations/
     ["nexuspoint"] = {
-        { mapID = 2393, x = 0.3530, y = 0.6550, desc = "Take the Voidstorm Portal (Gardens of Remembrance)" },
+        ADW.CommonSteps.VoidstormPortal,
         { mapID = 2405, x = 0.6500, y = 0.6170, desc = "Fly directly to the Nexus-Point Xenas entrance" },
     },
 
@@ -60,7 +76,7 @@ ADW.Routes = {
     -- Algeth'ar Academy: Silvermoon -> Timeways -> Entrance
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["algethar"] = {
-        { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
+        ADW.CommonSteps.TimewaysPortal,
         { mapID = 2266, x = 0.7030, y = 0.7188, desc = "Algeth'ar Academy portal (2nd from right)" },
         { mapID = 2025, x = 0.5810, y = 0.4260, desc = "Fly North-East to the Academy entrance" },
     },
@@ -68,7 +84,7 @@ ADW.Routes = {
     -- Seat of the Triumvirate: Silvermoon -> Timeways -> Entrance
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["seattriumvirate"] = {
-        { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
+        ADW.CommonSteps.TimewaysPortal,
         { mapID = 2266, x = 0.6090, y = 0.6884, desc = "Seat of the Triumvirate portal (1st from right)" },
         { mapID = 882,  x = 0.2186, y = 0.5718, desc = "Fly to the Triumvirate entrance" },
     },
@@ -76,7 +92,7 @@ ADW.Routes = {
     -- Skyreach: Silvermoon -> Timeways -> Entrance
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["skyreach"] = {
-        { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
+        ADW.CommonSteps.TimewaysPortal,
         { mapID = 2266, x = 0.6478, y = 0.4468, desc = "Skyreach portal (1st from left)" },
         { mapID = 542,  x = 0.3557, y = 0.3349, desc = "Fly South-East to the Skyreach entrance" },
     },
@@ -84,7 +100,7 @@ ADW.Routes = {
     -- Pit of Saron: Silvermoon -> Timeways -> Entrance
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["pitofsaron"] = {
-        { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
+        ADW.CommonSteps.TimewaysPortal,
         { mapID = 2266, x = 0.7372, y = 0.4811, desc = "Pit of Saron portal (2nd from left)" },
         { mapID = 118,  x = 0.5458, y = 0.9143, desc = "Fly to the Frozen Halls (Pit of Saron)" },
     },

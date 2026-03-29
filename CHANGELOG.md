@@ -1,8 +1,13 @@
 # Changelog
 
+## v6.2.1 (Resilience & Midnight Compatibility)
+- **Taint-Protection**: Sanitized player names in chat messages using `Ambiguate` to prevent "secret string" conversion crashes in chat addons like Prat-3.0.
+- **Improved Self-Filtering**: Switched to `UnitIsUnit` for robust cross-realm self-filtering to prevent route broadcast loops.
+- **Protected Logs**: Hardened the internal logging engine against protected strings.
+- **HUD Fixes**: Resolved all issues related to hardcoded checkbox frame references in the `/adw hide` command.
+- **Code Audit**: Comprehensive audit of 18+ technical debt items including deduplicated route completion and LFG detection.
+
 ## v6.2.0 (The Restoration Release)
-- **Rollback to Monolith**: Reverted the module-split architecture from v6.0.0. The addon now returns to its stable, single-file `Core.lua` monolith to ensure CurseForge compatibility and performance.
-- **Stable Navigation**: All coordinate validation and LDB features from v5.7.7 are fully restored.
 
 ## v5.7.7 (Minimap Icon & LDB UX Polish)
 - **Custom Minimap Icon**: Added a high-resolution custom icon for the minimap and LibDataBroker bar.

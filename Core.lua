@@ -1,5 +1,4 @@
-local _, ADW = ...
-local ADW_NAME = "AutoDungeonWaypoint"
+local addonName, ADW = ...
 
 -- ============================================================================
 -- IMPORTANT: LINE ENDING WARNING
@@ -7,16 +6,8 @@ local ADW_NAME = "AutoDungeonWaypoint"
 -- Lone \r characters (legacy Mac) will corrupt the line parsing and hide code.
 -- ============================================================================
 
--- API Compatibility for WoW 12.0.1+ (Midnight)
-local GetAddOnMetadata = GetAddOnMetadata or (C_AddOns and C_AddOns.GetAddOnMetadata) or function() return nil end
-
 -- Expose to global for SavedVariables, debugging, and Bindings.xml
 AutoDungeonWaypoint = ADW
-
--- Global binding localization strings
-BINDING_HEADER_ADW = "Auto Dungeon Waypoint"
-BINDING_NAME_ADW_TOGGLEHUD = "Toggle Navigation HUD"
-BINDING_NAME_ADW_STOP = "Cancel Route"
 
 -- ============================================================================
 -- State
@@ -72,14 +63,29 @@ local function Print(msg)
     ForcePrint(msg)
 end
 
+local function AddSharedTooltipLines(tooltip)
+    tooltip:AddLine("|cFFFFD100Left-Click:|r Open route menu", 1, 1, 1)
+    tooltip:AddLine("|cFFFFD100Right-Click:|r Toggle auto-routing", 1, 1, 1)
+end
+
 -- ============================================================================
 -- Logging
 -- ============================================================================
 local function Log(level, msg)
     if not AutoDungeonWaypointDB or not AutoDungeonWaypointDB.Log then return end
     local db = AutoDungeonWaypointDB
-    local entry = string.format("[%s][%s] %s", date("%Y-%m-%d %H:%M:%S"), level, msg)
-    table.insert(db.Log, entry)
+    -- Midnight Resilience: Wrap in pcall to prevent crashes when logging "secret" strings.
+    -- If string conversion fails, we log a placeholder instead of crashing the addon.
+    local success, formattedEntry = pcall(function()
+        return string.format("[%s][%s] %s", date("%Y-%m-%d %H:%M:%S"), level, msg)
+    end)
+    
+    if success then
+        table.insert(db.Log, formattedEntry)
+    else
+        table.insert(db.Log, string.format("[%s][%s] ERROR: Message contains protected data.", date("%Y-%m-%d %H:%M:%S"), level))
+    end
+    
     while #db.Log > (db.LogMaxLines or 200) do
         table.remove(db.Log, 1)
     end
@@ -90,38 +96,101 @@ local function LogWarn(msg)  Log("WARN",  msg) end
 local function LogError(msg) Log("ERROR", msg) end
 
 -- ============================================================================
+-- UI Helpers (DRY)
+-- ============================================================================
+function ADW.ApplyGlassAesthetic(frame, hasBorder)
+    local bg = frame:CreateTexture(nil, "BACKGROUND")
+    bg:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
+    bg:SetAllPoints()
+    bg:SetVertexColor(0.02, 0.02, 0.05, 0.9)
+    frame.Background = bg
+
+    local glass = frame:CreateTexture(nil, "BORDER")
+    glass:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal")
+    glass:SetAllPoints()
+    glass:SetAlpha(0.05)
+    glass:SetBlendMode("ADD")
+    frame.Glass = glass
+
+    if hasBorder then
+        local border = frame:CreateTexture(nil, "OVERLAY")
+        border:SetTexture("Interface\\Common\\WhiteSecondary-1x1")
+        border:SetPoint("TOPLEFT")
+        border:SetPoint("BOTTOMRIGHT")
+        border:SetAlpha(0.2)
+        frame.Border = border
+    end
+end
+
+function ADW.MakeDraggable(frame, dbKey, parentFrame)
+    frame:SetMovable(true)
+    frame:EnableMouse(true)
+    frame:RegisterForDrag("LeftButton")
+    
+    local target = parentFrame or frame
+    frame:SetScript("OnDragStart", function() 
+        if IsShiftKeyDown() then target:StartMoving() end 
+    end)
+    frame:SetScript("OnDragStop", function()
+        target:StopMovingOrSizing()
+        if not AutoDungeonWaypointDB or not dbKey then return end
+        local point, _, relPoint, x, y = target:GetPoint()
+        AutoDungeonWaypointDB[dbKey] = { point, relPoint, x, y }
+    end)
+end
+
+function ADW.SetTooltip(frame, title, body, extraInfo)
+    frame:SetScript("OnEnter", function(self)
+        GameTooltip_SetDefaultAnchor(GameTooltip, self)
+        GameTooltip:SetText(title, 0.0, 0.75, 1.0)
+        if body then GameTooltip:AddLine(body, 1, 1, 1, true) end
+        if extraInfo then GameTooltip:AddLine(extraInfo, 1, 0.8, 0, true) end
+        GameTooltip:Show()
+    end)
+    frame:SetScript("OnLeave", GameTooltip_Hide)
+end
+
+function ADW.GenerateDungeonMenu(owner, rootDescription)
+    rootDescription:CreateTitle(ADDON_COLOR .. "Auto Dungeon Waypoint|r")
+    rootDescription:CreateButton(YELLOW .. "Toggle Auto-Routing|r", function() ADW.ToggleAutoRoute() end)
+    
+    local sub = rootDescription:CreateButton("Dungeon Routes")
+    local keys = {}
+    for k in pairs(ADW.RouteNames) do table.insert(keys, k) end
+    table.sort(keys, function(a, b) return ADW.RouteNames[a] < ADW.RouteNames[b] end)
+    
+    for _, key in ipairs(keys) do
+        sub:CreateButton(ADW.RouteNames[key], function() StartRoute(key) end)
+    end
+    
+    rootDescription:CreateDivider()
+    rootDescription:CreateButton(GRAY .. "Open Settings|r", function() 
+        if ADW.settingsCategory then Settings.OpenToCategory(ADW.settingsCategory:GetID()) end 
+    end)
+end
+
+function ADW.CreateConfigCheckbox(panel, label, dbKey, tooltipTitle, tooltipBody, callback)
+    local check = CreateFrame("CheckButton", "ADW_"..dbKey.."_Check", panel, "UICheckButtonTemplate")
+    _G[check:GetName() .. "Text"]:SetText(label)
+    check:SetScript("OnClick", function(self)
+        AutoDungeonWaypointDB[dbKey] = self:GetChecked()
+        if callback then callback(self:GetChecked()) end
+    end)
+    check:SetScript("OnShow", function(self)
+        self:SetChecked(AutoDungeonWaypointDB[dbKey] ~= false)
+    end)
+    ADW.SetTooltip(check, tooltipTitle, tooltipBody)
+    return check
+end
+
+-- ============================================================================
 -- Status Frame (HUD)
 -- ============================================================================
 local statusFrame = CreateFrame("Frame", "ADWStatusFrame", UIParent)
 statusFrame:SetSize(300, 70)
 statusFrame:SetPoint("TOP", UIParent, "TOP", 0, -60)
-statusFrame:SetMovable(true)
-statusFrame:EnableMouse(true)
-statusFrame:RegisterForDrag("LeftButton")
-statusFrame:SetScript("OnDragStart", function(self) if IsShiftKeyDown() then self:StartMoving() end end)
-statusFrame:SetScript("OnDragStop", function(self)
-    self:StopMovingOrSizing()
-    local point, _, relPoint, x, y = self:GetPoint()
-    if AutoDungeonWaypointDB then AutoDungeonWaypointDB.StatusFramePos = { point, relPoint, x, y } end
-end)
-
-local bg = statusFrame:CreateTexture(nil, "BACKGROUND")
-bg:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
-bg:SetAllPoints()
-bg:SetVertexColor(0.02, 0.02, 0.05, 0.9)
-
-local glass = statusFrame:CreateTexture(nil, "BORDER")
-glass:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal")
-glass:SetAllPoints()
-glass:SetAlpha(0.05)
-glass:SetBlendMode("ADD")
-
-local border = statusFrame:CreateTexture(nil, "OVERLAY")
-border:SetTexture("Interface\\Common\\WhiteSecondary-1x1")
-border:SetPoint("TOPLEFT")
-border:SetPoint("BOTTOMRIGHT")
-border:SetAlpha(0.2)
-statusFrame.Border = border
+ADW.ApplyGlassAesthetic(statusFrame, true)
+ADW.MakeDraggable(statusFrame, "StatusFramePos")
 
 local glow = statusFrame:CreateTexture(nil, "BACKGROUND", nil, -1)
 glow:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Alert-Glow")
@@ -165,7 +234,8 @@ function ADW.ToggleHUD(enabled)
     
     if activeRoute and db.ShowStatusFrame then
         statusFrame:Show()
-        UpdateStatusFrame(ADW.RouteNames[activeRouteKey] or activeRouteKey, activeRoute[currentStepIndex].desc, currentStepIndex, totalSteps)
+        local stepDesc = (currentStepIndex > 0 and activeRoute[currentStepIndex]) and activeRoute[currentStepIndex].desc or ""
+        UpdateStatusFrame(ADW.RouteNames[activeRouteKey] or activeRouteKey, stepDesc, currentStepIndex, totalSteps)
     else
         HideStatusFrame()
     end
@@ -183,9 +253,8 @@ function ADW_ToggleHUD_Binding()
 end
 
 function ADW_Stop_Binding()
-    if SlashCmdList["AUTODUNGEONWAYPOINT"] then
-        SlashCmdList["AUTODUNGEONWAYPOINT"]("stop")
-    end
+    ClearRoute()
+    ForcePrint("Route cancelled.")
 end
 
 statusFrame:SetScript("OnMouseUp", function(self, button)
@@ -194,19 +263,10 @@ statusFrame:SetScript("OnMouseUp", function(self, button)
     end
 end)
 
-statusFrame:SetScript("OnEnter", function(self)
-    GameTooltip_SetDefaultAnchor(GameTooltip, self)
-    GameTooltip:SetText("Navigation HUD", 0.0, 0.75, 1.0)
-    if activeRoute then
-        if AutoDungeonWaypointDB and AutoDungeonWaypointDB.CompactMode and activeRoute[currentStepIndex] then
-            GameTooltip:AddLine("|cFFFFD100Current Step:|r " .. activeRoute[currentStepIndex].desc, 1, 1, 1, true)
-        end
-        GameTooltip:AddLine("|cFFFFD100Right-Click:|r Cancel route", 1, 1, 1, true)
-    end
-    GameTooltip:AddLine("Hold |cFFFFD100Shift|r and drag to move.", 1, 1, 1, true)
-    GameTooltip:Show()
-end)
-statusFrame:SetScript("OnLeave", GameTooltip_Hide)
+ADW.SetTooltip(statusFrame,
+    "Navigation HUD",
+    "Right-click to cancel the active route.",
+    "Hold |cFFFFD100Shift|r and drag to move.")
 
 local pendingHideTimer = nil
 
@@ -243,41 +303,23 @@ end
 -- ============================================================================
 -- Timeways Portal Map (visual overlay)
 -- ============================================================================
-local TIMEWAYS_MAP_ID = 2266
 local portalMap = CreateFrame("Frame", "ADWPortalMap", statusFrame)
 portalMap:SetSize(240, 50)
 portalMap:SetPoint("TOP", statusFrame, "BOTTOM", 0, -4)
+ADW.ApplyGlassAesthetic(portalMap)
 portalMap:Hide()
 
-local pmBg = portalMap:CreateTexture(nil, "BACKGROUND")
-pmBg:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
-pmBg:SetAllPoints()
-pmBg:SetVertexColor(0.02, 0.02, 0.05, 0.9)
-
-local pmGlass = portalMap:CreateTexture(nil, "BORDER")
-pmGlass:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal")
-pmGlass:SetAllPoints()
-pmGlass:SetAlpha(0.05)
-pmGlass:SetBlendMode("ADD")
-
--- Portal slot data: slot position -> { routeKey, shortName, circleChar }
-local PORTAL_SLOTS = {
-    { key = "skyreach",        name = "Skyreach",       circle = "①" },
-    { key = "pitofsaron",      name = "Pit of Saron",   circle = "②" },
-    { key = nil,               name = nil,              circle = "·"  },  -- empty slot
-    { key = "algethar",        name = "Algeth'ar",      circle = "④" },
-    { key = "seattriumvirate", name = "Seat of Tri.",   circle = "⑤" },
-}
-
--- Create a font string for each slot
+-- Create a font string for each slot based on ADW.PortalLayout in Data.lua
 local slotLabels = {}
-for i, slot in ipairs(PORTAL_SLOTS) do
-    local xOff = (i - 3) * 40  -- spread 5 slots across the frame
-    local label = portalMap:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    label:SetPoint("CENTER", portalMap, "CENTER", xOff, 2)
-    label:SetText(slot.circle)
-    label:SetTextColor(0.25, 0.25, 0.25)
-    slotLabels[i] = label
+if ADW.PortalLayout then
+    for i, slot in ipairs(ADW.PortalLayout) do
+        local xOff = (i - 3) * 40  -- spread slots across the frame
+        local label = portalMap:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+        label:SetPoint("CENTER", portalMap, "CENTER", xOff, 2)
+        label:SetText(slot.circle)
+        label:SetTextColor(0.25, 0.25, 0.25)
+        slotLabels[i] = label
+    end
 end
 
 -- Active portal name displayed below the circles
@@ -287,7 +329,8 @@ activeLabel:SetTextColor(0, 0.9, 0.7)
 activeLabel:SetText("")
 
 local function ShowPortalMap(routeKey)
-    for i, slot in ipairs(PORTAL_SLOTS) do
+    if not ADW.PortalLayout then return end
+    for i, slot in ipairs(ADW.PortalLayout) do
         if slot.key == routeKey then
             slotLabels[i]:SetTextColor(0, 1, 0.7)
             slotLabels[i]:SetFont("Fonts\\FRIZQT__.TTF", 22, "OUTLINE")
@@ -313,59 +356,21 @@ end
 local controlBar = CreateFrame("Frame", "ADWControlBar", UIParent)
 controlBar:SetSize(210, 26)
 controlBar:SetPoint("TOP", UIParent, "TOP", 0, -20)
-controlBar:SetMovable(true)
-controlBar:EnableMouse(true)
-controlBar:RegisterForDrag("LeftButton")
-controlBar:SetScript("OnDragStart", function(self) if IsShiftKeyDown() then self:StartMoving() end end)
-controlBar:SetScript("OnDragStop", function(self)
-    self:StopMovingOrSizing()
-    local point, _, relPoint, x, y = self:GetPoint()
-    if AutoDungeonWaypointDB then AutoDungeonWaypointDB.ToggleButtonPos = { point, relPoint, x, y } end
-end)
+ADW.MakeDraggable(controlBar, "ToggleButtonPos")
 
 local autoBtn = CreateFrame("Button", nil, controlBar, "UIPanelButtonTemplate")
 autoBtn:SetSize(150, 26)
 autoBtn:SetPoint("LEFT", controlBar, "LEFT", 0, 0)
 autoBtn:SetNormalFontObject("GameFontNormalSmall")
+ADW.MakeDraggable(autoBtn, "ToggleButtonPos", controlBar)
+ADW.SetTooltip(autoBtn, "Toggle Auto-Routing", "Click to enable/disable automatic dungeon detection.", "Hold |cFFFFD100Shift|r and drag to move.")
 
 local menuBtn = CreateFrame("Button", nil, controlBar, "UIPanelButtonTemplate")
 menuBtn:SetSize(46, 26)
 menuBtn:SetPoint("LEFT", autoBtn, "RIGHT", 4, 0)
 menuBtn:SetText("List")
-
-autoBtn:RegisterForDrag("LeftButton")
-autoBtn:SetScript("OnDragStart", function() if IsShiftKeyDown() then controlBar:StartMoving() end end)
-autoBtn:SetScript("OnDragStop", function()
-    controlBar:StopMovingOrSizing()
-    local point, _, relPoint, x, y = controlBar:GetPoint()
-    if AutoDungeonWaypointDB then AutoDungeonWaypointDB.ToggleButtonPos = { point, relPoint, x, y } end
-end)
-
-menuBtn:RegisterForDrag("LeftButton")
-menuBtn:SetScript("OnDragStart", function() if IsShiftKeyDown() then controlBar:StartMoving() end end)
-menuBtn:SetScript("OnDragStop", function()
-    controlBar:StopMovingOrSizing()
-    local point, _, relPoint, x, y = controlBar:GetPoint()
-    if AutoDungeonWaypointDB then AutoDungeonWaypointDB.ToggleButtonPos = { point, relPoint, x, y } end
-end)
-
-autoBtn:SetScript("OnEnter", function(self)
-    GameTooltip_SetDefaultAnchor(GameTooltip, self)
-    GameTooltip:SetText("Toggle Auto-Routing", 0.0, 0.75, 1.0)
-    GameTooltip:AddLine("Click to enable/disable automatic dungeon detection.", 1, 1, 1, true)
-    GameTooltip:AddLine("Hold |cFFFFD100Shift|r and drag to move.", 1, 1, 1, true)
-    GameTooltip:Show()
-end)
-autoBtn:SetScript("OnLeave", GameTooltip_Hide)
-
-menuBtn:SetScript("OnEnter", function(self)
-    GameTooltip_SetDefaultAnchor(GameTooltip, self)
-    GameTooltip:SetText("Route List", 0.0, 0.75, 1.0)
-    GameTooltip:AddLine("Click to view and manually start routes.", 1, 1, 1, true)
-    GameTooltip:AddLine("Hold |cFFFFD100Shift|r and drag to move.", 1, 1, 1, true)
-    GameTooltip:Show()
-end)
-menuBtn:SetScript("OnLeave", GameTooltip_Hide)
+ADW.MakeDraggable(menuBtn, "ToggleButtonPos", controlBar)
+ADW.SetTooltip(menuBtn, "Route List", "Click to view and manually start routes.", "Hold |cFFFFD100Shift|r and drag to move.")
 
 function UpdateToggleButton()
     if not AutoDungeonWaypointDB then return end
@@ -416,6 +421,9 @@ local function IsMapOrChild(currentID, targetID)
         info = C_Map.GetMapInfo(info.parentMapID)
         safety = safety + 1
     end
+    if safety >= 10 and debugMode then
+        LogWarn("IsMapOrChild: depth limit reached for map " .. tostring(currentID) .. " -> " .. tostring(targetID))
+    end
     ADW.MapParentCache[currentID][targetID] = isChild
     return isChild
 end
@@ -430,7 +438,7 @@ function ADW.GetBestStepIndex(route, currentMapID, pos)
         if not currentMapID then return 1 end
     end
 
-    if not pos and pos ~= false then
+    if not pos then
         pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
     end
 
@@ -500,15 +508,33 @@ local function ClearRoute()
     C_Map.ClearUserWaypoint()
     if checkTicker then checkTicker:Cancel() checkTicker = nil end
     if tomtomUID and TomTom and TomTom.RemoveWaypoint then TomTom:RemoveWaypoint(tomtomUID) end
-    tomtomUID = nil activeRoute = nil activeRouteKey = nil currentStepIndex = 0 totalSteps = 0
-    HidePortalMap() HideStatusFrame() UpdateToggleButton()
+    tomtomUID = nil
+    activeRoute = nil
+    activeRouteKey = nil
+    currentStepIndex = 0
+    totalSteps = 0
+    HidePortalMap()
+    HideStatusFrame()
+    UpdateToggleButton()
+end
+
+local function CompleteRoute()
+    Print(GREEN .. "You have arrived! Route complete.|r")
+    LogInfo("Route complete: " .. tostring(activeRouteKey))
+    PlaySound(8659)
+    ClearRoute()
+end
+
+local function GetPlayerPos()
+    local mapID = C_Map.GetBestMapForUnit("player")
+    if not mapID then return nil, nil end
+    return mapID, C_Map.GetPlayerMapPosition(mapID, "player")
 end
 
 function SetWaypointStep(index)
     if not activeRoute or not activeRoute[index] then
-        Print(GREEN .. "You have arrived! Route complete.|r")
-        LogInfo("Route complete: " .. tostring(activeRouteKey))
-        PlaySound(8659) ClearRoute() return
+        CompleteRoute()
+        return
     end
     local step = activeRoute[index]
     -- Cache UiMapPoint so it isn't repeatedly allocated during the ticker
@@ -540,7 +566,7 @@ function SetWaypointStep(index)
     if index > 1 then PlaySound(850) end
 
     -- Show/hide Timeways portal map
-    if step.mapID == TIMEWAYS_MAP_ID and activeRouteKey then
+    if step.mapID == ADW.TIMEWAYS_MAP_ID and activeRouteKey then
         ShowPortalMap(activeRouteKey)
     else
         HidePortalMap()
@@ -555,11 +581,14 @@ local function ReApplyWaypointIfMissing()
     if not hasWaypoint then
         step.uiMapPoint = step.uiMapPoint or UiMapPoint.CreateFromCoordinates(step.mapID, step.x, step.y)
         C_Map.SetUserWaypoint(step.uiMapPoint)
-        C_SuperTrack.SetSuperTrackedUserWaypoint(true)
-        hasWaypoint = true
-        LogInfo("Waypoint enforced automatically")
+        hasWaypoint = C_Map.HasUserWaypoint()
+        if hasWaypoint then
+            LogInfo("Waypoint enforced automatically")
+        else
+            LogError("Failed to re-apply waypoint for map " .. tostring(step.mapID))
+        end
     end
-    
+
     if hasWaypoint and not C_SuperTrack.IsSuperTrackingUserWaypoint() then
         C_SuperTrack.SetSuperTrackedUserWaypoint(true)
     end
@@ -568,28 +597,28 @@ end
 local function CheckDistance()
     if not activeRoute then return end
     ReApplyWaypointIfMissing()
+
     local step = activeRoute[currentStepIndex]
     if not step then return end
-    
+
     local now = GetTime()
-    local currentMapID = C_Map.GetBestMapForUnit("player")
+    local currentMapID, pos = GetPlayerPos()
     if not currentMapID then return end
 
+    -- Update map change buffer
     if currentMapID ~= lastMapID then
         lastMapID = currentMapID
         lastMapChangeTime = now
         if debugMode then Print("DEBUG: Map change detected. Buffer active.") end
     end
-    
-    -- Cache player pos early so fallback buffers don't crash from nil pointer
-    local pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
+
     if debugMode then Print(string.format("DEBUG: Map: %d | Step: %d", currentMapID, currentStepIndex)) end
     
     local bestIdx = ADW.GetBestStepIndex(activeRoute, currentMapID, pos)
+    
+    -- 1. Handle Forward Progress (Skipping steps via SmartSync)
     if bestIdx > currentStepIndex then
-        -- Forward-skip immunity: Don't allow SmartSync to jump forward
-        -- within 8 seconds of a step advance. This prevents portal transitions
-        -- (like Timeways) from triggering continent-match skips past Step 2.
+        -- Forward-skip immunity: Don't allow SmartSync to jump forward within 8s of a step advance.
         if now - lastStepAdvance < 8 then
             if debugMode then Print("DEBUG: Forward-skip immunity active (" .. bestIdx .. " blocked).") end
         else
@@ -598,69 +627,68 @@ local function CheckDistance()
             SetWaypointStep(currentStepIndex)
         end
         return
-    elseif bestIdx < currentStepIndex then
-        if currentMapID ~= step.mapID then
-            -- 1. Immunity Period: Don't snap back for 5 seconds after an advance.
-            if now - lastStepAdvance < 5 then
-                if debugMode then Print("DEBUG: Snap-back immunity active.") end
-                return
-            end
+    end
 
-            local isPriorMap = false
-            for i = 1, currentStepIndex - 1 do
-                if activeRoute[i].mapID == currentMapID then isPriorMap = true break end
-            end
-            if isPriorMap then
-                -- 2. Buffer: If we are still very close to the previous step, stay on the current one.
-                local priorStep = activeRoute[currentStepIndex - 1]
-                if pos and priorStep and priorStep.mapID == currentMapID then
-                    local ddx = (pos.x - priorStep.x) * 1000
-                    local ddy = (pos.y - priorStep.y) * 1000
-                    local dSq = ddx*ddx + ddy*ddy
-                    if dSq < 400.0 then -- ~100 yards buffer
-                        if debugMode then Print(string.format("DEBUG: Near Step %d (DistSq: %.2f) - ignoring snap-back.", currentStepIndex-1, dSq)) end
-                        return 
-                    end
+    -- 2. Handle Snap-back (Player moved back to a previous map/zone)
+    if bestIdx < currentStepIndex then
+        -- Snap-back immunity: Don't snap back for 5s after an advance.
+        if now - lastStepAdvance < 5 then
+            if debugMode then Print("DEBUG: Snap-back immunity active.") end
+            return
+        end
+
+        local isPriorMap = false
+        for i = 1, currentStepIndex - 1 do
+            if activeRoute[i].mapID == currentMapID then isPriorMap = true break end
+        end
+
+        if isPriorMap then
+            -- Buffer: If we are still very close to the previous step's location, stay on the current step.
+            local priorStep = activeRoute[currentStepIndex - 1]
+            if pos and priorStep and priorStep.mapID == currentMapID then
+                local dx = (pos.x - priorStep.x) * 1000
+                local dy = (pos.y - priorStep.y) * 1000
+                if (dx*dx + dy*dy) < 400.0 then -- ~100 yards buffer
+                    if debugMode then Print("DEBUG: Near Step " .. (currentStepIndex-1) .. " - ignoring snap-back.") end
+                    return 
                 end
-
-                LogInfo(string.format("SmartSync: SNAP BACK from %d to %d (Map: %d)", currentStepIndex, bestIdx, currentMapID))
-                currentStepIndex = bestIdx
-                SetWaypointStep(currentStepIndex)
-                return
             end
+
+            LogInfo(string.format("SmartSync: SNAP BACK from %d to %d (Map: %d)", currentStepIndex, bestIdx, currentMapID))
+            currentStepIndex = bestIdx
+            SetWaypointStep(currentStepIndex)
+            return
         end
     end
 
-    if currentMapID == step.mapID then
-        if pos then
-            local dx = (pos.x - step.x) * 1000
-            local dy = (pos.y - step.y) * 1000
-            local distSq = dx * dx + dy * dy
-            if debugMode then Print(string.format("DEBUG: Step %d DistSq: %.2f (Target: < 10.0) Map: %d", currentStepIndex, distSq, currentMapID)) end
-            if distSq < 10.0 then
-                -- Buffer Check: If we just changed maps, wait 3 seconds before allowing arrival.
-                if now - lastMapChangeTime < 3 then
-                    if debugMode then Print("DEBUG: Arrival ignored (Map change buffer active)") end
-                    return
-                end
+    -- 3. Handle Arrival (Current step target reached)
+    if currentMapID == step.mapID and pos then
+        local dx = (pos.x - step.x) * 1000
+        local dy = (pos.y - step.y) * 1000
+        local distSq = dx * dx + dy * dy
+        
+        if distSq < 10.0 then -- Threshold for "arrival"
+            -- Arrival Buffer: If we just changed maps, wait 3s before allowing arrival.
+            if now - lastMapChangeTime < 3 then
+                if debugMode then Print("DEBUG: Arrival ignored (Map change buffer active)") end
+                return
+            end
 
-                LogInfo(string.format("ARRIVAL: Step %d reached (DistSq: %.2f)", currentStepIndex, distSq))
-                if currentStepIndex < totalSteps then
-                    currentStepIndex = currentStepIndex + 1
-                    lastStepAdvance = now
-                    SetWaypointStep(currentStepIndex)
-                    UpdateToggleButton() PulseGlow()
-                else
-                    Print(GREEN .. "You have arrived! Route complete.|r")
-                    LogInfo("Route complete: " .. tostring(activeRouteKey))
-                    PlaySound(8659) ClearRoute()
-                end
+            LogInfo(string.format("ARRIVAL: Step %d reached (DistSq: %.2f)", currentStepIndex, distSq))
+            if currentStepIndex < totalSteps then
+                currentStepIndex = currentStepIndex + 1
+                lastStepAdvance = now
+                SetWaypointStep(currentStepIndex)
+                UpdateToggleButton()
+                PulseGlow()
+            else
+                CompleteRoute()
             end
         end
     end
 end
 
-local function StartRoute(routeKey)
+local function StartRoute(routeKey, skipBroadcast)
     local route = ADW.Routes[routeKey]
     if not route then
         Print(RED .. "No route found for:|r " .. tostring(routeKey))
@@ -680,7 +708,13 @@ local function StartRoute(routeKey)
     
     -- Throttled from 10Hz (0.1s) to 4Hz (0.25s) for performance
     checkTicker = C_Timer.NewTicker(0.25, CheckDistance)
-    if IsInGroup() then C_ChatInfo.SendAddonMessage("ADW", "ROUTE:" .. routeKey, "PARTY") end
+    
+    -- Local change or auto-detection broadcasts to the party, 
+    -- but receiving a message from another player does NOT re-broadcast (prevents loops).
+    if IsInGroup() and not skipBroadcast then
+        local channel = IsInRaid() and "RAID" or "PARTY"
+        C_ChatInfo.SendAddonMessage("ADW", "ROUTE:" .. routeKey, channel)
+    end
 end
 
 function ADW.ToggleAutoRoute(enabled)
@@ -697,105 +731,50 @@ end
 local function CreateOptionsPanel()
     local panel = CreateFrame("Frame", "ADWOptionsPanel", UIParent)
     panel.name = "Auto Dungeon Waypoint"
+    
     local title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    title:SetPoint("TOPLEFT", 16, -16) title:SetText("Auto Dungeon Waypoint Settings")
-    local autoCheck = CreateFrame("CheckButton", "ADWAutoRoutingCheck", panel, "UICheckButtonTemplate")
+    title:SetPoint("TOPLEFT", 16, -16) 
+    title:SetText("Auto Dungeon Waypoint Settings")
+    
+    local autoCheck = ADW.CreateConfigCheckbox(panel, "Enable Auto-Routing", "AutoRouteEnabled", 
+        "Auto-Routing", "Automatically detects when you join a Mythic+ group and starts the route.", function(val) ADW.ToggleAutoRoute(val) end)
     autoCheck:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -20)
-    _G[autoCheck:GetName() .. "Text"]:SetText("Enable Auto-Routing")
-    autoCheck:SetScript("OnClick", function(self) ADW.ToggleAutoRoute(self:GetChecked()) end)
-    autoCheck:SetScript("OnShow", function(self) self:SetChecked(AutoDungeonWaypointDB.AutoRouteEnabled) end)
-    autoCheck:SetScript("OnEnter", function(self)
-        GameTooltip_SetDefaultAnchor(GameTooltip, self)
-        GameTooltip:SetText("Enable Auto-Routing", 1, 1, 1)
-        GameTooltip:AddLine("Automatically detects when you join a Mythic+ group and starts the route to the dungeon.", nil, nil, nil, true)
-        GameTooltip:Show()
-    end)
-    autoCheck:SetScript("OnLeave", GameTooltip_Hide)
-    local hudCheck = CreateFrame("CheckButton", "ADWShowHUDCheck", panel, "UICheckButtonTemplate")
+
+    local hudCheck = ADW.CreateConfigCheckbox(panel, "Show Navigation HUD", "ShowStatusFrame",
+        "Navigation HUD", "Displays a floating window with the current step's instructions.", function(val)
+            if val then UpdateStatusFrame("HUD Preview", "This is how the HUD looks.", 1, 5) statusFrame:Show() statusFrame:SetAlpha(1)
+            else HideStatusFrame() end
+        end)
     hudCheck:SetPoint("TOPLEFT", autoCheck, "BOTTOMLEFT", 0, -8)
-    _G[hudCheck:GetName() .. "Text"]:SetText("Show Navigation HUD")
-    hudCheck:SetScript("OnClick", function(self)
-        AutoDungeonWaypointDB.ShowStatusFrame = self:GetChecked()
-        if AutoDungeonWaypointDB.ShowStatusFrame then
-            UpdateStatusFrame("HUD Preview", "This is how the HUD looks.", 1, 5)
-            statusFrame:Show()
-            statusFrame:SetAlpha(1)
-        else
-            HideStatusFrame()
-        end
-    end)
-    hudCheck:SetScript("OnShow", function(self) self:SetChecked(AutoDungeonWaypointDB.ShowStatusFrame) end)
-    hudCheck:SetScript("OnEnter", function(self)
-        GameTooltip_SetDefaultAnchor(GameTooltip, self)
-        GameTooltip:SetText("Show Navigation HUD", 1, 1, 1)
-        GameTooltip:AddLine("Displays a floating window with the current step's instructions and distance.", nil, nil, nil, true)
-        GameTooltip:Show()
-    end)
-    hudCheck:SetScript("OnLeave", GameTooltip_Hide)
-    local compactCheck = CreateFrame("CheckButton", "ADWCompactModeCheck", panel, "UICheckButtonTemplate")
+
+    local compactCheck = ADW.CreateConfigCheckbox(panel, "Compact HUD", "CompactMode",
+        "Compact HUD", "Hides the instructional text to save screen space.", function()
+            if AutoDungeonWaypointDB.ShowStatusFrame then UpdateStatusFrame("HUD Preview", "This is how the HUD looks.", 1, 5) end
+        end)
     compactCheck:SetPoint("TOPLEFT", hudCheck, "BOTTOMLEFT", 0, -8)
-    _G[compactCheck:GetName() .. "Text"]:SetText("Compact HUD")
-    compactCheck:SetScript("OnClick", function(self)
-        AutoDungeonWaypointDB.CompactMode = self:GetChecked()
-        if AutoDungeonWaypointDB.ShowStatusFrame then
-            UpdateStatusFrame("HUD Preview", "This is how the HUD looks.", 1, 5)
-            statusFrame:Show()
-            statusFrame:SetAlpha(1)
-        end
-    end)
-    compactCheck:SetScript("OnShow", function(self) self:SetChecked(AutoDungeonWaypointDB.CompactMode) end)
-    compactCheck:SetScript("OnEnter", function(self)
-        GameTooltip_SetDefaultAnchor(GameTooltip, self)
-        GameTooltip:SetText("Compact HUD", 1, 1, 1)
-        GameTooltip:AddLine("Hides the instructional text to save screen space. You can still read the text by hovering over the HUD.", nil, nil, nil, true)
-        GameTooltip:Show()
-    end)
-    compactCheck:SetScript("OnLeave", GameTooltip_Hide)
 
-    local controlBarCheck = CreateFrame("CheckButton", "ADWShowControlBarCheck", panel, "UICheckButtonTemplate")
+    local controlBarCheck = ADW.CreateConfigCheckbox(panel, "Show Control Bar", "ShowControlBar",
+        "Control Bar", "Shows the movable bar with Auto-Routing toggle and List buttons.", function(val)
+            if val then controlBar:Show() else controlBar:Hide() end
+        end)
     controlBarCheck:SetPoint("TOPLEFT", compactCheck, "BOTTOMLEFT", 0, -8)
-    _G[controlBarCheck:GetName() .. "Text"]:SetText("Show Control Bar")
-    controlBarCheck:SetScript("OnClick", function(self)
-        AutoDungeonWaypointDB.ShowControlBar = self:GetChecked()
-        if AutoDungeonWaypointDB.ShowControlBar then controlBar:Show() else controlBar:Hide() end
-    end)
-    controlBarCheck:SetScript("OnShow", function(self) self:SetChecked(AutoDungeonWaypointDB.ShowControlBar ~= false) end)
-    controlBarCheck:SetScript("OnEnter", function(self)
-        GameTooltip_SetDefaultAnchor(GameTooltip, self)
-        GameTooltip:SetText("Show Control Bar", 1, 1, 1)
-        GameTooltip:AddLine("Shows the movable bar with Auto-Routing toggle and List buttons.", nil, nil, nil, true)
-        GameTooltip:Show()
-    end)
-    controlBarCheck:SetScript("OnLeave", GameTooltip_Hide)
 
-    local chatCheck = CreateFrame("CheckButton", "ADWShowChatTextCheck", panel, "UICheckButtonTemplate")
+    local chatCheck = ADW.CreateConfigCheckbox(panel, "Enable Chat Announcements", "ShowChatText",
+        "Chat Announcements", "Shows text in your chat box when a route starts or a step advances.")
     chatCheck:SetPoint("TOPLEFT", controlBarCheck, "BOTTOMLEFT", 0, -8)
-    _G[chatCheck:GetName() .. "Text"]:SetText("Enable Chat Announcements")
-    chatCheck:SetScript("OnClick", function(self) AutoDungeonWaypointDB.ShowChatText = self:GetChecked() end)
-    chatCheck:SetScript("OnShow", function(self) self:SetChecked(AutoDungeonWaypointDB.ShowChatText ~= false) end)
-    chatCheck:SetScript("OnEnter", function(self)
-        GameTooltip_SetDefaultAnchor(GameTooltip, self)
-        GameTooltip:SetText("Chat Announcements", 1, 1, 1)
-        GameTooltip:AddLine("Shows text in your chat box when a route starts or a step advances.", nil, nil, nil, true)
-        GameTooltip:Show()
-    end)
-    chatCheck:SetScript("OnLeave", GameTooltip_Hide)
 
     local resetBtn = CreateFrame("Button", "ADWResetBtn", panel, "UIPanelButtonTemplate")
-    resetBtn:SetSize(120, 26) resetBtn:SetPoint("TOPLEFT", chatCheck, "BOTTOMLEFT", 0, -20) resetBtn:SetText("Reset Positions")
+    resetBtn:SetSize(120, 26) 
+    resetBtn:SetPoint("TOPLEFT", chatCheck, "BOTTOMLEFT", 0, -20) 
+    resetBtn:SetText("Reset Positions")
     resetBtn:SetScript("OnClick", function()
         AutoDungeonWaypointDB.StatusFramePos = nil AutoDungeonWaypointDB.ToggleButtonPos = nil
         statusFrame:ClearAllPoints() statusFrame:SetPoint("TOP", UIParent, "TOP", 0, -60)
         controlBar:ClearAllPoints() controlBar:SetPoint("TOP", UIParent, "TOP", 0, -20)
         ForcePrint("HUD and Control Bar positions have been reset.")
     end)
-    resetBtn:SetScript("OnEnter", function(self)
-        GameTooltip_SetDefaultAnchor(GameTooltip, self)
-        GameTooltip:SetText("Reset Positions", 1, 1, 1)
-        GameTooltip:AddLine("Restores the Navigation HUD and Control Bar to their default positions on the screen.", nil, nil, nil, true)
-        GameTooltip:Show()
-    end)
-    resetBtn:SetScript("OnLeave", GameTooltip_Hide)
+    ADW.SetTooltip(resetBtn, "Reset Positions", "Restores the Navigation HUD and Control Bar to their default positions.")
+    
     if Settings and Settings.RegisterCanvasLayoutCategory then
         local category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
         Settings.RegisterAddOnCategory(category)
@@ -805,17 +784,7 @@ end
 
 autoBtn:SetScript("OnClick", function() ADW.ToggleAutoRoute() end)
 menuBtn:SetScript("OnClick", function(self)
-    if MenuUtil then
-        MenuUtil.CreateContextMenu(self, function(owner, rootDescription)
-            rootDescription:CreateTitle("|cFF00BFFFAll Dungeons|r")
-            local keys = {}
-            for k in pairs(ADW.RouteNames) do table.insert(keys, k) end
-            table.sort(keys, function(a, b) return ADW.RouteNames[a] < ADW.RouteNames[b] end)
-            for _, key in ipairs(keys) do
-                rootDescription:CreateButton(ADW.RouteNames[key], function() StartRoute(key) end)
-            end
-        end)
-    end
+    if MenuUtil then MenuUtil.CreateContextMenu(self, ADW.GenerateDungeonMenu) end
 end)
 
 SLASH_AUTODUNGEONWAYPOINT1 = "/adw"
@@ -831,10 +800,13 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
             AutoDungeonWaypointDB.ShowControlBar = false
             AutoDungeonWaypointDB.ShowChatText = false
             HideStatusFrame()
-            if controlBar then controlBar:Hide() end
-            if ADWShowHUDCheck then ADWShowHUDCheck:SetChecked(false) end
-            if ADWShowControlBarCheck then ADWShowControlBarCheck:SetChecked(false) end
-            if ADWShowChatTextCheck then ADWShowChatTextCheck:SetChecked(false) end
+            controlBar:Hide()
+            local hudCheck  = _G["ADW_ShowStatusFrame_Check"]
+            local barCheck  = _G["ADW_ShowControlBar_Check"]
+            local chatCheck = _G["ADW_ShowChatText_Check"]
+            if hudCheck  then hudCheck:SetChecked(false)  end
+            if barCheck  then barCheck:SetChecked(false)  end
+            if chatCheck then chatCheck:SetChecked(false) end
             ForcePrint("HUD, Control Bar, and Chat Text hidden.")
         end
     elseif cmd == "list" then
@@ -896,60 +868,47 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
     end
 end
 
-function ADW_OnAddonCompartmentClick(addonName, buttonName)
+function ADW_OnAddonCompartmentClick(_, buttonName)
     if buttonName == "RightButton" then
         ADW.ToggleAutoRoute()
+    elseif MenuUtil then
+        MenuUtil.CreateContextMenu(MinimapCluster or UIParent, ADW.GenerateDungeonMenu)
     else
-        if MenuUtil then
-            MenuUtil.CreateContextMenu(MinimapCluster or UIParent, function(owner, rootDescription)
-                rootDescription:CreateTitle("|cFF00BFFFAuto Dungeon Waypoint|r")
-                rootDescription:CreateButton("|cFFFFD100Toggle Auto-Routing|r", function() ADW.ToggleAutoRoute() end)
-                local keys = {}
-                for k in pairs(ADW.RouteNames) do table.insert(keys, k) end
-                table.sort(keys, function(a, b) return ADW.RouteNames[a] < ADW.RouteNames[b] end)
-                for _, key in ipairs(keys) do
-                    rootDescription:CreateButton("Route: " .. ADW.RouteNames[key], function() StartRoute(key) end)
-                end
-                rootDescription:CreateDivider()
-                rootDescription:CreateButton("|cFFFFD100Open Settings|r", function() 
-                    if ADW.settingsCategory then 
-                        Settings.OpenToCategory(ADW.settingsCategory:GetID()) 
-                    end 
-                end)
-            end)
-        else
-            ForcePrint("Addon compartment menu is unavailable. Type /adw list instead.")
-        end
+        ForcePrint("Addon compartment menu is unavailable. Type /adw list instead.")
     end
 end
 
-function ADW_OnAddonCompartmentEnter(addonName, button)
+function ADW_OnAddonCompartmentEnter(_, button)
     GameTooltip_SetDefaultAnchor(GameTooltip, button)
     GameTooltip:SetText("Auto Dungeon Waypoint", 0.0, 0.75, 1.0)
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("|cFFFFD100Left-Click:|r Open route menu", 1, 1, 1)
-    GameTooltip:AddLine("|cFFFFD100Right-Click:|r Toggle auto-routing", 1, 1, 1)
+    AddSharedTooltipLines(GameTooltip)
     GameTooltip:Show()
 end
 
-function ADW_OnAddonCompartmentLeave(addonName, button)
+function ADW_OnAddonCompartmentLeave(_, button)
     GameTooltip_Hide()
 end
 
 -- ============================================================================
 -- LFG Processor
 -- ============================================================================
+ADW.LFGRouteCache = {}  -- runtime name-fuzzy-match cache (never mutates the static LFGToRoute table)
+
 function ADW.ProcessActivityID(activityID, isSilent)
     if not activityID then return end
 
     if isPlayerInInstance then
-        -- Avoid unnecessary string allocations and debug logging here in frequent loops.
         return
     end
-    
-    local routeKey = ADW.LFGToRoute[activityID]
 
-    -- If we've already cached that this ID has no matching route, skip parsing
+    -- Check static lookup first, then the runtime fuzzy-match cache
+    local routeKey = ADW.LFGToRoute[activityID]
+    if routeKey == nil then
+        routeKey = ADW.LFGRouteCache[activityID]
+    end
+
+    -- If we've already determined this ID has no matching route, skip
     if routeKey == false then return end
 
     if routeKey == nil then
@@ -958,7 +917,6 @@ function ADW.ProcessActivityID(activityID, isSilent)
             if debugMode then LogInfo("ProcessActivityID: Name=" .. info.fullName) end
             local lowerName = info.fullName:lower():gsub("[%p%s]", "")
 
-            -- Initialize clean names cache if missing
             ADW.RouteNamesClean = ADW.RouteNamesClean or {}
 
             for key, name in pairs(ADW.RouteNames) do
@@ -974,8 +932,8 @@ function ADW.ProcessActivityID(activityID, isSilent)
                 end
             end
         end
-        -- Cache the result so we don't parse this ID again (true or false)
-        ADW.LFGToRoute[activityID] = routeKey or false
+        -- Cache result without mutating the static LFGToRoute data table
+        ADW.LFGRouteCache[activityID] = routeKey or false
     end
 
     if not routeKey or activeRouteKey == routeKey then return end
@@ -985,6 +943,16 @@ function ADW.ProcessActivityID(activityID, isSilent)
     local name = ADW.RouteNames[routeKey] or routeKey
     if not isSilent then Print(GREEN .. "Dungeon detected:|r " .. WHITE .. name .. "|r — auto-starting!") end
     StartRoute(routeKey)
+end
+
+local function CheckInitialActivities(isSilent)
+    if not AutoDungeonWaypointDB or not AutoDungeonWaypointDB.AutoRouteEnabled then return end
+    local activeEntry = C_LFGList.GetActiveEntryInfo()
+    if activeEntry and activeEntry.activityIDs then
+        for _, id in ipairs(activeEntry.activityIDs) do
+            ADW.ProcessActivityID(id, isSilent)
+        end
+    end
 end
 
 -- ============================================================================
@@ -1001,7 +969,7 @@ C_ChatInfo.RegisterAddonMessagePrefix("ADW")
 
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     local arg1 = ...
-    if event == "ADDON_LOADED" and arg1 == "AutoDungeonWaypoint" then
+    if event == "ADDON_LOADED" and arg1 == addonName then
         if not AutoDungeonWaypointDB then AutoDungeonWaypointDB = {} end
         for k, v in pairs(DEFAULTS) do if AutoDungeonWaypointDB[k] == nil then AutoDungeonWaypointDB[k] = v end end
         if AutoDungeonWaypointDB.StatusFramePos then
@@ -1018,6 +986,10 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             controlBar:Show()
         end
         UpdateToggleButton() CreateOptionsPanel()
+        
+        -- Check if we are already in a group with an active activity on load
+        CheckInitialActivities(true)
+
         local LDB = LibStub and LibStub("LibDataBroker-1.1", true)
         local LDBIcon = LibStub and LibStub("LibDBIcon-1.0", true)
         if LDB and LDBIcon then
@@ -1025,23 +997,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                 type = "launcher", text = "Auto Dungeon Waypoint", icon = "Interface\\AddOns\\AutoDungeonWaypoint\\icon.tga",
                 OnClick = function(self, button)
                     if button == "LeftButton" then
-                        if MenuUtil then
-                            MenuUtil.CreateContextMenu(self, function(owner, rootDescription)
-                                rootDescription:CreateTitle("|cFF00BFFFAll Dungeons|r")
-                                local keys = {}
-                                for k in pairs(ADW.RouteNames) do table.insert(keys, k) end
-                                table.sort(keys, function(a, b) return ADW.RouteNames[a] < ADW.RouteNames[b] end)
-                                for _, key in ipairs(keys) do
-                                    rootDescription:CreateButton(ADW.RouteNames[key], function() StartRoute(key) end)
-                                end
-                                rootDescription:CreateDivider()
-                                rootDescription:CreateButton("|cFFFFD100Open Settings|r", function()
-                                    if ADW.settingsCategory then
-                                        Settings.OpenToCategory(ADW.settingsCategory:GetID())
-                                    end
-                                end)
-                            end)
-                        end
+                        if MenuUtil then MenuUtil.CreateContextMenu(self, ADW.GenerateDungeonMenu) end
                     elseif button == "RightButton" then ADW.ToggleAutoRoute()
                     elseif button == "MiddleButton" then ADW_Stop_Binding() end
                 end,
@@ -1049,8 +1005,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                     tooltip:SetText("Auto Dungeon Waypoint", 0.0, 0.75, 1.0)
                     if activeRoute then tooltip:AddLine("Active: " .. (ADW.RouteNames[activeRouteKey] or activeRouteKey)) end
                     tooltip:AddLine(" ")
-                    tooltip:AddLine("|cFFFFD100Left-Click:|r Open route menu", 1, 1, 1)
-                    tooltip:AddLine("|cFFFFD100Right-Click:|r Toggle auto-routing", 1, 1, 1)
+                    AddSharedTooltipLines(tooltip)
                     if activeRoute then tooltip:AddLine("|cFFFFD100Middle-Click:|r Cancel route", 1, 1, 1) end
                 end,
             })
@@ -1065,14 +1020,6 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
         if isLogin or isReload then
             Print("Loaded — Type /adw list to see routes.")
-            if AutoDungeonWaypointDB.AutoRouteEnabled then
-                local activeEntry = C_LFGList.GetActiveEntryInfo()
-                if activeEntry and activeEntry.activityIDs then
-                    for _, id in ipairs(activeEntry.activityIDs) do
-                        ADW.ProcessActivityID(id, true)
-                    end
-                end
-            end
         else
             if isPlayerInInstance and activeRoute then
                 Print(GREEN .. "Entered dungeon! Route cleared.|r") ClearRoute()
@@ -1104,13 +1051,17 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     end
     if event == "ZONE_CHANGED_NEW_AREA" then if activeRoute then SyncRouteProgress() end return end
     if event == "CHAT_MSG_ADDON" then
-        local prefix, message, channel, sender = ...
-        if prefix == "ADW" and sender ~= UnitName("player") and AutoDungeonWaypointDB.AutoRouteEnabled then
-            local cmd, routeKey = strsplit(":", message, 2)
-            if cmd == "ROUTE" and routeKey and ADW.Routes[routeKey] and activeRouteKey ~= routeKey then
-                Print(sender .. " shared a route to " .. (ADW.RouteNames[routeKey] or routeKey))
-                StartRoute(routeKey)
-            end
+        local prefix, message, _, sender = ...
+        if prefix ~= "ADW" or not AutoDungeonWaypointDB.AutoRouteEnabled then return end
+        
+        -- Midnight Resilience: Robust self-filter using UnitIsUnit (handles cross-realm name nuances)
+        if UnitIsUnit(sender, "player") then return end
+        
+        local safeSender = Ambiguate(sender, "none")
+        local cmd, routeKey = strsplit(":", message, 2)
+        if cmd == "ROUTE" and routeKey and ADW.Routes[routeKey] and activeRouteKey ~= routeKey then
+            Print(CYAN .. safeSender .. "|r shared a route to " .. WHITE .. (ADW.RouteNames[routeKey] or routeKey) .. "|r")
+            StartRoute(routeKey, true) -- skipBroadcast = true to prevent infinite loops
         end
     end
 end)
