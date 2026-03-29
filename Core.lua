@@ -946,7 +946,7 @@ function ADW.ProcessActivityID(activityID, isSilent)
 end
 
 local function CheckInitialActivities(isSilent)
-    if not AutoDungeonWaypointDB or not AutoDungeonWaypointDB.AutoRouteEnabled then return end
+    if not AutoDungeonWaypointDB or not AutoDungeonWaypointDB.AutoRouteEnabled or isPlayerInInstance then return end
     local activeEntry = C_LFGList.GetActiveEntryInfo()
     if activeEntry and activeEntry.activityIDs then
         for _, id in ipairs(activeEntry.activityIDs) do
@@ -1032,14 +1032,14 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     end
     if event == "LFG_LIST_JOINED_GROUP" then
         local searchResultID = ...
-        if searchResultID and AutoDungeonWaypointDB.AutoRouteEnabled then
+        if searchResultID and AutoDungeonWaypointDB.AutoRouteEnabled and not isPlayerInInstance then
             local info = C_LFGList.GetSearchResultInfo(searchResultID)
             if info and info.activityID then ADW.ProcessActivityID(info.activityID) end
         end
         return
     end
     if event == "LFG_LIST_ACTIVE_ENTRY_UPDATE" then
-        if AutoDungeonWaypointDB.AutoRouteEnabled then
+        if AutoDungeonWaypointDB.AutoRouteEnabled and not isPlayerInInstance then
             local activeEntry = C_LFGList.GetActiveEntryInfo()
             if activeEntry and activeEntry.activityIDs then
                 for _, id in ipairs(activeEntry.activityIDs) do
