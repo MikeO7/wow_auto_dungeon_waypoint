@@ -839,10 +839,7 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
             if hudCheck  then hudCheck:SetChecked(false)  end
             if barCheck  then barCheck:SetChecked(false)  end
             if chatCheck then chatCheck:SetChecked(false) end
-            AutoDungeonWaypointDB.EnableSounds = false
-            local soundCheck = _G["ADW_EnableSounds_Check"]
-            if soundCheck then soundCheck:SetChecked(false) end
-            ForcePrint("HUD, Control Bar, Chat Text, and Sounds hidden/disabled.")
+            ForcePrint("HUD, Control Bar, and Chat Text hidden.")
         end
     elseif cmd == "list" then
         ForcePrint("Available routes:")
