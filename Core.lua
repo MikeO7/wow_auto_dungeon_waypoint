@@ -543,7 +543,7 @@ local function CompleteRoute()
     Print(GREEN .. "You have arrived! Route complete.|r")
     LogInfo("Route complete: " .. tostring(activeRouteKey))
     if AutoDungeonWaypointDB and AutoDungeonWaypointDB.EnableSounds ~= false then
-        PlaySound(8659)
+        PlaySound(878)
     end
     ClearRoute()
 end
