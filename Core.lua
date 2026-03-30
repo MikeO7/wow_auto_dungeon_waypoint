@@ -459,10 +459,6 @@ function ADW.GetBestStepIndex(route, currentMapID, pos)
         if not currentMapID then return 1 end
     end
 
-    if not pos then
-        pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
-    end
-
     local currentCont = ADW.GetMapContinent(currentMapID)
     
     local bestIdx = currentStepIndex
@@ -486,27 +482,33 @@ function ADW.GetBestStepIndex(route, currentMapID, pos)
                 bestScore = score
                 bestIdx = i
                 minDistSq = math.huge
-                if pos and step.mapID == currentMapID then
-                    local dx = (pos.x - step.x) * 1000
-                    local dy = (pos.y - step.y) * 1000
-                    minDistSq = dx*dx + dy*dy
+                if step.mapID == currentMapID then
+                    pos = pos or C_Map.GetPlayerMapPosition(currentMapID, "player")
+                    if pos then
+                        local dx = (pos.x - step.x) * 1000
+                        local dy = (pos.y - step.y) * 1000
+                        minDistSq = dx*dx + dy*dy
+                    end
                 end
             elseif score == bestScore then
                 -- Same score? Pick by distance if exact, else keep current
-                if pos and step.mapID == currentMapID then
-                    local dx = (pos.x - step.x) * 1000
-                    local dy = (pos.y - step.y) * 1000
-                    local d2 = dx*dx + dy*dy
-                    if d2 < minDistSq then
-                        minDistSq = d2
-                        bestIdx = i
+                if step.mapID == currentMapID then
+                    pos = pos or C_Map.GetPlayerMapPosition(currentMapID, "player")
+                    if pos then
+                        local dx = (pos.x - step.x) * 1000
+                        local dy = (pos.y - step.y) * 1000
+                        local d2 = dx*dx + dy*dy
+                        if d2 < minDistSq then
+                            minDistSq = d2
+                            bestIdx = i
+                        end
                     end
                 end
             end
         end
     end
     
-    return bestIdx
+    return bestIdx, pos
 end
 
 local function SyncRouteProgress()
@@ -546,12 +548,6 @@ local function CompleteRoute()
         PlaySound(878)
     end
     ClearRoute()
-end
-
-local function GetPlayerPos()
-    local mapID = C_Map.GetBestMapForUnit("player")
-    if not mapID then return nil, nil end
-    return mapID, C_Map.GetPlayerMapPosition(mapID, "player")
 end
 
 function SetWaypointStep(index)
@@ -627,7 +623,7 @@ local function CheckDistance()
     if not step then return end
 
     local now = GetTime()
-    local currentMapID, pos = GetPlayerPos()
+    local currentMapID = C_Map.GetBestMapForUnit("player")
     if not currentMapID then return end
 
     -- Update map change buffer
@@ -639,7 +635,7 @@ local function CheckDistance()
 
     if debugMode then Print(string.format("DEBUG: Map: %d | Step: %d", currentMapID, currentStepIndex)) end
     
-    local bestIdx = ADW.GetBestStepIndex(activeRoute, currentMapID, pos)
+    local bestIdx, pos = ADW.GetBestStepIndex(activeRoute, currentMapID, nil)
     
     -- 1. Handle Forward Progress (Skipping steps via SmartSync)
     if bestIdx > currentStepIndex then
@@ -670,12 +666,15 @@ local function CheckDistance()
         if isPriorMap then
             -- Buffer: If we are still very close to the previous step's location, stay on the current step.
             local priorStep = activeRoute[currentStepIndex - 1]
-            if pos and priorStep and priorStep.mapID == currentMapID then
-                local dx = (pos.x - priorStep.x) * 1000
-                local dy = (pos.y - priorStep.y) * 1000
-                if (dx*dx + dy*dy) < 400.0 then -- ~100 yards buffer
-                    if debugMode then Print("DEBUG: Near Step " .. (currentStepIndex-1) .. " - ignoring snap-back.") end
-                    return 
+            if priorStep and priorStep.mapID == currentMapID then
+                pos = pos or C_Map.GetPlayerMapPosition(currentMapID, "player")
+                if pos then
+                    local dx = (pos.x - priorStep.x) * 1000
+                    local dy = (pos.y - priorStep.y) * 1000
+                    if (dx*dx + dy*dy) < 400.0 then -- ~100 yards buffer
+                        if debugMode then Print("DEBUG: Near Step " .. (currentStepIndex-1) .. " - ignoring snap-back.") end
+                        return
+                    end
                 end
             end
 
@@ -687,27 +686,30 @@ local function CheckDistance()
     end
 
     -- 3. Handle Arrival (Current step target reached)
-    if currentMapID == step.mapID and pos then
-        local dx = (pos.x - step.x) * 1000
-        local dy = (pos.y - step.y) * 1000
-        local distSq = dx * dx + dy * dy
-        
-        if distSq < 10.0 then -- Threshold for "arrival"
-            -- Arrival Buffer: If we just changed maps, wait 3s before allowing arrival.
-            if now - lastMapChangeTime < 3 then
-                if debugMode then Print("DEBUG: Arrival ignored (Map change buffer active)") end
-                return
-            end
+    if currentMapID == step.mapID then
+        pos = pos or C_Map.GetPlayerMapPosition(currentMapID, "player")
+        if pos then
+            local dx = (pos.x - step.x) * 1000
+            local dy = (pos.y - step.y) * 1000
+            local distSq = dx * dx + dy * dy
 
-            LogInfo(string.format("ARRIVAL: Step %d reached (DistSq: %.2f)", currentStepIndex, distSq))
-            if currentStepIndex < totalSteps then
-                currentStepIndex = currentStepIndex + 1
-                lastStepAdvance = now
-                SetWaypointStep(currentStepIndex)
-                UpdateToggleButton()
-                PulseGlow()
-            else
-                CompleteRoute()
+            if distSq < 10.0 then -- Threshold for "arrival"
+                -- Arrival Buffer: If we just changed maps, wait 3s before allowing arrival.
+                if now - lastMapChangeTime < 3 then
+                    if debugMode then Print("DEBUG: Arrival ignored (Map change buffer active)") end
+                    return
+                end
+
+                LogInfo(string.format("ARRIVAL: Step %d reached (DistSq: %.2f)", currentStepIndex, distSq))
+                if currentStepIndex < totalSteps then
+                    currentStepIndex = currentStepIndex + 1
+                    lastStepAdvance = now
+                    SetWaypointStep(currentStepIndex)
+                    UpdateToggleButton()
+                    PulseGlow()
+                else
+                    CompleteRoute()
+                end
             end
         end
     end
