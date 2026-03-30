@@ -9,3 +9,7 @@
 ## 2024-05-20 - Fallback Access in Compact UIs and Settings Tooltips
 **Learning:** When using compact UI modes that hide text, a tooltip is an essential fallback to maintain accessibility. Configuration panels also benefit greatly from explanatory tooltips.
 **Action:** Always provide tooltip fallbacks when text is hidden for compactness, and attach tooltips to form/setting elements.
+
+## 2026-03-30 - Replace Confusing Success Sounds
+**Learning:** Sound ID 8659 is often perceived by users as an error or 'No' sound effect, leading to a confusing UX when used for positive states like route completion.
+**Action:** Use universally recognized positive/success sounds (like `878` for `IG_QUEST_LIST_COMPLETE` or `5274` for quest complete) for completion events instead of ambiguous or error-sounding IDs.
