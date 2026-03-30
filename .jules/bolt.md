@@ -22,3 +22,7 @@
 ## 2024-05-22 - Avoid Table Allocations in LFG Handlers
 **Learning:** Blizzard APIs that return tables (like C_LFGList.GetActiveEntryInfo()) allocate memory and should be avoided inside high-frequency event handlers if the result is going to be discarded anyway.
 **Action:** Add early returns (e.g., checking isPlayerInInstance) before calling API functions that return tables in high-frequency event handlers.
+
+## 2026-03-29 - Lazy Load Blizzard APIs in Polling Loops
+**Learning:** Avoid unnecessary Blizzard API calls (e.g., `C_Map.GetPlayerMapPosition`) in high-frequency loops (like `CheckDistance`) if the results are only needed under certain conditions. Unconditional API calls can create useless string allocations for the Lua garbage collector and result in micro-stutters.
+**Action:** Lazy-load these values to reduce garbage collection micro-stutters.
