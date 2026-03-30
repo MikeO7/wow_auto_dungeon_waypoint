@@ -1,11 +1,12 @@
 # Changelog
 
+## v6.2.2 (Sound & HUD Polish)
+- **Sound Effects Toggle**: Added a new "Enable Sound Effects" checkbox in the options panel. All navigation alerts now respect this setting.
+- **Enhanced HUD Tooltips**: Added interactive tooltips to the navigation HUD. In compact mode, the current step description is now viewable by hovering over the HUD.
+- **LFG Instance Guard**: Improved the LFG detection engine to prevent auto-starting routes while you are already inside a dungeon or raid instance.
+- **UI UX Polish**: Refined HUD positioning and tooltip behavior for a cleaner experience in combat.
+
 ## v6.2.1 (Resilience & Midnight Compatibility)
-- **Taint-Protection**: Sanitized player names in chat messages using `Ambiguate` to prevent "secret string" conversion crashes in chat addons like Prat-3.0.
-- **Improved Self-Filtering**: Switched to `UnitIsUnit` for robust cross-realm self-filtering to prevent route broadcast loops.
-- **Protected Logs**: Hardened the internal logging engine against protected strings.
-- **HUD Fixes**: Resolved all issues related to hardcoded checkbox frame references in the `/adw hide` command.
-- **Code Audit**: Comprehensive audit of 18+ technical debt items including deduplicated route completion and LFG detection.
 
 ## v6.2.0 (The Restoration Release)
 
