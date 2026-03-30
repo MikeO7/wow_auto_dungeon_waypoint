@@ -35,6 +35,7 @@ local DEFAULTS = {
     ShowStatusFrame = true,
     ShowControlBar = true,
     ShowChatText = true,
+    EnableSounds = true,
     CompactMode = false,
     Log = {},       -- Persistent event log
     LogMaxLines = 200,
@@ -541,7 +542,9 @@ end
 local function CompleteRoute()
     Print(GREEN .. "You have arrived! Route complete.|r")
     LogInfo("Route complete: " .. tostring(activeRouteKey))
-    PlaySound(8659)
+    if AutoDungeonWaypointDB and AutoDungeonWaypointDB.EnableSounds ~= false then
+        PlaySound(8659)
+    end
     ClearRoute()
 end
 
@@ -583,7 +586,9 @@ function SetWaypointStep(index)
     Print(YELLOW .. "Step " .. index .. "/" .. totalSteps .. ":|r " .. WHITE .. desc .. "|r")
     LogInfo("ADVANCE: Step " .. index .. "/" .. totalSteps .. " (" .. desc .. ")")
     UpdateStatusFrame(dungeonName, desc, index, totalSteps)
-    if index > 1 then PlaySound(850) end
+    if index > 1 and AutoDungeonWaypointDB and AutoDungeonWaypointDB.EnableSounds ~= false then
+        PlaySound(850)
+    end
 
     -- Show/hide Timeways portal map
     if step.mapID == ADW.TIMEWAYS_MAP_ID and activeRouteKey then
@@ -724,7 +729,10 @@ local function StartRoute(routeKey, skipBroadcast)
     if currentStepIndex > 1 then msg = msg .. GRAY .. " — sync'd to step " .. currentStepIndex .. "|r" end
     Print(msg)
     LogInfo("Route started: " .. dungeonName .. " (Step: " .. currentStepIndex .. "/" .. totalSteps .. ")")
-    PlaySound(846) SetWaypointStep(currentStepIndex) UpdateToggleButton()
+    if AutoDungeonWaypointDB and AutoDungeonWaypointDB.EnableSounds ~= false then
+        PlaySound(846)
+    end
+    SetWaypointStep(currentStepIndex) UpdateToggleButton()
     
     -- Throttled from 10Hz (0.1s) to 4Hz (0.25s) for performance
     checkTicker = C_Timer.NewTicker(0.25, CheckDistance)
@@ -783,9 +791,13 @@ local function CreateOptionsPanel()
         "Chat Announcements", "Shows text in your chat box when a route starts or a step advances.")
     chatCheck:SetPoint("TOPLEFT", controlBarCheck, "BOTTOMLEFT", 0, -8)
 
+    local soundCheck = ADW.CreateConfigCheckbox(panel, "Enable Sound Effects", "EnableSounds",
+        "Sound Effects", "Plays a sound when a route starts, a step advances, or you arrive at your destination.")
+    soundCheck:SetPoint("TOPLEFT", chatCheck, "BOTTOMLEFT", 0, -8)
+
     local resetBtn = CreateFrame("Button", "ADWResetBtn", panel, "UIPanelButtonTemplate")
     resetBtn:SetSize(120, 26) 
-    resetBtn:SetPoint("TOPLEFT", chatCheck, "BOTTOMLEFT", 0, -20) 
+    resetBtn:SetPoint("TOPLEFT", soundCheck, "BOTTOMLEFT", 0, -20)
     resetBtn:SetText("Reset Positions")
     resetBtn:SetScript("OnClick", function()
         AutoDungeonWaypointDB.StatusFramePos = nil AutoDungeonWaypointDB.ToggleButtonPos = nil
