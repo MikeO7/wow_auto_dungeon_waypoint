@@ -26,3 +26,7 @@
 ## 2026-03-29 - Lazy Load Blizzard APIs in Polling Loops
 **Learning:** Avoid unnecessary Blizzard API calls (e.g., `C_Map.GetPlayerMapPosition`) in high-frequency loops (like `CheckDistance`) if the results are only needed under certain conditions. Unconditional API calls can create useless string allocations for the Lua garbage collector and result in micro-stutters.
 **Action:** Lazy-load these values to reduce garbage collection micro-stutters.
+
+## 2024-05-23 - Prevent Redundant Falsey Cache Misses in Loops
+**Learning:** When lazy-loading Blizzard API results in Lua loops (e.g., `pos = pos or C_Map.GetPlayerMapPosition(...)`), the caching mechanism fails if the API correctly returns `nil` (e.g., when coordinates are unavailable). This causes the expensive API call to be redundantly executed on every subsequent iteration or conditionally later in the same execution tick.
+**Action:** Use an explicit boolean flag (e.g., `posFetched`) alongside the cached variable to track whether the API has already been called during the current execution context, guaranteeing it runs exactly once even if it returns `nil`.
