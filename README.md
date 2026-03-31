@@ -1,8 +1,10 @@
 # Auto Dungeon Waypoint
 
-**Automatic step-by-step Mythic+ dungeon navigation for World of Warcraft: Midnight.**
+### Stop alt-tabbing for dungeon locations. Start running keys.
 
-Join a group → get routed instantly → arrive at the dungeon entrance.
+You join a Mythic+ group. The addon detects the dungeon. A waypoint appears on your screen — portal room, correct portal, flight path, dungeon entrance. Step by step, hands-free, until you zone in.
+
+That's it. That's the whole addon.
 
 [![CurseForge](https://img.shields.io/badge/CurseForge-Download-orange)](https://www.curseforge.com/wow/addons/auto-dungeon-waypoint)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/MikeO7/wow_auto_dungeon_waypoint)
@@ -10,103 +12,144 @@ Join a group → get routed instantly → arrive at the dungeon entrance.
 
 ---
 
-## What It Does
+## Why People Use This
 
-When you join a Mythic+ group through the Group Finder, Auto Dungeon Waypoint **automatically detects the dungeon** and starts a step-by-step route with on-screen waypoints. It guides you through the portal room, the right portal, the flight path, and straight to the dungeon entrance — then auto-clears when you zone in.
+If you've ever:
+- Joined a key and had **no idea** where the dungeon entrance was
+- Spent 2 minutes flying in the wrong direction while your group waited
+- Alt-tabbed to Wowhead mid-flight to look up "Seat of the Triumvirate entrance location"
+- Whispered the party leader "where do I go" and felt the shame
 
-No more alt-tabbing. No more asking "where is this one again?"
-
----
-
-## Features
-
-| Feature | Description |
-|---------|-------------|
-| 🚀 **Auto-Routing** | Detects dungeon on group join — zero input required |
-| ⏱️ **ETA Timer** | Shows estimated arrival time based on movement speed |
-| 📊 **Progress Bar** | Visual step completion bar in the HUD |
-| 🗺️ **Smart Routing** | Works from anywhere — syncs to the correct step based on your location |
-| 📡 **Party Sharing** | Automatically shares routes with party members |
-| 📋 **Route History** | Quick access to your last 5 used routes |
-| 📍 **`/adw nearest`** | Auto-start the closest dungeon route |
-| 🔲 **Compact Mode** | Minimal HUD with just arrow + distance |
-| 🎨 **Premium UI** | Glassmorphism HUD, color-coded distance, smooth animations |
-
----
-
-## Supported Dungeons
-
-### Midnight Season 1
-| Dungeon | Zone |
-|---------|------|
-| Windrunner Spire | Eversong Woods |
-| Magister's Terrace | Isle of Quel'Danas |
-| Maisara Caverns | Zul'Aman |
-| Nexus-Point Xenas | Voidstorm |
-
-### Legacy M+ Rotation
-| Dungeon | Zone |
-|---------|------|
-| Algeth'ar Academy | Thaldraszus |
-| Seat of the Triumvirate | Eredath (Argus) |
-| Skyreach | Spires of Arak |
-| Pit of Saron | Icecrown |
-
-All coordinates verified against method.gg, icy-veins.com, and wowhead.
-
----
-
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `/adw` | Show all commands |
-| `/adw list` | List available dungeons |
-| `/adw route <id>` | Start a specific route |
-| `/adw nearest` | Start the closest dungeon route |
-| `/adw stop` | Cancel current route |
-| `/adw toggle` | Toggle auto-routing |
-| `/adw compact` | Toggle compact HUD |
-| `/adw hide` / `show` | Hide/show control bar |
-| `/adw log` | View recent events |
-| `/adw debug` | Toggle debug mode |
-
-**Route IDs:** `windrunner` · `magisters` · `maisara` · `nexuspoint` · `algethar` · `seattriumvirate` · `skyreach` · `pitofsaron`
-
----
-
-## Installation
-
-**CurseForge (recommended):** Search "Auto Dungeon Waypoint" in the CurseForge app.
-
-**Manual:**
-1. Download the latest release from [Releases](https://github.com/MikeO7/wow_auto_dungeon_waypoint/releases)
-2. Extract to `World of Warcraft/_retail_/Interface/AddOns/AutoDungeonWaypoint`
-3. Restart WoW or `/reload`
+This addon makes all of that disappear. You queue, you get accepted, you follow the arrow. Done.
 
 ---
 
 ## How It Works
 
-1. Listens for `LFG_LIST_JOINED_GROUP` to detect dungeon groups
-2. Matches Activity IDs to verified dungeon routes
-3. Sets waypoints via `C_Map.SetUserWaypoint` + `C_SuperTrack`
-4. Polls position 5x/second for smooth arrow tracking and auto-advancement
-5. Auto-clears the route when you enter the dungeon instance
+1. **You join a Mythic+ group** through the Premade Group Finder
+2. **The addon auto-detects** which dungeon the group is for
+3. **A step-by-step route appears** on your screen with Blizzard's built-in waypoint arrow
+4. **You follow the arrow** — through portals, across zones, straight to the entrance
+5. **It auto-clears** the moment you zone into the dungeon
+
+No setup. No configuration. No clicking. It just works.
+
+---
+
+## Features
+
+**Zero-Click Auto-Routing** — Detects the dungeon the instant you join a group. No buttons to press, no menus to open.
+
+**Smart Location Sync** — Start from anywhere in the world. The addon figures out where you are and picks up the route from the right step. Hearth to Silvermoon mid-route? It adapts.
+
+**Party Sharing** — When you start a route, it automatically broadcasts to party members running the addon. Everyone gets the same waypoints.
+
+**Compact Mode** — Don't want a big HUD? Toggle compact mode for just the arrow and distance. Clean and minimal.
+
+**Skyriding Optimized** — Tuned for 830% Skyriding speed with fast heartbeat polling and generous arrival radius. No "snap-back" issues at high speed.
+
+**`/adw nearest`** — Not sure which dungeon is closest? This command figures it out and starts routing you there.
+
+**Timeways Portal Map** — Visual overlay showing all four Timeways portals with the active one highlighted. Never pick the wrong portal again.
+
+**Sound Cues** — Audio feedback on step completion and route finish. Toggle it off if you prefer silence.
+
+---
+
+## Supported Dungeons (Midnight Season 1)
+
+Every coordinate has been verified against [Method](https://www.method.gg), [Icy Veins](https://www.icy-veins.com), and [Wowhead](https://www.wowhead.com). Sub-yard precision on all entrance locations.
+
+### Midnight Dungeons
+| Dungeon | Zone | Route |
+|---------|------|-------|
+| **Windrunner Spire** | Eversong Woods | Direct flight |
+| **Magister's Terrace** | Isle of Quel'Danas | Direct flight |
+| **Maisara Caverns** | Zul'Aman | Direct flight |
+| **Nexus-Point Xenas** | Voidstorm | Portal → flight |
+
+### Legacy M+ (via Timeways)
+| Dungeon | Zone | Route |
+|---------|------|-------|
+| **Algeth'ar Academy** | Thaldraszus | Timeways portal → flight |
+| **Seat of the Triumvirate** | Eredath (Argus) | Timeways portal → flight |
+| **Skyreach** | Spires of Arak | Timeways portal → flight |
+| **Pit of Saron** | Icecrown | Timeways portal → flight |
+
+---
+
+## Slash Commands
+
+```
+/adw              Show all commands
+/adw list         Browse available dungeons
+/adw route <id>   Start a specific route manually
+/adw nearest      Route to the closest dungeon
+/adw stop         Cancel the current route
+/adw toggle       Turn auto-routing on/off
+/adw hide         Hide HUD, control bar, and chat
+/adw move         Show/hide HUD for repositioning
+/adw mapid        Print your current Map ID
+/adw pos          Print your current coordinates
+/adw debug        Toggle debug mode
+```
+
+**Route IDs:** `windrunner` · `magisters` · `maisara` · `nexuspoint` · `algethar` · `seattriumvirate` · `skyreach` · `pitofsaron`
+
+---
+
+## Install
+
+**CurseForge (recommended):**
+Search "Auto Dungeon Waypoint" in the CurseForge app, or [click here to download](https://www.curseforge.com/wow/addons/auto-dungeon-waypoint).
+
+**Manual install:**
+1. Grab the latest `.zip` from [GitHub Releases](https://github.com/MikeO7/wow_auto_dungeon_waypoint/releases)
+2. Extract to `World of Warcraft/_retail_/Interface/AddOns/AutoDungeonWaypoint`
+3. Restart WoW or type `/reload`
+
+---
+
+## Works With
+
+- **TomTom** — If installed, waypoints are automatically mirrored to TomTom for minimap pins
+- **Titan Panel / Bazooka** — Full LibDataBroker launcher support
+- **Minimap Button Bag (MBB)** — Custom icon shows up correctly
+- **ElvUI / Bartender / etc.** — No UI conflicts
+
+---
+
+## FAQ
+
+**Does it work for both Horde and Alliance?**
+Routes are built from Silvermoon City, which is the Midnight expansion hub for all players.
+
+**Does it work if I'm not in Silvermoon when I join the group?**
+Yes. Smart Routing detects your current zone and skips ahead to the correct step. You can be anywhere.
+
+**Does everyone in my group need it?**
+No. It works solo. But if party members also have it, routes are shared automatically via addon messaging.
+
+**Will it conflict with my other addons?**
+Unlikely. It uses Blizzard's native waypoint and SuperTrack systems. No taint issues, no frame hooking.
+
+**Does it use any external data or make network requests?**
+No. Everything is local. Coordinates are baked into the addon.
 
 ---
 
 ## Contributing
 
-Routes are defined in `Data.lua` as simple arrays:
+Routes live in [`Data.lua`](Data.lua) as simple coordinate arrays:
+
 ```lua
-{ mapID = 2395, x = 0.3560, y = 0.7880, desc = "Windrunner Spire entrance is here" }
+{ mapID = 2395, x = 0.3560, y = 0.7880, desc = "Windrunner Spire entrance" }
 ```
 
-To find Activity IDs for new dungeons, enable `/adw debug` and join a group — the ID will print to chat.
+Want to add a dungeon? Enable `/adw debug`, join a group for that dungeon, and grab the Activity ID from chat. PRs are welcome.
 
-PRs welcome!
+---
 
 ## License
 
-MIT — do whatever you want with it.
+[MIT](LICENSE) — Use it, fork it, learn from it. Do whatever you want.
