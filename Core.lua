@@ -465,6 +465,7 @@ function ADW.GetBestStepIndex(route, currentMapID, pos)
     if bestIdx == 0 then bestIdx = 1 end
     local bestScore = -1
     local minDistSq = math.huge
+    local posFetched = (pos ~= nil)
 
     for i, step in ipairs(route) do
         local score = 0
@@ -483,7 +484,7 @@ function ADW.GetBestStepIndex(route, currentMapID, pos)
                 bestIdx = i
                 minDistSq = math.huge
                 if step.mapID == currentMapID then
-                    pos = pos or C_Map.GetPlayerMapPosition(currentMapID, "player")
+                    if not posFetched then pos = C_Map.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
                     if pos then
                         local dx = (pos.x - step.x) * 1000
                         local dy = (pos.y - step.y) * 1000
@@ -493,7 +494,7 @@ function ADW.GetBestStepIndex(route, currentMapID, pos)
             elseif score == bestScore then
                 -- Same score? Pick by distance if exact, else keep current
                 if step.mapID == currentMapID then
-                    pos = pos or C_Map.GetPlayerMapPosition(currentMapID, "player")
+                    if not posFetched then pos = C_Map.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
                     if pos then
                         local dx = (pos.x - step.x) * 1000
                         local dy = (pos.y - step.y) * 1000
@@ -508,7 +509,7 @@ function ADW.GetBestStepIndex(route, currentMapID, pos)
         end
     end
     
-    return bestIdx, pos
+    return bestIdx, pos, posFetched
 end
 
 local function SyncRouteProgress()
@@ -635,7 +636,7 @@ local function CheckDistance()
 
     if debugMode then Print(string.format("DEBUG: Map: %d | Step: %d", currentMapID, currentStepIndex)) end
     
-    local bestIdx, pos = ADW.GetBestStepIndex(activeRoute, currentMapID, nil)
+    local bestIdx, pos, posFetched = ADW.GetBestStepIndex(activeRoute, currentMapID, nil)
     
     -- 1. Handle Forward Progress (Skipping steps via SmartSync)
     if bestIdx > currentStepIndex then
@@ -667,7 +668,7 @@ local function CheckDistance()
             -- Buffer: If we are still very close to the previous step's location, stay on the current step.
             local priorStep = activeRoute[currentStepIndex - 1]
             if priorStep and priorStep.mapID == currentMapID then
-                pos = pos or C_Map.GetPlayerMapPosition(currentMapID, "player")
+                if not posFetched then pos = C_Map.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
                 if pos then
                     local dx = (pos.x - priorStep.x) * 1000
                     local dy = (pos.y - priorStep.y) * 1000
@@ -687,7 +688,7 @@ local function CheckDistance()
 
     -- 3. Handle Arrival (Current step target reached)
     if currentMapID == step.mapID then
-        pos = pos or C_Map.GetPlayerMapPosition(currentMapID, "player")
+        if not posFetched then pos = C_Map.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
         if pos then
             local dx = (pos.x - step.x) * 1000
             local dy = (pos.y - step.y) * 1000
