@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.2.3 (Audio Refresh)
+- **Quest Complete Fanfare**: Replaced the route completion sound with the iconic "Quest Complete" fanfare for a much more rewarding finish.
+- **Positive Audio Cues**: Swapped the "thud" (negative/closing) sounds with positive menu-open clicks for waypoint arrivals and route starts.
+
+
 ## v6.2.2 (Sound & HUD Polish)
 - **Sound Effects Toggle**: Added a new "Enable Sound Effects" checkbox in the options panel. All navigation alerts now respect this setting.
 - **Enhanced HUD Tooltips**: Added interactive tooltips to the navigation HUD. In compact mode, the current step description is now viewable by hovering over the HUD.

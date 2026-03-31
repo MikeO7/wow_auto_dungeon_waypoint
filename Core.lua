@@ -546,7 +546,7 @@ local function CompleteRoute()
     Print(GREEN .. "You have arrived! Route complete.|r")
     LogInfo("Route complete: " .. tostring(activeRouteKey))
     if AutoDungeonWaypointDB and AutoDungeonWaypointDB.EnableSounds ~= false then
-        PlaySound(878)
+        PlaySound(121)
     end
     ClearRoute()
 end
@@ -584,7 +584,7 @@ function SetWaypointStep(index)
     LogInfo("ADVANCE: Step " .. index .. "/" .. totalSteps .. " (" .. desc .. ")")
     UpdateStatusFrame(dungeonName, desc, index, totalSteps)
     if index > 1 and AutoDungeonWaypointDB and AutoDungeonWaypointDB.EnableSounds ~= false then
-        PlaySound(850)
+        PlaySound(878)
     end
 
     -- Show/hide Timeways portal map
@@ -733,7 +733,7 @@ local function StartRoute(routeKey, skipBroadcast)
     Print(msg)
     LogInfo("Route started: " .. dungeonName .. " (Step: " .. currentStepIndex .. "/" .. totalSteps .. ")")
     if AutoDungeonWaypointDB and AutoDungeonWaypointDB.EnableSounds ~= false then
-        PlaySound(846)
+        PlaySound(878)
     end
     SetWaypointStep(currentStepIndex) UpdateToggleButton()
     
@@ -797,7 +797,7 @@ local function CreateOptionsPanel()
 
     local soundCheck = ADW.CreateConfigCheckbox(panel, "Enable Sound Effects", "EnableSounds",
         "Sound Effects", "Plays a sound when a route starts, a step advances, or you arrive at your destination.",
-        function(val) if val then PlaySound(846) end end)
+        function(val) if val then PlaySound(878) end end)
     soundCheck:SetPoint("TOPLEFT", chatCheck, "BOTTOMLEFT", 0, -8)
 
     local resetBtn = CreateFrame("Button", "ADWResetBtn", panel, "UIPanelButtonTemplate")
