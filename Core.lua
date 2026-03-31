@@ -790,11 +790,13 @@ local function CreateOptionsPanel()
     controlBarCheck:SetPoint("TOPLEFT", compactCheck, "BOTTOMLEFT", 0, -8)
 
     local chatCheck = ADW.CreateConfigCheckbox(panel, "Enable Chat Announcements", "ShowChatText",
-        "Chat Announcements", "Shows text in your chat box when a route starts or a step advances.")
+        "Chat Announcements", "Shows text in your chat box when a route starts or a step advances.",
+        function(val) if val then DEFAULT_CHAT_FRAME:AddMessage("|cFF00BFFF[Auto Dungeon Waypoint]|r Chat announcements enabled.") end end)
     chatCheck:SetPoint("TOPLEFT", controlBarCheck, "BOTTOMLEFT", 0, -8)
 
     local soundCheck = ADW.CreateConfigCheckbox(panel, "Enable Sound Effects", "EnableSounds",
-        "Sound Effects", "Plays a sound when a route starts, a step advances, or you arrive at your destination.")
+        "Sound Effects", "Plays a sound when a route starts, a step advances, or you arrive at your destination.",
+        function(val) if val then PlaySound(846) end end)
     soundCheck:SetPoint("TOPLEFT", chatCheck, "BOTTOMLEFT", 0, -8)
 
     local resetBtn = CreateFrame("Button", "ADWResetBtn", panel, "UIPanelButtonTemplate")
