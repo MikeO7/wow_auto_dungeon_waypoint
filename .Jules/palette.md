@@ -13,3 +13,7 @@
 ## 2026-03-30 - Replace Confusing Success Sounds
 **Learning:** Sound ID 8659 is often perceived by users as an error or 'No' sound effect, leading to a confusing UX when used for positive states like route completion.
 **Action:** Use universally recognized positive/success sounds (like `878` for `IG_QUEST_LIST_COMPLETE` or `5274` for quest complete) for completion events instead of ambiguous or error-sounding IDs.
+
+## 2024-05-24 - Configuration Toggle Feedback
+**Learning:** Non-visual configuration toggles (like sound or chat announcements) lack immediate user feedback when toggled, leading to uncertainty about whether the setting was actually changed.
+**Action:** Always provide immediate, relevant feedback (e.g., a test sound or test chat message) when a user interacts with a configuration toggle.
