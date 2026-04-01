@@ -1,4 +1,3 @@
-
 ## 2024-05-19 - Avoid Redundant Blizzard API Calls in Loops
 **Learning:** Frequent polling loops (e.g., 4Hz routing ticker) should avoid redundant calls to expensive external APIs like `C_Map.GetBestMapForUnit("player")` and `C_Map.GetPlayerMapPosition(...)`. These were being called multiple times per tick.
 **Action:** Pass pre-calculated results of API calls as arguments to helper functions, so the calls are made only once per tick. This reduces CPU time and possible stuttering.
@@ -30,3 +29,7 @@
 ## 2024-05-23 - Prevent Redundant Falsey Cache Misses in Loops
 **Learning:** When lazy-loading Blizzard API results in Lua loops (e.g., `pos = pos or C_Map.GetPlayerMapPosition(...)`), the caching mechanism fails if the API correctly returns `nil` (e.g., when coordinates are unavailable). This causes the expensive API call to be redundantly executed on every subsequent iteration or conditionally later in the same execution tick.
 **Action:** Use an explicit boolean flag (e.g., `posFetched`) alongside the cached variable to track whether the API has already been called during the current execution context, guaranteeing it runs exactly once even if it returns `nil`.
+
+## 2024-05-24 - Short-circuit evaluations in routing scores safely
+**Learning:** When optimizing scoring loops with branch-pruning or short-circuiting in Lua (such as `ADW.GetBestStepIndex`), ensure that threshold comparisons use `<=` (e.g., `bestScore <= 75`) instead of `<` if the algorithm relies on secondary tie-breakers (like distance comparisons) for equal scores. Strict less-than comparisons will introduce functional regressions by skipping valid tie scenarios.
+**Action:** Allow fallback scoring branch evaluation if the best score is less than *or equal* to the maximum possible score for that branch so that tie-breaker logic inside the loop body operates correctly.
