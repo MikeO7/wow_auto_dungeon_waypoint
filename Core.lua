@@ -471,9 +471,9 @@ function ADW.GetBestStepIndex(route, currentMapID, pos)
         local score = 0
         if step.mapID == currentMapID then
             score = 100 -- Exact match
-        elseif IsMapOrChild(currentMapID, step.mapID) then
+        elseif bestScore <= 75 and IsMapOrChild(currentMapID, step.mapID) then
             score = 75 -- Parent match
-        elseif ADW.GetMapContinent(step.mapID) == currentCont then
+        elseif bestScore <= 50 and ADW.GetMapContinent(step.mapID) == currentCont then
             score = 50 -- Continent match
         end
 
