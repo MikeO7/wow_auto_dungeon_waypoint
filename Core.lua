@@ -984,6 +984,10 @@ end
 
 local function CheckInitialActivities(isSilent)
     if not AutoDungeonWaypointDB or not AutoDungeonWaypointDB.AutoRouteEnabled or isPlayerInInstance then return end
+
+    -- Performance Optimization: Check boolean HasActiveEntryInfo before GetActiveEntryInfo
+    -- to prevent redundant table allocations when no entry exists.
+    if not C_LFGList.HasActiveEntryInfo() then return end
     local activeEntry = C_LFGList.GetActiveEntryInfo()
     if activeEntry and activeEntry.activityIDs then
         for _, id in ipairs(activeEntry.activityIDs) do
@@ -1077,10 +1081,14 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     end
     if event == "LFG_LIST_ACTIVE_ENTRY_UPDATE" then
         if AutoDungeonWaypointDB.AutoRouteEnabled and not isPlayerInInstance then
-            local activeEntry = C_LFGList.GetActiveEntryInfo()
-            if activeEntry and activeEntry.activityIDs then
-                for _, id in ipairs(activeEntry.activityIDs) do
-                    ADW.ProcessActivityID(id)
+            -- Performance Optimization: Check boolean HasActiveEntryInfo before GetActiveEntryInfo
+            -- to prevent redundant table allocations and GC stutters on high-frequency events.
+            if C_LFGList.HasActiveEntryInfo() then
+                local activeEntry = C_LFGList.GetActiveEntryInfo()
+                if activeEntry and activeEntry.activityIDs then
+                    for _, id in ipairs(activeEntry.activityIDs) do
+                        ADW.ProcessActivityID(id)
+                    end
                 end
             end
         end

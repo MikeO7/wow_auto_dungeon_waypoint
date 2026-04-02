@@ -33,3 +33,7 @@
 ## 2024-05-24 - Short-circuit evaluations in routing scores safely
 **Learning:** When optimizing scoring loops with branch-pruning or short-circuiting in Lua (such as `ADW.GetBestStepIndex`), ensure that threshold comparisons use `<=` (e.g., `bestScore <= 75`) instead of `<` if the algorithm relies on secondary tie-breakers (like distance comparisons) for equal scores. Strict less-than comparisons will introduce functional regressions by skipping valid tie scenarios.
 **Action:** Allow fallback scoring branch evaluation if the best score is less than *or equal* to the maximum possible score for that branch so that tie-breaker logic inside the loop body operates correctly.
+
+## 2024-05-25 - Prevent redundant table allocations in LFG handlers
+**Learning:** High-frequency event handlers like `LFG_LIST_ACTIVE_ENTRY_UPDATE` can cause micro-stutters when making redundant Blizzard API calls like `C_LFGList.GetActiveEntryInfo()`, which allocates a new table on every call even when no entry exists.
+**Action:** Add a `C_LFGList.HasActiveEntryInfo()` check before calling `C_LFGList.GetActiveEntryInfo()` to avoid unnecessary memory allocations and garbage collection overhead.
