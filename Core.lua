@@ -235,8 +235,17 @@ function ADW.ToggleHUD(enabled)
     
     if activeRoute and db.ShowStatusFrame then
         statusFrame:Show()
-        local stepDesc = (currentStepIndex > 0 and activeRoute[currentStepIndex]) and activeRoute[currentStepIndex].desc or ""
-        UpdateStatusFrame(ADW.RouteNames[activeRouteKey] or activeRouteKey, stepDesc, currentStepIndex, totalSteps)
+        local stepDesc = ""
+        local isPortal = false
+        if currentStepIndex > 0 and activeRoute[currentStepIndex] then
+            stepDesc = activeRoute[currentStepIndex].desc or ""
+            local nextStep = activeRoute[currentStepIndex + 1]
+            if nextStep and nextStep.mapID ~= activeRoute[currentStepIndex].mapID then
+                stepDesc = "|cFF00FFFF[PORTAL]|r " .. stepDesc
+                isPortal = true
+            end
+        end
+        UpdateStatusFrame(ADW.RouteNames[activeRouteKey] or activeRouteKey, stepDesc, currentStepIndex, totalSteps, isPortal)
     else
         HideStatusFrame()
     end
@@ -297,8 +306,9 @@ function ShowStatusFrame()
     statusFrame:SetAlpha(1)
 end
 
-function UpdateStatusFrame(title, desc, current, total)
+function UpdateStatusFrame(title, desc, current, total, isPortal)
     if not AutoDungeonWaypointDB or not AutoDungeonWaypointDB.ShowStatusFrame then return end
+    if isPortal then stepIcon:SetTexture("Interface\\Icons\\Spell_Arcane_PortalDalaran") else stepIcon:SetTexture("Interface\\Icons\\INV_Misc_Map_01") end
     
     if AutoDungeonWaypointDB.CompactMode then
         titleText:SetText(string.format("|cFF00FF00%d/%d|r %s", current, total, title))
@@ -576,13 +586,15 @@ function SetWaypointStep(index)
     local dungeonName = ADW.RouteNames[activeRouteKey] or activeRouteKey
     local desc = step.desc
     local nextStep = activeRoute[index + 1]
+    local isPortal = false
     if nextStep and nextStep.mapID ~= step.mapID then
         desc = "|cFF00FFFF[PORTAL]|r " .. desc
+        isPortal = true
     end
     
     Print(YELLOW .. "Step " .. index .. "/" .. totalSteps .. ":|r " .. WHITE .. desc .. "|r")
     LogInfo("ADVANCE: Step " .. index .. "/" .. totalSteps .. " (" .. desc .. ")")
-    UpdateStatusFrame(dungeonName, desc, index, totalSteps)
+    UpdateStatusFrame(dungeonName, desc, index, totalSteps, isPortal)
     if index > 1 and AutoDungeonWaypointDB and AutoDungeonWaypointDB.EnableSounds ~= false then
         PlaySound(850)
     end
