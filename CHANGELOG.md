@@ -1,5 +1,11 @@
 # Changelog
 
+## v6.2.4 (Performance & UX Polish)
+- **Performance Optimization**: Optimized `GetBestStepIndex` by skipping redundant map evaluations for smoother high-speed navigation.
+- **LFG Allocation Fix**: Improved memory management in the LFG detection engine to reduce frame stutters.
+- **Palette UX Polish**: Refined the dungeon selection palette for better interaction.
+
+
 ## v6.2.3 (Audio Refresh)
 - **Quest Complete Fanfare**: Replaced the route completion sound with the iconic "Quest Complete" fanfare for a much more rewarding finish.
 - **Positive Audio Cues**: Swapped the "thud" (negative/closing) sounds with positive menu-open clicks for waypoint arrivals and route starts.
