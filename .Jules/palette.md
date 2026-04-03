@@ -17,3 +17,6 @@
 ## 2024-05-24 - Configuration Toggle Feedback
 **Learning:** Non-visual configuration toggles (like sound or chat announcements) lack immediate user feedback when toggled, leading to uncertainty about whether the setting was actually changed.
 **Action:** Always provide immediate, relevant feedback (e.g., a test sound or test chat message) when a user interacts with a configuration toggle.
+## 2026-04-03 - Dynamic Status Rendering
+**Learning:** State-dependent UI visuals (like portal icons and text prefixes) should be derived dynamically during render, rather than relying on one-time event injections, to prevent context loss on UI reload or toggle.
+**Action:** Always compute derived state at the time of rendering when updating HUD elements.
