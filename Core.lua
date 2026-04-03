@@ -482,18 +482,27 @@ function ADW.GetBestStepIndex(route, currentMapID, pos)
             if score > bestScore then
                 bestScore = score
                 bestIdx = i
-                minDistSq = math.huge
-                if step.mapID == currentMapID then
-                    if not posFetched then pos = C_Map.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
-                    if pos then
-                        local dx = (pos.x - step.x) * 1000
-                        local dy = (pos.y - step.y) * 1000
-                        minDistSq = dx*dx + dy*dy
-                    end
-                end
+                minDistSq = nil -- Lazy evaluate distance only if a tie occurs
             elseif score == bestScore then
                 -- Same score? Pick by distance if exact, else keep current
                 if step.mapID == currentMapID then
+                    -- Lazy calculate previous best distance
+                    if not minDistSq then
+                        local prevStep = route[bestIdx]
+                        if prevStep and prevStep.mapID == currentMapID then
+                            if not posFetched then pos = C_Map.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
+                            if pos then
+                                local bdx = (pos.x - prevStep.x) * 1000
+                                local bdy = (pos.y - prevStep.y) * 1000
+                                minDistSq = bdx*bdx + bdy*bdy
+                            else
+                                minDistSq = math.huge
+                            end
+                        else
+                            minDistSq = math.huge
+                        end
+                    end
+
                     if not posFetched then pos = C_Map.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
                     if pos then
                         local dx = (pos.x - step.x) * 1000
@@ -688,6 +697,13 @@ local function CheckDistance()
 
     -- 3. Handle Arrival (Current step target reached)
     if currentMapID == step.mapID then
+        -- Arrival Buffer: If we just changed maps, wait 3s before allowing arrival.
+        -- Optimization: Check this BEFORE fetching map position to avoid unnecessary table allocations.
+        if now - lastMapChangeTime < 3 then
+            -- Note: Removed debug print here to prevent 4Hz spam during the 3-second buffer.
+            return
+        end
+
         if not posFetched then pos = C_Map.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
         if pos then
             local dx = (pos.x - step.x) * 1000
@@ -695,12 +711,6 @@ local function CheckDistance()
             local distSq = dx * dx + dy * dy
 
             if distSq < 10.0 then -- Threshold for "arrival"
-                -- Arrival Buffer: If we just changed maps, wait 3s before allowing arrival.
-                if now - lastMapChangeTime < 3 then
-                    if debugMode then Print("DEBUG: Arrival ignored (Map change buffer active)") end
-                    return
-                end
-
                 LogInfo(string.format("ARRIVAL: Step %d reached (DistSq: %.2f)", currentStepIndex, distSq))
                 if currentStepIndex < totalSteps then
                     currentStepIndex = currentStepIndex + 1
