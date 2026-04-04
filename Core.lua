@@ -257,6 +257,11 @@ function ADW.ToggleHUD(enabled)
     end
 end
 
+-- Keybinding localization strings for discoverability
+BINDING_HEADER_ADW = "Auto Dungeon Waypoint"
+BINDING_NAME_ADW_TOGGLEHUD = "Toggle Navigation HUD"
+BINDING_NAME_ADW_STOP = "Cancel Active Route"
+
 -- Global helpers for Bindings.xml
 function ADW_ToggleHUD_Binding()
     ADW.ToggleHUD()
