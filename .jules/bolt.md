@@ -37,3 +37,6 @@
 ## 2024-05-25 - Prevent redundant table allocations in LFG handlers
 **Learning:** High-frequency event handlers like `LFG_LIST_ACTIVE_ENTRY_UPDATE` can cause micro-stutters when making redundant Blizzard API calls like `C_LFGList.GetActiveEntryInfo()`, which allocates a new table on every call even when no entry exists.
 **Action:** Add a `C_LFGList.HasActiveEntryInfo()` check before calling `C_LFGList.GetActiveEntryInfo()` to avoid unnecessary memory allocations and garbage collection overhead.
+## 2026-03-30 - Cache Table-Allocating Map Position APIs
+**Learning:** Calling `C_Map.GetPlayerMapPosition` creates a new table on every execution. In high-frequency 4Hz loops, this causes redundant memory allocations and garbage collection micro-stutters when the player is idle or moving slightly.
+**Action:** Use the global `UnitPosition("player")` (which returns primitive, unboxed numerical world coordinates) to track the exact player state and conditionally return a cached `C_Map.GetPlayerMapPosition` result instead of calling the API repeatedly when the world coordinates haven't changed.
