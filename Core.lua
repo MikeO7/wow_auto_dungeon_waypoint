@@ -421,6 +421,25 @@ end
 -- ============================================================================
 -- SmartSync Engine
 -- ============================================================================
+
+ADW.MapPosCache = { x = nil, y = nil, inst = nil, map = nil, pos = nil }
+function ADW.GetPlayerMapPosition(mapID)
+    if not mapID then return nil end
+    local y, x, _, instanceID = UnitPosition("player")
+    if not x then return C_Map.GetPlayerMapPosition(mapID, "player") end
+
+    if x == ADW.MapPosCache.x and y == ADW.MapPosCache.y and instanceID == ADW.MapPosCache.inst and mapID == ADW.MapPosCache.map then
+        return ADW.MapPosCache.pos
+    end
+
+    ADW.MapPosCache.x = x
+    ADW.MapPosCache.y = y
+    ADW.MapPosCache.inst = instanceID
+    ADW.MapPosCache.map = mapID
+    ADW.MapPosCache.pos = C_Map.GetPlayerMapPosition(mapID, "player")
+    return ADW.MapPosCache.pos
+end
+
 ADW.ContinentCache = {}
 function ADW.GetMapContinent(mapID)
     if not mapID then return nil end
@@ -500,7 +519,7 @@ function ADW.GetBestStepIndex(route, currentMapID, pos)
                     if not minDistSq then
                         local prevStep = route[bestIdx]
                         if prevStep and prevStep.mapID == currentMapID then
-                            if not posFetched then pos = C_Map.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
+                            if not posFetched then pos = ADW.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
                             if pos then
                                 local bdx = (pos.x - prevStep.x) * 1000
                                 local bdy = (pos.y - prevStep.y) * 1000
@@ -513,7 +532,7 @@ function ADW.GetBestStepIndex(route, currentMapID, pos)
                         end
                     end
 
-                    if not posFetched then pos = C_Map.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
+                    if not posFetched then pos = ADW.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
                     if pos then
                         local dx = (pos.x - step.x) * 1000
                         local dy = (pos.y - step.y) * 1000
@@ -689,7 +708,7 @@ local function CheckDistance()
             -- Buffer: If we are still very close to the previous step's location, stay on the current step.
             local priorStep = activeRoute[currentStepIndex - 1]
             if priorStep and priorStep.mapID == currentMapID then
-                if not posFetched then pos = C_Map.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
+                if not posFetched then pos = ADW.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
                 if pos then
                     local dx = (pos.x - priorStep.x) * 1000
                     local dy = (pos.y - priorStep.y) * 1000
@@ -716,7 +735,7 @@ local function CheckDistance()
             return
         end
 
-        if not posFetched then pos = C_Map.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
+        if not posFetched then pos = ADW.GetPlayerMapPosition(currentMapID, "player"); posFetched = true end
         if pos then
             local dx = (pos.x - step.x) * 1000
             local dy = (pos.y - step.y) * 1000
@@ -877,7 +896,7 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
     elseif cmd == "nearest" then
         local currentMapID = C_Map.GetBestMapForUnit("player")
         if not currentMapID then return end
-        local pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
+        local pos = ADW.GetPlayerMapPosition(currentMapID, "player")
         local bestKey, bestDist = nil, math.huge
         for key, route in pairs(ADW.Routes) do
             local step1 = route[1]
@@ -913,7 +932,7 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
     elseif cmd == "pos" then
         local currentMapID = C_Map.GetBestMapForUnit("player")
         if currentMapID then
-            local pos = C_Map.GetPlayerMapPosition(currentMapID, "player")
+            local pos = ADW.GetPlayerMapPosition(currentMapID, "player")
             if pos then
                 ForcePrint(string.format("Position: mapID=%d  x=%.4f  y=%.4f", currentMapID, pos.x, pos.y))
             else
