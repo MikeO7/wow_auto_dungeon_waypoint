@@ -20,3 +20,7 @@
 ## 2026-04-03 - Dynamic Status Rendering
 **Learning:** State-dependent UI visuals (like portal icons and text prefixes) should be derived dynamically during render, rather than relying on one-time event injections, to prevent context loss on UI reload or toggle.
 **Action:** Always compute derived state at the time of rendering when updating HUD elements.
+
+## 2026-04-05 - Explicit Visual Controls Over Hidden Interactions
+**Learning:** While tooltips can document hidden interactions (like right-clicking a tracker frame to dismiss it), relying solely on hidden interactions reduces usability and discoverability for users who don't read tooltips.
+**Action:** Always provide an explicit, recognizable visual control (such as a standard `[X]` close button) for common destructive/dismissive actions, while keeping the hidden interaction as a power-user shortcut.

@@ -225,6 +225,18 @@ stepText:SetWordWrap(true)
 stepText:SetText("")
 statusFrame:Hide()
 
+local closeBtn = CreateFrame("Button", nil, statusFrame, "UIPanelCloseButton")
+closeBtn:SetSize(24, 24)
+closeBtn:SetPoint("TOPRIGHT", statusFrame, "TOPRIGHT", -4, -4)
+closeBtn:SetScript("OnClick", function()
+    if activeRoute then
+        ADW_Stop_Binding()
+    else
+        HideStatusFrame()
+    end
+end)
+ADW.SetTooltip(closeBtn, "Close", "Dismiss the navigation HUD.\nIf a route is active, it will be cancelled.")
+
 function ADW.ToggleHUD(enabled)
     local db = AutoDungeonWaypointDB
     if enabled == nil then
