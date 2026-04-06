@@ -155,13 +155,21 @@ function ADW.GenerateDungeonMenu(owner, rootDescription)
     rootDescription:CreateTitle(ADDON_COLOR .. "Auto Dungeon Waypoint|r")
     rootDescription:CreateButton(YELLOW .. "Toggle Auto-Routing|r", function() ADW.ToggleAutoRoute() end)
     
+    if activeRoute then
+        rootDescription:CreateButton(RED .. "Cancel Active Route|r", function() ADW_Stop_Binding() end)
+    end
+
     local sub = rootDescription:CreateButton("Dungeon Routes")
     local keys = {}
     for k in pairs(ADW.RouteNames) do table.insert(keys, k) end
     table.sort(keys, function(a, b) return ADW.RouteNames[a] < ADW.RouteNames[b] end)
     
     for _, key in ipairs(keys) do
-        sub:CreateButton(ADW.RouteNames[key], function() StartRoute(key) end)
+        local btnText = ADW.RouteNames[key]
+        if key == activeRouteKey then
+            btnText = btnText .. " " .. GREEN .. "(Active)|r"
+        end
+        sub:CreateButton(btnText, function() StartRoute(key) end)
     end
     
     rootDescription:CreateDivider()
@@ -966,6 +974,10 @@ end
 function ADW_OnAddonCompartmentClick(_, buttonName)
     if buttonName == "RightButton" then
         ADW.ToggleAutoRoute()
+    elseif buttonName == "MiddleButton" then
+        if activeRoute then
+            ADW_Stop_Binding()
+        end
     elseif MenuUtil then
         MenuUtil.CreateContextMenu(MinimapCluster or UIParent, ADW.GenerateDungeonMenu)
     else
@@ -976,8 +988,14 @@ end
 function ADW_OnAddonCompartmentEnter(_, button)
     GameTooltip_SetDefaultAnchor(GameTooltip, button)
     GameTooltip:SetText("Auto Dungeon Waypoint", 0.0, 0.75, 1.0)
+    if activeRoute then
+        GameTooltip:AddLine("Active: " .. (ADW.RouteNames[activeRouteKey] or activeRouteKey))
+    end
     GameTooltip:AddLine(" ")
     AddSharedTooltipLines(GameTooltip)
+    if activeRoute then
+        GameTooltip:AddLine("|cFFFFD100Middle-Click:|r Cancel route", 1, 1, 1)
+    end
     GameTooltip:Show()
 end
 
