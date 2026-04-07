@@ -24,3 +24,7 @@
 ## 2026-04-05 - Explicit Visual Controls Over Hidden Interactions
 **Learning:** While tooltips can document hidden interactions (like right-clicking a tracker frame to dismiss it), relying solely on hidden interactions reduces usability and discoverability for users who don't read tooltips.
 **Action:** Always provide an explicit, recognizable visual control (such as a standard `[X]` close button) for common destructive/dismissive actions, while keeping the hidden interaction as a power-user shortcut.
+
+## 2024-04-06 - [Context Menu & Addon Compartment Active State Discoverability]
+**Learning:** In World of Warcraft addons, context menus and addon compartment tooltips often hide active states or require slash commands for cancellation, leading to poor discoverability. Modifying the generated menu to dynamically display an `(Active)` label and providing a dedicated "Cancel Active Route" button (and advertising the Middle-Click shortcut in tooltips) significantly improves the interaction loop.
+**Action:** When implementing WoW UI context menus or compartment dropdowns, always ensure that any active system state is visually apparent in the menu items and that immediate, explicit control options (like cancel/stop) are injected directly into the UI rather than relying on slash commands.
