@@ -40,7 +40,7 @@ No setup. No configuration. No clicking. It just works.
 
 **Zero-Click Auto-Routing** — Detects the dungeon the instant you join a group. No buttons to press, no menus to open.
 
-**Use Portal Shortcut** — Detects when you have a Mythic+ teleport for the current route. A pulsing, high-visibility button appears on your HUD—click it to instantly teleport to the dungeon.
+**🆕 SMART PORTAL SHORTCUTS** — *Stop searching your spellbook!* Whenever you have a Mythic+ teleport known for your current route, a pulsing, high-visibility button instantly appears on your HUD. One click and you're there. Secure, combat-safe, and tuned for all 11.0.x / 12.0.x portals.
 
 **Smart Location Sync** — Start from anywhere in the world. The addon figures out where you are and picks up the route from the right step. Hearth to Silvermoon mid-route? It adapts.
 
