@@ -47,24 +47,32 @@ ADW.Routes = {
     -- Windrunner Spire: Direct Flight from Silvermoon
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations
     ["windrunner"] = {
+        portalID = 464153,
+        portalName = { "Path of the Windrunners", "Path of the Windrunner", "Path of Windrunner Spire", "Teleport: Windrunner Spire" },
         { mapID = 2395, x = 0.3563, y = 0.7887, desc = "Fly directly to the Spire Entrance in Eversong Woods" },
     },
 
     -- Magister's Terrace: Direct Flight from Silvermoon
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations
     ["magisters"] = {
+        portalID = 445417,
+        portalName = { "Path of the Magister", "Path of Magister's Terrace", "Path of Magisters' Terrace", "Teleport: Magisters' Terrace" },
         { mapID = 2424, x = 0.6239, y = 0.1455, desc = "Fly directly to the Magister's Terrace entrance (Isle)" },
     },
 
     -- Maisara Caverns: Direct Flight from Silvermoon
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations
     ["maisara"] = {
+        portalID = 464155,
+        portalName = { "Path of Cavernous Depths", "Path of Maisara Caverns", "Teleport: Maisara Caverns" },
         { mapID = 2437, x = 0.4393, y = 0.3971, desc = "Fly directly to the Caverns entrance" },
     },
 
     -- Nexus-Point Xenas: Silvermoon -> Voidstorm Portal -> Entrance
     -- Source: https://www.conquestcapped.com/midnight-dungeons-season-1-dungeon-entrances-locations/
     ["nexuspoint"] = {
+        portalID = 464154,
+        portalName = { "Path of the Nexus", "Path of Nexus-Point Xenas", "Teleport: Nexus-Point Xenas" },
         ADW.CommonSteps.VoidstormPortal,
         { mapID = 2405, x = 0.6500, y = 0.6170, desc = "Fly directly to the Nexus-Point Xenas entrance" },
     },
@@ -76,6 +84,8 @@ ADW.Routes = {
     -- Algeth'ar Academy: Silvermoon -> Timeways -> Entrance
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["algethar"] = {
+        portalID = 393222,
+        portalName = { "Path of the Draconic Scholar", "Path of Algeth'ar Academy", "Teleport: Algeth'ar Academy" },
         ADW.CommonSteps.TimewaysPortal,
         { mapID = 2266, x = 0.7030, y = 0.7188, desc = "Algeth'ar Academy portal (2nd from right)" },
         { mapID = 2025, x = 0.5810, y = 0.4260, desc = "Fly North-East to the Academy entrance" },
@@ -84,6 +94,8 @@ ADW.Routes = {
     -- Seat of the Triumvirate: Silvermoon -> Timeways -> Entrance
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["seattriumvirate"] = {
+        portalID = 445418,
+        portalName = { "Path of the Triumvirate", "Path of Seat of the Triumvirate", "Teleport: Seat of the Triumvirate" },
         ADW.CommonSteps.TimewaysPortal,
         { mapID = 2266, x = 0.6090, y = 0.6884, desc = "Seat of the Triumvirate portal (1st from right)" },
         { mapID = 882,  x = 0.2186, y = 0.5718, desc = "Fly to the Triumvirate entrance" },
@@ -92,6 +104,8 @@ ADW.Routes = {
     -- Skyreach: Silvermoon -> Timeways -> Entrance
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["skyreach"] = {
+        portalID = 464256,
+        portalName = { "Path of the Skies", "Path of the Sky-Reach", "Path of Skyreach", "Teleport: Skyreach" },
         ADW.CommonSteps.TimewaysPortal,
         { mapID = 2266, x = 0.6478, y = 0.4468, desc = "Skyreach portal (1st from left)" },
         { mapID = 542,  x = 0.3557, y = 0.3349, desc = "Fly South-East to the Skyreach entrance" },
@@ -100,6 +114,8 @@ ADW.Routes = {
     -- Pit of Saron: Silvermoon -> Timeways -> Entrance
     -- Source: https://www.method.gg/guides/midnight-season-1-dungeon-locations (Timeways Hub)
     ["pitofsaron"] = {
+        portalID = 445424,
+        portalName = { "Path of Unyielding Blight", "Path of the Frozen Halls", "Path of Pit of Saron", "Teleport: Pit of Saron" },
         ADW.CommonSteps.TimewaysPortal,
         { mapID = 2266, x = 0.7372, y = 0.4811, desc = "Pit of Saron portal (2nd from left)" },
         { mapID = 118,  x = 0.5458, y = 0.9143, desc = "Fly to the Frozen Halls (Pit of Saron)" },

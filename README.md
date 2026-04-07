@@ -40,9 +40,13 @@ No setup. No configuration. No clicking. It just works.
 
 **Zero-Click Auto-Routing** — Detects the dungeon the instant you join a group. No buttons to press, no menus to open.
 
+**Use Portal Shortcut** — Detects when you have a Mythic+ teleport for the current route. A pulsing, high-visibility button appears on your HUD—click it to instantly teleport to the dungeon.
+
 **Smart Location Sync** — Start from anywhere in the world. The addon figures out where you are and picks up the route from the right step. Hearth to Silvermoon mid-route? It adapts.
 
 **Party Sharing** — When you start a route, it automatically broadcasts to party members running the addon. Everyone gets the same waypoints.
+
+**Streamlined Menu** — Flattened dungeon selection for lightning-fast navigation. No more submenus—just one clean list with active route indicators.
 
 **Compact Mode** — Don't want a big HUD? Toggle compact mode for just the arrow and distance. Clean and minimal.
 
@@ -131,7 +135,7 @@ Yes. Smart Routing detects your current zone and skips ahead to the correct step
 No. It works solo. But if party members also have it, routes are shared automatically via addon messaging.
 
 **Will it conflict with my other addons?**
-Unlikely. It uses Blizzard's native waypoint and SuperTrack systems. No taint issues, no frame hooking.
+Unlikely. It uses Blizzard's native waypoint and SuperTrack systems. The portal shortcut is a secure action button that works safely in combat. No taint issues, no frame hooking.
 
 **Does it use any external data or make network requests?**
 No. Everything is local. Coordinates are baked into the addon.

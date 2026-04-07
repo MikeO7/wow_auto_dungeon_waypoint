@@ -25,7 +25,7 @@ local lastMapID = nil
 local isPlayerInInstance = false
 
 -- Forward declarations to prevent nil errors (SetWaypointStep, etc.)
-local SetWaypointStep, UpdateToggleButton, UpdateStatusFrame, HideStatusFrame, ShowStatusFrame
+local SetWaypointStep, UpdateToggleButton, UpdateStatusFrame, HideStatusFrame, ShowStatusFrame, StartRoute, ClearRoute, GetKnownPortal
 
 -- ============================================================================
 -- Defaults for SavedVariables
@@ -159,7 +159,8 @@ function ADW.GenerateDungeonMenu(owner, rootDescription)
         rootDescription:CreateButton(RED .. "Cancel Active Route|r", function() ADW_Stop_Binding() end)
     end
 
-    local sub = rootDescription:CreateButton("Dungeon Routes")
+    rootDescription:CreateDivider()
+    
     local keys = {}
     for k in pairs(ADW.RouteNames) do table.insert(keys, k) end
     table.sort(keys, function(a, b) return ADW.RouteNames[a] < ADW.RouteNames[b] end)
@@ -167,9 +168,9 @@ function ADW.GenerateDungeonMenu(owner, rootDescription)
     for _, key in ipairs(keys) do
         local btnText = ADW.RouteNames[key]
         if key == activeRouteKey then
-            btnText = btnText .. " " .. GREEN .. "(Active)|r"
+            btnText = "|cFF00FF00>|r " .. btnText .. " " .. GREEN .. "(Active)|r"
         end
-        sub:CreateButton(btnText, function() StartRoute(key) end)
+        rootDescription:CreateButton(btnText, function() StartRoute(key) end)
     end
     
     rootDescription:CreateDivider()
@@ -244,6 +245,81 @@ closeBtn:SetScript("OnClick", function()
     end
 end)
 ADW.SetTooltip(closeBtn, "Close", "Dismiss the navigation HUD.\nIf a route is active, it will be cancelled.")
+
+-- ============================================================================
+-- Portal Shortcut Button (Secure)
+-- ============================================================================
+local portalBtn = CreateFrame("Button", "ADWPortalButton", statusFrame, "SecureActionButtonTemplate")
+portalBtn:SetSize(52, 52)
+portalBtn:SetPoint("RIGHT", statusFrame, "LEFT", -12, 0)
+ADW.ApplyGlassAesthetic(portalBtn, true)
+
+-- Add a glow (more apparent)
+local glow = portalBtn:CreateTexture(nil, "OVERLAY")
+glow:SetTexture("Interface\\Buttons\\UI-ActionButton-Border")
+glow:SetBlendMode("ADD")
+glow:SetAllPoints()
+glow:SetAlpha(0.7)
+portalBtn.Glow = glow
+
+local portalIcon = portalBtn:CreateTexture(nil, "ARTWORK")
+portalIcon:SetSize(42, 42)
+portalIcon:SetPoint("CENTER")
+portalIcon:SetTexture("Interface\\Icons\\Spell_Arcane_PortalDalaran")
+portalBtn.Icon = portalIcon
+
+-- Add a "Teleport" label (more apparent)
+local portalLabel = portalBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+portalLabel:SetPoint("BOTTOM", portalBtn, "TOP", 0, 4)
+portalLabel:SetText("TELEPORT")
+portalLabel:SetTextColor(0, 1, 1, 0.9) -- Cyan glow
+portalBtn.Label = portalLabel
+
+-- Add a "Shine" sweep effect
+local shine = portalBtn:CreateTexture(nil, "OVERLAY")
+shine:SetTexture("Interface\\Buttons\\UI-ActionButton-Border")
+shine:SetBlendMode("ADD")
+shine:SetSize(52, 52)
+shine:SetPoint("CENTER")
+shine:SetAlpha(0)
+portalBtn.Shine = shine
+
+portalBtn:SetAttribute("type", "macro")
+portalBtn:RegisterForClicks("AnyUp", "AnyDown")
+
+-- Pulsing Glow & Shimmer Animation
+portalBtn:SetScript("OnUpdate", function(self, elapsed)
+    if self:IsShown() then
+        local phase = (GetTime() * 3) % (math.pi * 2)
+        local alpha = 0.3 + (math.sin(phase) * 0.4)
+        self.Glow:SetAlpha(alpha)
+        
+        -- Shimmer effect every 4 seconds
+        local shimmerPhase = (GetTime() % 4)
+        if shimmerPhase < 0.5 then
+            self.Shine:SetAlpha(shimmerPhase * 2)
+            self.Shine:SetSize(52 + (shimmerPhase * 20), 52 + (shimmerPhase * 20))
+        else
+            self.Shine:SetAlpha(0)
+        end
+    end
+end)
+
+-- Hover Highlight
+portalBtn:SetScript("OnEnter", function(self)
+    self.Icon:SetVertexColor(1, 1, 0, 1) -- Light yellow highlight
+    GameTooltip_SetDefaultAnchor(GameTooltip, self)
+    GameTooltip:SetText("Use Dungeon Teleport", 0.0, 0.75, 1.0)
+    GameTooltip:AddLine("Click to teleport directly to the dungeon entrance.", 1, 1, 1, true)
+    GameTooltip:AddLine("Requires the Mythic+ Keystone Hero teleport spell.", 1, 0.8, 0, true)
+    GameTooltip:Show()
+end)
+portalBtn:SetScript("OnLeave", function(self)
+    self.Icon:SetVertexColor(1, 1, 1, 1) -- Reset to white
+    GameTooltip_Hide()
+end)
+
+portalBtn:Hide()
 
 function ADW.ToggleHUD(enabled)
     local db = AutoDungeonWaypointDB
@@ -327,13 +403,31 @@ local pendingHideTimer = nil
 
 function ShowStatusFrame()
     if pendingHideTimer then pendingHideTimer:Cancel() pendingHideTimer = nil end
-    statusFrame:Show()
     statusFrame:SetAlpha(1)
+    statusFrame:Show()
 end
 
 function UpdateStatusFrame(title, desc, current, total, isPortal)
     if not AutoDungeonWaypointDB or not AutoDungeonWaypointDB.ShowStatusFrame then return end
     if isPortal then stepIcon:SetTexture("Interface\\Icons\\Spell_Arcane_PortalDalaran") else stepIcon:SetTexture("Interface\\Icons\\INV_Misc_Map_01") end
+    
+    -- Handle Portal Shortcut Button
+    local pID, pName = GetKnownPortal(activeRoute)
+    if pID and pName then
+        if not InCombatLockdown() then
+            portalBtn:SetAttribute("macrotext", "/cast " .. pName)
+            local spellData = (C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(pID))
+            local sIcon = (spellData and spellData.iconID) or (GetSpellInfo and select(3, GetSpellInfo(pID)))
+            if sIcon then portalBtn.Icon:SetTexture(sIcon) end
+            if not portalBtn:IsShown() then UIFrameFadeIn(portalBtn, 0.4, 0, 1) end
+            portalBtn:Show()
+        end
+    else
+        if not InCombatLockdown() then
+            portalBtn:SetAttribute("macrotext", nil)
+            portalBtn:Hide()
+        end
+    end
     
     if AutoDungeonWaypointDB.CompactMode then
         titleText:SetText(string.format("|cFF00FF00%d/%d|r %s", current, total, title))
@@ -591,7 +685,8 @@ local function SyncRouteProgress()
     end
 end
 
-local function ClearRoute()
+function ClearRoute()
+    if debugMode then Print("DEBUG: ClearRoute called (Active:" .. tostring(activeRouteKey) .. ")") end
     C_Map.ClearUserWaypoint()
     if checkTicker then checkTicker:Cancel() checkTicker = nil end
     if tomtomUID and TomTom and TomTom.RemoveWaypoint then TomTom:RemoveWaypoint(tomtomUID) end
@@ -600,9 +695,62 @@ local function ClearRoute()
     activeRouteKey = nil
     currentStepIndex = 0
     totalSteps = 0
+    lastStepAdvance = 0
+    lastMapChangeTime = 0
+    
+    if not InCombatLockdown() then
+        portalBtn:SetAttribute("macrotext", nil)
+        portalBtn:Hide()
+    end
+    
     HidePortalMap()
     HideStatusFrame()
     UpdateToggleButton()
+end
+
+function GetKnownPortal(route)
+    if not route then return nil, nil end
+    
+    -- Try by ID first
+    if route.portalID then
+        local id = route.portalID
+        local known = false
+        if C_Spell and C_Spell.IsSpellKnown then known = C_Spell.IsSpellKnown(id) end
+        if not known and _G["IsSpellKnown"] then known = _G["IsSpellKnown"](id) end
+        if not known and _G["IsPlayerSpell"] then known = _G["IsPlayerSpell"](id) end
+        
+        if known then
+            local name = (C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(id)) or (GetSpellInfo and GetSpellInfo(id))
+            return id, name
+        end
+    end
+    
+    -- Try by names/variations
+    if route.portalName then
+        local variations = type(route.portalName) == "table" and route.portalName or { route.portalName }
+        for _, name in ipairs(variations) do
+            local sID = nil
+            if C_Spell and C_Spell.GetSpellIDForSpellIdentifier then 
+                sID = C_Spell.GetSpellIDForSpellIdentifier(name)
+            elseif _G["GetSpellInfo"] then
+                local _, _, _, _, _, _, spellIDByName = _G["GetSpellInfo"](name)
+                sID = spellIDByName
+            end
+            
+            if sID then
+                local known = false
+                if C_Spell and C_Spell.IsSpellKnown then known = C_Spell.IsSpellKnown(sID) end
+                if not known and _G["IsSpellKnown"] then known = _G["IsSpellKnown"](sID) end
+                if not known and _G["IsPlayerSpell"] then known = _G["IsPlayerSpell"](sID) end
+                
+                if known then
+                    local realName = (C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(sID)) or (GetSpellInfo and GetSpellInfo(sID)) or name
+                    return sID, realName
+                end
+            end
+        end
+    end
+    return nil, nil
 end
 
 local function CompleteRoute()
@@ -782,32 +930,66 @@ local function CheckDistance()
     end
 end
 
-local function StartRoute(routeKey, skipBroadcast)
+function StartRoute(routeKey, skipBroadcast)
+    if not routeKey then return end
+    if activeRouteKey == routeKey then 
+        if debugMode then Print("DEBUG: StartRoute called for already active route " .. routeKey .. " - skipping.") end
+        return 
+    end
+    
     local route = ADW.Routes[routeKey]
     if not route then
         Print(RED .. "No route found for:|r " .. tostring(routeKey))
         return
     end
-    ClearRoute()
+
+    -- Synchronous State Purge
+    if debugMode then Print("DEBUG: Atomic switch to " .. routeKey) end
+    C_Map.ClearUserWaypoint()
+    if checkTicker then checkTicker:Cancel() end
+    if tomtomUID and TomTom and TomTom.RemoveWaypoint then TomTom:RemoveWaypoint(tomtomUID) end
+    
+    -- Atomic State Setup
     activeRoute = route
     activeRouteKey = routeKey
     totalSteps = #route
     currentStepIndex = ADW.GetBestStepIndex(route)
+    lastStepAdvance = GetTime()
+    lastMapChangeTime = 0
+    
     local dungeonName = ADW.RouteNames[routeKey] or routeKey
     local msg = GREEN .. "Starting route to " .. dungeonName .. " (" .. totalSteps .. " steps)|r"
     if currentStepIndex > 1 then msg = msg .. GRAY .. " — sync'd to step " .. currentStepIndex .. "|r" end
     Print(msg)
-    LogInfo("Route started: " .. dungeonName .. " (Step: " .. currentStepIndex .. "/" .. totalSteps .. ")")
+    
     if AutoDungeonWaypointDB and AutoDungeonWaypointDB.EnableSounds ~= false then
         PlaySound(846)
     end
-    SetWaypointStep(currentStepIndex) UpdateToggleButton()
     
-    -- Throttled from 10Hz (0.1s) to 4Hz (0.25s) for performance
+    -- Portal Detection
+    local pID, pName = GetKnownPortal(route)
+    if pID and pName then
+        if not InCombatLockdown() then
+            portalBtn:SetAttribute("macrotext", "/cast " .. pName)
+            local spellData = (C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(pID))
+            local sIcon = (spellData and spellData.iconID) or (GetSpellInfo and select(3, GetSpellInfo(pID)))
+            if sIcon then portalBtn.Icon:SetTexture(sIcon) end
+            UIFrameFadeIn(portalBtn, 0.4, 0, 1)
+            portalBtn:Show()
+        end
+        Print(CYAN .. "[Shortcut]|r " .. WHITE .. "Dungeon portal detected. Click the icon on your HUD to use it!|r")
+    else
+        if not InCombatLockdown() then
+            portalBtn:SetAttribute("macrotext", nil)
+            portalBtn:Hide()
+        end
+    end
+    
+    SetWaypointStep(currentStepIndex)
+    UpdateToggleButton()
+    
     checkTicker = C_Timer.NewTicker(0.25, CheckDistance)
     
-    -- Local change or auto-detection broadcasts to the party, 
-    -- but receiving a message from another player does NOT re-broadcast (prevents loops).
     if IsInGroup() and not skipBroadcast then
         local channel = IsInRaid() and "RAID" or "PARTY"
         C_ChatInfo.SendAddonMessage("ADW", "ROUTE:" .. routeKey, channel)
@@ -966,8 +1148,57 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
         else
             ForcePrint(RED .. "No map detected.|r")
         end
+    elseif cmd == "portal" then
+        if not activeRoute then ForcePrint(RED .. "No active route.|r") return end
+        
+        ForcePrint("Diagnostic for: " .. YELLOW .. (ADW.RouteNames[activeRouteKey] or activeRouteKey) .. "|r")
+        
+        local checkIDs = {}
+        if activeRoute.portalID then table.insert(checkIDs, activeRoute.portalID) end
+        
+        local checkNames = {}
+        if activeRoute.portalName then
+            if type(activeRoute.portalName) == "table" then
+                for _, n in ipairs(activeRoute.portalName) do table.insert(checkNames, n) end
+            else
+                table.insert(checkNames, activeRoute.portalName)
+            end
+        end
+
+        if #checkIDs == 0 and #checkNames == 0 then
+            ForcePrint(RED .. "This route has no portal data assigned.|r")
+            return
+        end
+
+        for _, id in ipairs(checkIDs) do
+            local name = (C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(id)) or (GetSpellInfo and GetSpellInfo(id)) or "ID:"..id
+            local isKnown = false
+            if C_Spell and C_Spell.IsSpellKnown then isKnown = C_Spell.IsSpellKnown(id) end
+            if not isKnown and _G["IsSpellKnown"] then isKnown = _G["IsSpellKnown"](id) end
+            if not isKnown and _G["IsPlayerSpell"] then isKnown = _G["IsPlayerSpell"](id) end
+            ForcePrint(string.format("  - ID %d (%s): %s", id, name, (isKnown and GREEN.."KNOWN" or RED.."UNKNOWN")))
+        end
+
+        for _, n in ipairs(checkNames) do
+            local sID = nil
+            if C_Spell and C_Spell.GetSpellIDForSpellIdentifier then sID = C_Spell.GetSpellIDForSpellIdentifier(n) end
+            local isKnown = false
+            if sID then
+                if C_Spell and C_Spell.IsSpellKnown then isKnown = C_Spell.IsSpellKnown(sID) end
+                if not isKnown and _G["IsSpellKnown"] then isKnown = _G["IsSpellKnown"](sID) end
+                if not isKnown and _G["IsPlayerSpell"] then isKnown = _G["IsPlayerSpell"](sID) end
+            end
+            ForcePrint(string.format("  - Name '%s': %s", n, (sID and (isKnown and GREEN.."KNOWN ("..sID..")" or YELLOW.."FOUND ("..sID..") BUT NOT KNOWN") or RED.."NOT FOUND")))
+        end
+
+        ForcePrint("  - Button Visible: " .. (portalBtn:IsShown() and GREEN .. "YES" or RED .. "NO"))
+        ForcePrint("  - Combat Lockdown: " .. (InCombatLockdown() and RED .. "YES" or GREEN .. "NO"))
+        ForcePrint("  - Secure Macro: " .. tostring(portalBtn:GetAttribute("macrotext") or "nil"))
+        
+        local p, r, rp, x, y = portalBtn:GetPoint()
+        ForcePrint(string.format("  - Positioning: %s to %s offset (%.1f, %.1f)", p or "nil", rp or "nil", x or 0, y or 0))
     else
-        ForcePrint("Commands: /adw route <id>, /adw list, /adw nearest, /adw stop, /adw toggle, /adw hide, /adw move, /adw mapid, /adw pos")
+        ForcePrint("Commands: /adw route <id>, /adw list, /adw stop, /adw nearest, /adw portal, /adw debug, /adw move, /adw mapid, /adw pos")
     end
 end
 
@@ -1081,6 +1312,7 @@ eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("LFG_LIST_JOINED_GROUP")
 eventFrame:RegisterEvent("LFG_LIST_ACTIVE_ENTRY_UPDATE")
 eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("CHAT_MSG_ADDON")
 C_ChatInfo.RegisterAddonMessagePrefix("ADW")
 
@@ -1171,6 +1403,19 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         return
     end
     if event == "ZONE_CHANGED_NEW_AREA" then if activeRoute then SyncRouteProgress() end return end
+    if event == "PLAYER_REGEN_ENABLED" then
+        if activeRoute and activeRouteKey then
+            local currentStep = activeRoute[currentStepIndex]
+            if currentStep then
+                local dungeonName = ADW.RouteNames[activeRouteKey] or activeRouteKey
+                local isPortal = false
+                local nextStep = activeRoute[currentStepIndex + 1]
+                if nextStep and nextStep.mapID ~= currentStep.mapID then isPortal = true end
+                UpdateStatusFrame(dungeonName, currentStep.desc, currentStepIndex, totalSteps, isPortal)
+            end
+        end
+        return
+    end
     if event == "CHAT_MSG_ADDON" then
         local prefix, message, _, sender = ...
         if prefix ~= "ADW" or not AutoDungeonWaypointDB.AutoRouteEnabled then return end
