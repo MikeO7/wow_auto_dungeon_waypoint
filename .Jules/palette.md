@@ -28,3 +28,7 @@
 ## 2024-04-06 - [Context Menu & Addon Compartment Active State Discoverability]
 **Learning:** In World of Warcraft addons, context menus and addon compartment tooltips often hide active states or require slash commands for cancellation, leading to poor discoverability. Modifying the generated menu to dynamically display an `(Active)` label and providing a dedicated "Cancel Active Route" button (and advertising the Middle-Click shortcut in tooltips) significantly improves the interaction loop.
 **Action:** When implementing WoW UI context menus or compartment dropdowns, always ensure that any active system state is visually apparent in the menu items and that immediate, explicit control options (like cancel/stop) are injected directly into the UI rather than relying on slash commands.
+
+## 2024-04-07 - Dependent Configuration State Feedback
+**Learning:** Configuration panels containing dependent sub-settings (e.g., "Compact HUD" needing "Show Navigation HUD") often leave users confused if the child setting is toggled while the parent is off and produces no effect.
+**Action:** Always visually indent dependent child settings, and dynamically disable (`SetEnabled(false)`) and dim (`SetAlpha(0.5)`) them when their parent setting is disabled to clearly indicate their inactive state.
