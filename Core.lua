@@ -1030,13 +1030,24 @@ local function CreateOptionsPanel()
         "Compact HUD", "Hides the instructional text to save screen space.", function()
             if AutoDungeonWaypointDB.ShowStatusFrame then UpdateStatusFrame("HUD Preview", "This is how the HUD looks.", 1, 5) end
         end)
-    compactCheck:SetPoint("TOPLEFT", hudCheck, "BOTTOMLEFT", 0, -8)
+    compactCheck:SetPoint("TOPLEFT", hudCheck, "BOTTOMLEFT", 20, -4)
+
+    hudCheck:HookScript("OnClick", function(self)
+        local isEnabled = self:GetChecked()
+        compactCheck:SetEnabled(isEnabled)
+        if isEnabled then compactCheck:SetAlpha(1) else compactCheck:SetAlpha(0.5) end
+    end)
+    compactCheck:HookScript("OnShow", function(self)
+        local isEnabled = AutoDungeonWaypointDB.ShowStatusFrame ~= false
+        self:SetEnabled(isEnabled)
+        if isEnabled then self:SetAlpha(1) else self:SetAlpha(0.5) end
+    end)
 
     local controlBarCheck = ADW.CreateConfigCheckbox(panel, "Show Control Bar", "ShowControlBar",
         "Control Bar", "Shows the movable bar with Auto-Routing toggle and List buttons.", function(val)
             if val then controlBar:Show() else controlBar:Hide() end
         end)
-    controlBarCheck:SetPoint("TOPLEFT", compactCheck, "BOTTOMLEFT", 0, -8)
+    controlBarCheck:SetPoint("TOPLEFT", compactCheck, "BOTTOMLEFT", -20, -8)
 
     local chatCheck = ADW.CreateConfigCheckbox(panel, "Enable Chat Announcements", "ShowChatText",
         "Chat Announcements", "Shows text in your chat box when a route starts or a step advances.",
