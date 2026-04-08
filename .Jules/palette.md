@@ -32,3 +32,7 @@
 ## 2024-04-07 - Dependent Configuration State Feedback
 **Learning:** Configuration panels containing dependent sub-settings (e.g., "Compact HUD" needing "Show Navigation HUD") often leave users confused if the child setting is toggled while the parent is off and produces no effect.
 **Action:** Always visually indent dependent child settings, and dynamically disable (`SetEnabled(false)`) and dim (`SetAlpha(0.5)`) them when their parent setting is disabled to clearly indicate their inactive state.
+
+## 2026-04-08 - Multi-step Process Progress Indicator
+**Learning:** For multi-step routing, users may lack context regarding their progression and how many steps are remaining, leading to friction. Adding a visible progress indicator provides immediate context and improves confidence in multi-step workflows.
+**Action:** Always include a visual progress indicator (like a progress bar) when users are navigating through a multi-step sequence or wizard.
