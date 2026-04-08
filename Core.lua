@@ -232,6 +232,14 @@ stepText:SetPoint("RIGHT", statusFrame, "RIGHT", -10, 0)
 stepText:SetJustifyH("LEFT")
 stepText:SetWordWrap(true)
 stepText:SetText("")
+
+local progressBar = CreateFrame("StatusBar", "ADWProgressBar", statusFrame)
+progressBar:SetPoint("BOTTOMLEFT", statusFrame, "BOTTOMLEFT", 6, 6)
+progressBar:SetPoint("BOTTOMRIGHT", statusFrame, "BOTTOMRIGHT", -6, 6)
+progressBar:SetHeight(4)
+progressBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
+progressBar:SetStatusBarColor(0, 0.75, 1, 0.8) -- Cyan
+progressBar:Hide()
 statusFrame:Hide()
 
 local closeBtn = CreateFrame("Button", nil, statusFrame, "UIPanelCloseButton")
@@ -439,6 +447,14 @@ function UpdateStatusFrame(title, desc, current, total, isPortal)
         statusFrame:SetHeight(70)
     end
     
+    if total and total > 0 then
+        progressBar:SetMinMaxValues(0, total)
+        progressBar:SetValue(current or 0)
+        progressBar:Show()
+    else
+        progressBar:Hide()
+    end
+
     if not statusFrame:IsShown() then ShowStatusFrame() end
 end
 
