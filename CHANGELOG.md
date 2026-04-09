@@ -1,5 +1,13 @@
 # Changelog
 
+## v6.3.0 (The Portal Shortcut Update)
+- **SMART PORTAL SHORTCUTS**: A new pulsing, high-visibility teleport button now automatically appears on the HUD when you know the Mythic+ teleport for your active route.
+- **Atomic State Management**: Completely overhauled the internal state engine to be synchronous and atomic, resolving race conditions and pathfinding loops during fast zone transitions.
+- **Robust Portal Detection**: Improved the portal discovery logic to support multi-name detection and localization variations for all Keystone Hero teleports.
+- **Navigation Resilience**: Fixed a persistent bug where routes would sometimes fail to switch or reset when joining a new group while an active route was running.
+- **HUD Polish**: Added a "TELEPORT" label and shimmer effect to the portal shortcut button for better visibility.
+
+
 ## v6.2.4 (Performance & UX Polish)
 - **Performance Optimization**: Optimized `GetBestStepIndex` by skipping redundant map evaluations for smoother high-speed navigation.
 - **LFG Allocation Fix**: Improved memory management in the LFG detection engine to reduce frame stutters.
