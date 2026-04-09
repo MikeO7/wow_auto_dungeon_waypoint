@@ -36,3 +36,7 @@
 ## 2026-04-08 - Multi-step Process Progress Indicator
 **Learning:** For multi-step routing, users may lack context regarding their progression and how many steps are remaining, leading to friction. Adding a visible progress indicator provides immediate context and improves confidence in multi-step workflows.
 **Action:** Always include a visual progress indicator (like a progress bar) when users are navigating through a multi-step sequence or wizard.
+
+## 2024-04-09 - Expanded Checkbox Hit Areas
+**Learning:** In standard UI frameworks (like WoW's `UICheckButtonTemplate`), the associated text labels often do not inherently expand the component's clickable area, violating WCAG principles for target sizing and causing accessibility friction for users relying on pointer precision.
+**Action:** Always verify if text labels are enclosed within the interactive hit area boundaries. Use `SetHitRectInsets` (or equivalent CSS/HTML `<label>` wrapping) to extend the clickable target zone across the descriptive text.
