@@ -1,5 +1,11 @@
 # Changelog
 
+## v6.3.1 (Hotfix: The Portal Correction Update)
+- **CRITICAL FIX**: Resolved a major data bug where the **Magister's Terrace** portal incorrectly led to Ara-Kara.
+- **Audit & Correction**: Audited and updated all 8 teleport spell IDs to the verified Patch 12.0.1 (Midnight Season 1) values.
+- **HUD Resilience**: Improved teleport detection to prevent incorrect routes from triggering during Keystone Hero transitions.
+
+
 ## v6.3.0 (The Portal Shortcut Update)
 - **SMART PORTAL SHORTCUTS**: A new pulsing, high-visibility teleport button now automatically appears on the HUD when you know the Mythic+ teleport for your active route.
 - **Atomic State Management**: Completely overhauled the internal state engine to be synchronous and atomic, resolving race conditions and pathfinding loops during fast zone transitions.
