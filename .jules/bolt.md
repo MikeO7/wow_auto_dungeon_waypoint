@@ -40,3 +40,7 @@
 ## 2026-03-30 - Cache Table-Allocating Map Position APIs
 **Learning:** Calling `C_Map.GetPlayerMapPosition` creates a new table on every execution. In high-frequency 4Hz loops, this causes redundant memory allocations and garbage collection micro-stutters when the player is idle or moving slightly.
 **Action:** Use the global `UnitPosition("player")` (which returns primitive, unboxed numerical world coordinates) to track the exact player state and conditionally return a cached `C_Map.GetPlayerMapPosition` result instead of calling the API repeatedly when the world coordinates haven't changed.
+
+## 2024-05-26 - Early returns for stationary loops
+**Learning:** High-frequency polling loops (like the `CheckDistance` routing tick) that perform conditional iterations and complex distance mapping can create performance overhead even when the player isn't moving.
+**Action:** When working with 4Hz position loops in WoW addons, cache the player's exact unboxed `y, x` world coordinates via `UnitPosition("player")` and map ID. Introduce an early return at the very top of the polling function if these three values exactly match the previous tick, bypassing all complex distance and map tree logic when the player is completely idle.

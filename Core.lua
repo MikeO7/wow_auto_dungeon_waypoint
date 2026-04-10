@@ -22,6 +22,8 @@ local tomtomUID = nil  -- Optional TomTom waypoint UID
 local lastStepAdvance = 0 -- Timestamp of last forward step
 local lastMapChangeTime = 0
 local lastMapID = nil
+local lastPlayerX = nil
+local lastPlayerY = nil
 local isPlayerInInstance = false
 
 -- Forward declarations to prevent nil errors (SetWaypointStep, etc.)
@@ -719,6 +721,8 @@ function ClearRoute()
     totalSteps = 0
     lastStepAdvance = 0
     lastMapChangeTime = 0
+    lastPlayerX = nil
+    lastPlayerY = nil
     
     if not InCombatLockdown() then
         portalBtn:SetAttribute("macrotext", nil)
@@ -862,6 +866,14 @@ local function CheckDistance()
     local currentMapID = C_Map.GetBestMapForUnit("player")
     if not currentMapID then return end
 
+    -- Early return if player is completely stationary to avoid redundant table allocs and GC stutters
+    local currentY, currentX = UnitPosition("player")
+    if currentMapID == lastMapID and currentX == lastPlayerX and currentY == lastPlayerY then
+        return
+    end
+    lastPlayerX = currentX
+    lastPlayerY = currentY
+
     -- Update map change buffer
     if currentMapID ~= lastMapID then
         lastMapID = currentMapID
@@ -978,6 +990,8 @@ function StartRoute(routeKey, skipBroadcast)
     currentStepIndex = ADW.GetBestStepIndex(route)
     lastStepAdvance = GetTime()
     lastMapChangeTime = 0
+    lastPlayerX = nil
+    lastPlayerY = nil
     
     local dungeonName = ADW.RouteNames[routeKey] or routeKey
     local msg = GREEN .. "Starting route to " .. dungeonName .. " (" .. totalSteps .. " steps)|r"
