@@ -181,7 +181,13 @@ end
 
 function ADW.CreateConfigCheckbox(panel, label, dbKey, tooltipTitle, tooltipBody, callback)
     local check = CreateFrame("CheckButton", "ADW_"..dbKey.."_Check", panel, "UICheckButtonTemplate")
-    _G[check:GetName() .. "Text"]:SetText(label)
+    local textLabel = _G[check:GetName() .. "Text"]
+    textLabel:SetText(label)
+
+    -- Expand hit area to include text
+    local textWidth = textLabel:GetStringWidth() or 100
+    check:SetHitRectInsets(0, -textWidth, 0, 0)
+
     check:SetScript("OnClick", function(self)
         AutoDungeonWaypointDB[dbKey] = self:GetChecked()
         if callback then callback(self:GetChecked()) end
