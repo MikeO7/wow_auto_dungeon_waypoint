@@ -40,3 +40,7 @@
 ## 2024-04-09 - Expanded Checkbox Hit Areas
 **Learning:** In standard UI frameworks (like WoW's `UICheckButtonTemplate`), the associated text labels often do not inherently expand the component's clickable area, violating WCAG principles for target sizing and causing accessibility friction for users relying on pointer precision.
 **Action:** Always verify if text labels are enclosed within the interactive hit area boundaries. Use `SetHitRectInsets` (or equivalent CSS/HTML `<label>` wrapping) to extend the clickable target zone across the descriptive text.
+
+## 2026-04-10 - High Contrast for Glass UI Backgrounds
+**Learning:** Dark text (e.g., color values around 0.15 - 0.3) on nearly-black, semi-transparent "glass" UI backgrounds results in poor accessibility and unreadable text, failing WCAG contrast ratios.
+**Action:** Always ensure minimum brightness (e.g., > 0.4) for inactive or placeholder text elements rendered against dark glass frames to maintain legibility.
