@@ -146,10 +146,11 @@ function ADW.MakeDraggable(frame, dbKey, parentFrame)
         if isDragging then
             target:SetAlpha(originalAlpha)
             isDragging = false
+            if AutoDungeonWaypointDB and dbKey then
+                local point, _, relPoint, x, y = target:GetPoint()
+                AutoDungeonWaypointDB[dbKey] = { point, relPoint, x, y }
+            end
         end
-        if not AutoDungeonWaypointDB or not dbKey then return end
-        local point, _, relPoint, x, y = target:GetPoint()
-        AutoDungeonWaypointDB[dbKey] = { point, relPoint, x, y }
     end)
 end
 
@@ -688,7 +689,9 @@ function ADW.GetBestStepIndex(route, currentMapID, pos)
     -- otherwise fetch them via Blizzard API.
     if not currentMapID then
         currentMapID = C_Map.GetBestMapForUnit("player")
-        if not currentMapID then return 1 end
+        if not currentMapID then 
+            return (currentStepIndex and currentStepIndex > 0) and currentStepIndex or 1 
+        end
     end
 
     local currentCont = ADW.GetMapContinent(currentMapID)
@@ -753,12 +756,12 @@ function ADW.GetBestStepIndex(route, currentMapID, pos)
     return bestIdx, pos, posFetched
 end
 
-local function SyncRouteProgress()
+local function SyncRouteProgress(isZoneTransition)
     if not activeRoute then return end
     local best = ADW.GetBestStepIndex(activeRoute)
     if best ~= currentStepIndex then
         -- Respect forward-skip immunity: don't jump forward past portal steps
-        if best > currentStepIndex and GetTime() - lastStepAdvance < 8 then
+        if not isZoneTransition and best > currentStepIndex and GetTime() - lastStepAdvance < 8 then
             if debugMode then Print("DEBUG: SyncRouteProgress forward-skip blocked by immunity.") end
             -- Still re-apply the current waypoint so the marker stays visible
             SetWaypointStep(currentStepIndex)
@@ -1481,7 +1484,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                 Print(GREEN .. "Entered dungeon! Route cleared.|r") ClearRoute()
             elseif activeRoute then
                 -- After a zone transition, re-sync position instead of blindly re-setting
-                SyncRouteProgress()
+                SyncRouteProgress(true)
             end
         end
         return
@@ -1509,7 +1512,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         end
         return
     end
-    if event == "ZONE_CHANGED_NEW_AREA" then if activeRoute then SyncRouteProgress() end return end
+    if event == "ZONE_CHANGED_NEW_AREA" then if activeRoute then SyncRouteProgress(false) end return end
     if event == "PLAYER_REGEN_ENABLED" then
         if activeRoute and activeRouteKey then
             local currentStep = activeRoute[currentStepIndex]
