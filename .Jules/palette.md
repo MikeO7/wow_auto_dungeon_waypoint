@@ -44,3 +44,7 @@
 ## 2026-04-10 - High Contrast for Glass UI Backgrounds
 **Learning:** Dark text (e.g., color values around 0.15 - 0.3) on nearly-black, semi-transparent "glass" UI backgrounds results in poor accessibility and unreadable text, failing WCAG contrast ratios.
 **Action:** Always ensure minimum brightness (e.g., > 0.4) for inactive or placeholder text elements rendered against dark glass frames to maintain legibility.
+
+## 2024-04-11 - Visual Feedback for Draggable UIs
+**Learning:** WoW frames that lack visual feedback when detached and dragged (e.g., via Shift-Click) fail to clearly indicate state changes to the user, breaking the connection between input and element response.
+**Action:** When implementing custom drag handlers (`OnDragStart`/`OnDragStop`), always include an explicit visual cue, such as decreasing element opacity (`SetAlpha(0.7)`) during the drag action, to immediately indicate active interaction.
