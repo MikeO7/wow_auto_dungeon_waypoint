@@ -44,3 +44,7 @@
 ## 2024-05-26 - Early returns for stationary loops
 **Learning:** High-frequency polling loops (like the `CheckDistance` routing tick) that perform conditional iterations and complex distance mapping can create performance overhead even when the player isn't moving.
 **Action:** When working with 4Hz position loops in WoW addons, cache the player's exact unboxed `y, x` world coordinates via `UnitPosition("player")` and map ID. Introduce an early return at the very top of the polling function if these three values exactly match the previous tick, bypassing all complex distance and map tree logic when the player is completely idle.
+
+## 2024-05-27 - Cache GetTime and Math Constants in Render Loops
+**Learning:** Frequent UI frame render callbacks (e.g. `OnUpdate`) can execute over 144 times per second. Redundantly invoking C-APIs like `GetTime()` multiple times or recalculating math constants like `(math.pi * 2)` inside these loops creates unnecessary CPU overhead.
+**Action:** Extract math constants (e.g., `local TWO_PI = math.pi * 2`) to the file scope outside the handler, and call functions like `GetTime()` exactly once per render tick, saving the result to a local variable (`local now = GetTime()`) to use for all calculations within the frame.
