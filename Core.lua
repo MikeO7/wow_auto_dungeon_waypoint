@@ -300,6 +300,10 @@ shine:SetPoint("CENTER")
 shine:SetAlpha(0)
 portalBtn.Shine = shine
 
+local cd = CreateFrame("Cooldown", "ADWPortalCooldown", portalBtn, "CooldownFrameTemplate")
+cd:SetAllPoints()
+portalBtn.Cooldown = cd
+
 portalBtn:SetAttribute("type", "macro")
 portalBtn:RegisterForClicks("AnyUp", "AnyDown")
 
@@ -320,8 +324,29 @@ portalBtn:SetScript("OnUpdate", function(self, elapsed)
         else
             self.Shine:SetAlpha(0)
         end
+        
+        -- Update Cooldown responsiveness
+        if self.pID then
+            local start, duration = 0, 0
+            if C_Spell and C_Spell.GetSpellCooldown then
+                local cdInfo = C_Spell.GetSpellCooldown(self.pID)
+                if cdInfo then
+                    start, duration = cdInfo.startTime, cdInfo.duration
+                end
+            elseif GetSpellCooldown then
+                start, duration = GetSpellCooldown(self.pID)
+            end
+            
+            if start and duration > 0 then
+                -- Cooldown frame handles the spiral, we just handle the desaturation
+                if not self.Icon:IsDesaturated() then self.Icon:SetDesaturated(true) end
+            else
+                if self.Icon:IsDesaturated() then self.Icon:SetDesaturated(false) end
+            end
+        end
     end
 end)
+
 
 -- Hover Highlight
 portalBtn:SetScript("OnEnter", function(self)
@@ -431,14 +456,36 @@ function UpdateStatusFrame(title, desc, current, total, isPortal)
     
     -- Handle Portal Shortcut Button
     local pID, pName = GetKnownPortal(activeRoute)
+    portalBtn.pID = pID -- Store for OnUpdate
     if pID and pName then
         if not InCombatLockdown() then
             portalBtn:SetAttribute("macrotext", "/cast " .. pName)
             local spellData = (C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(pID))
             local sIcon = (spellData and spellData.iconID) or (GetSpellInfo and select(3, GetSpellInfo(pID)))
             if sIcon then portalBtn.Icon:SetTexture(sIcon) end
+            
+            -- Update Cooldown
+            local start, duration = 0, 0
+            if C_Spell and C_Spell.GetSpellCooldown then
+                local cdInfo = C_Spell.GetSpellCooldown(pID)
+                if cdInfo then
+                    start, duration = cdInfo.startTime, cdInfo.duration
+                end
+            elseif GetSpellCooldown then
+                start, duration = GetSpellCooldown(pID)
+            end
+            
+            if start and duration > 0 then
+                portalBtn.Cooldown:SetCooldown(start, duration)
+                portalBtn.Icon:SetDesaturated(true)
+            else
+                portalBtn.Cooldown:Clear()
+                portalBtn.Icon:SetDesaturated(false)
+            end
+
             if not portalBtn:IsShown() then UIFrameFadeIn(portalBtn, 0.4, 0, 1) end
             portalBtn:Show()
+
         end
     else
         if not InCombatLockdown() then
