@@ -131,11 +131,22 @@ function ADW.MakeDraggable(frame, dbKey, parentFrame)
     frame:RegisterForDrag("LeftButton")
     
     local target = parentFrame or frame
+    local isDragging = false
+    local originalAlpha = 1.0
     frame:SetScript("OnDragStart", function() 
-        if IsShiftKeyDown() then target:StartMoving() end 
+        if IsShiftKeyDown() then
+            isDragging = true
+            originalAlpha = target:GetAlpha()
+            target:StartMoving()
+            target:SetAlpha(originalAlpha * 0.7)
+        end
     end)
     frame:SetScript("OnDragStop", function()
         target:StopMovingOrSizing()
+        if isDragging then
+            target:SetAlpha(originalAlpha)
+            isDragging = false
+        end
         if not AutoDungeonWaypointDB or not dbKey then return end
         local point, _, relPoint, x, y = target:GetPoint()
         AutoDungeonWaypointDB[dbKey] = { point, relPoint, x, y }
