@@ -304,14 +304,16 @@ portalBtn:SetAttribute("type", "macro")
 portalBtn:RegisterForClicks("AnyUp", "AnyDown")
 
 -- Pulsing Glow & Shimmer Animation
+local TWO_PI = math.pi * 2
 portalBtn:SetScript("OnUpdate", function(self, elapsed)
     if self:IsShown() then
-        local phase = (GetTime() * 3) % (math.pi * 2)
+        local now = GetTime()
+        local phase = (now * 3) % TWO_PI
         local alpha = 0.3 + (math.sin(phase) * 0.4)
         self.Glow:SetAlpha(alpha)
         
         -- Shimmer effect every 4 seconds
-        local shimmerPhase = (GetTime() % 4)
+        local shimmerPhase = (now % 4)
         if shimmerPhase < 0.5 then
             self.Shine:SetAlpha(shimmerPhase * 2)
             self.Shine:SetSize(52 + (shimmerPhase * 20), 52 + (shimmerPhase * 20))
