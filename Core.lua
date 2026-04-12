@@ -346,23 +346,27 @@ portalBtn:SetScript("OnUpdate", function(self, elapsed)
             self.Shine:SetAlpha(0)
         end
         
-        -- Update Cooldown responsiveness
-        if self.pID then
-            local start, duration = 0, 0
-            if C_Spell and C_Spell.GetSpellCooldown then
-                local cdInfo = C_Spell.GetSpellCooldown(self.pID)
-                if cdInfo then
-                    start, duration = cdInfo.startTime, cdInfo.duration
+        -- Update Cooldown responsiveness (throttled to avoid table allocation spam in OnUpdate)
+        self.cdTimer = (self.cdTimer or 0) + elapsed
+        if self.cdTimer > 0.2 then
+            self.cdTimer = 0
+            if self.pID then
+                local start, duration = 0, 0
+                if C_Spell and C_Spell.GetSpellCooldown then
+                    local cdInfo = C_Spell.GetSpellCooldown(self.pID)
+                    if cdInfo then
+                        start, duration = cdInfo.startTime, cdInfo.duration
+                    end
+                elseif GetSpellCooldown then
+                    start, duration = GetSpellCooldown(self.pID)
                 end
-            elseif GetSpellCooldown then
-                start, duration = GetSpellCooldown(self.pID)
-            end
-            
-            if start and duration > 0 then
-                -- Cooldown frame handles the spiral, we just handle the desaturation
-                if not self.Icon:IsDesaturated() then self.Icon:SetDesaturated(true) end
-            else
-                if self.Icon:IsDesaturated() then self.Icon:SetDesaturated(false) end
+
+                if start and duration > 0 then
+                    -- Cooldown frame handles the spiral, we just handle the desaturation
+                    if not self.Icon:IsDesaturated() then self.Icon:SetDesaturated(true) end
+                else
+                    if self.Icon:IsDesaturated() then self.Icon:SetDesaturated(false) end
+                end
             end
         end
     end
