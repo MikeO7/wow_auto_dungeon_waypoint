@@ -48,3 +48,7 @@
 ## 2024-05-27 - Cache GetTime and Math Constants in Render Loops
 **Learning:** Frequent UI frame render callbacks (e.g. `OnUpdate`) can execute over 144 times per second. Redundantly invoking C-APIs like `GetTime()` multiple times or recalculating math constants like `(math.pi * 2)` inside these loops creates unnecessary CPU overhead.
 **Action:** Extract math constants (e.g., `local TWO_PI = math.pi * 2`) to the file scope outside the handler, and call functions like `GetTime()` exactly once per render tick, saving the result to a local variable (`local now = GetTime()`) to use for all calculations within the frame.
+
+## 2026-03-31 - Throttle table-allocating C_Spell API in OnUpdate
+**Learning:** High-frequency UI frame render callbacks (e.g. `OnUpdate`) that invoke C-APIs like `C_Spell.GetSpellCooldown()` allocate new tables on every frame. This relentless table allocation inside `OnUpdate` causes unnecessary garbage accumulation, triggering GC micro-stutters.
+**Action:** Throttle the API checks inside `OnUpdate` using an elapsed timer (e.g. check every 0.2s) instead of running on every frame.
