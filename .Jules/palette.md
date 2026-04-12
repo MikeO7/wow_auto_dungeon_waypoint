@@ -48,3 +48,7 @@
 ## 2024-04-11 - Visual Feedback for Draggable UIs
 **Learning:** WoW frames that lack visual feedback when detached and dragged (e.g., via Shift-Click) fail to clearly indicate state changes to the user, breaking the connection between input and element response.
 **Action:** When implementing custom drag handlers (`OnDragStart`/`OnDragStop`), always include an explicit visual cue, such as decreasing element opacity (`SetAlpha(0.7)`) during the drag action, to immediately indicate active interaction.
+
+## 2024-05-18 - Context-Aware Tooltips
+**Learning:** Single UI buttons with multi-state contexts (like the Close button on the navigation HUD) require dynamic tooltips to prevent accidental destructive actions, especially when closing the HUD also cancels an active route. Static tooltips fail to convey the current state clearly.
+**Action:** When creating multi-purpose buttons, implement dynamic `OnEnter` scripts that update the tooltip text based on the application's current state, rather than assigning a static, one-size-fits-all tooltip string.

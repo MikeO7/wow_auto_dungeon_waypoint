@@ -272,7 +272,16 @@ closeBtn:SetScript("OnClick", function()
         HideStatusFrame()
     end
 end)
-ADW.SetTooltip(closeBtn, "Close", "Dismiss the navigation HUD.\nIf a route is active, it will be cancelled.")
+closeBtn:SetScript("OnEnter", function(self)
+    GameTooltip_SetDefaultAnchor(GameTooltip, self)
+    GameTooltip:SetText("Close", 0.0, 0.75, 1.0)
+    GameTooltip:AddLine("Dismiss the navigation HUD.", 1, 1, 1, true)
+    if activeRoute then
+        GameTooltip:AddLine("WARNING: Closes the active route.", 1, 0.2, 0.2, true)
+    end
+    GameTooltip:Show()
+end)
+closeBtn:SetScript("OnLeave", GameTooltip_Hide)
 
 -- ============================================================================
 -- Portal Shortcut Button (Secure)
@@ -364,7 +373,16 @@ end)
 portalBtn:SetScript("OnEnter", function(self)
     self.Icon:SetVertexColor(1, 1, 0, 1) -- Light yellow highlight
     GameTooltip_SetDefaultAnchor(GameTooltip, self)
-    GameTooltip:SetText("Use Dungeon Teleport", 0.0, 0.75, 1.0)
+
+    local title = "Use Dungeon Teleport"
+    if self.pID then
+        local spellName = (C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(self.pID)) or (GetSpellInfo and GetSpellInfo(self.pID))
+        if spellName then
+            title = spellName
+        end
+    end
+
+    GameTooltip:SetText(title, 0.0, 0.75, 1.0)
     GameTooltip:AddLine("Click to teleport directly to the dungeon entrance.", 1, 1, 1, true)
     GameTooltip:AddLine("Requires the Mythic+ Keystone Hero teleport spell.", 1, 0.8, 0, true)
     GameTooltip:Show()
