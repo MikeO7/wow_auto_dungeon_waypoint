@@ -67,6 +67,11 @@ local function Print(msg)
 end
 
 local function AddSharedTooltipLines(tooltip)
+    if AutoDungeonWaypointDB then
+        local stateText = AutoDungeonWaypointDB.AutoRouteEnabled and "|cFF00FF00ON|r" or "|cFFFF0000OFF|r"
+        tooltip:AddLine("Auto-Routing: " .. stateText, 1, 1, 1)
+        tooltip:AddLine(" ")
+    end
     tooltip:AddLine("|cFFFFD100Left-Click:|r Open route menu", 1, 1, 1)
     tooltip:AddLine("|cFFFFD100Right-Click:|r Toggle auto-routing", 1, 1, 1)
 end
@@ -259,6 +264,13 @@ progressBar:SetPoint("BOTTOMRIGHT", statusFrame, "BOTTOMRIGHT", -6, 6)
 progressBar:SetHeight(4)
 progressBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
 progressBar:SetStatusBarColor(0, 0.75, 1, 0.8) -- Cyan
+
+local progressBg = progressBar:CreateTexture(nil, "BACKGROUND")
+progressBg:SetTexture("Interface\\TargetingFrame\\UI-StatusBar")
+progressBg:SetAllPoints()
+progressBg:SetVertexColor(0, 0, 0, 0.5)
+progressBar.bg = progressBg
+
 progressBar:Hide()
 statusFrame:Hide()
 

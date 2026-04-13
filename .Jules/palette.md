@@ -52,3 +52,6 @@
 ## 2024-05-18 - Context-Aware Tooltips
 **Learning:** Single UI buttons with multi-state contexts (like the Close button on the navigation HUD) require dynamic tooltips to prevent accidental destructive actions, especially when closing the HUD also cancels an active route. Static tooltips fail to convey the current state clearly.
 **Action:** When creating multi-purpose buttons, implement dynamic `OnEnter` scripts that update the tooltip text based on the application's current state, rather than assigning a static, one-size-fits-all tooltip string.
+## 2024-05-25 - Progress Bar Context and State Discoverability
+**Learning:** For World of Warcraft addon UIs, `StatusBar` elements without a distinct background track lack visual context when nearly empty, and hiding system status (like toggle states) inside configuration panels adds unnecessary friction.
+**Action:** Enhance progress indicators by adding a dark, semi-transparent background texture (an 'empty track'), and dynamically prefix shared tooltips with the feature's current state (e.g., Auto-Routing: ON/OFF) using color coding to improve discoverability without opening menus.
