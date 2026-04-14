@@ -52,3 +52,7 @@
 ## 2024-05-18 - Context-Aware Tooltips
 **Learning:** Single UI buttons with multi-state contexts (like the Close button on the navigation HUD) require dynamic tooltips to prevent accidental destructive actions, especially when closing the HUD also cancels an active route. Static tooltips fail to convey the current state clearly.
 **Action:** When creating multi-purpose buttons, implement dynamic `OnEnter` scripts that update the tooltip text based on the application's current state, rather than assigning a static, one-size-fits-all tooltip string.
+
+## 2026-04-14 - Progress Bar Visual Context
+**Learning:** Users can misinterpret mostly-empty progress bars if the total track length is not visually distinct from the frame background.
+**Action:** Always provide a dark, semi-transparent background texture (an 'empty track') behind status bars to give visual context of the relative progress length.

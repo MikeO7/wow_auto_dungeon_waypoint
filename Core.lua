@@ -259,6 +259,11 @@ progressBar:SetPoint("BOTTOMRIGHT", statusFrame, "BOTTOMRIGHT", -6, 6)
 progressBar:SetHeight(4)
 progressBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
 progressBar:SetStatusBarColor(0, 0.75, 1, 0.8) -- Cyan
+
+local progressBg = progressBar:CreateTexture(nil, "BACKGROUND")
+progressBg:SetAllPoints()
+progressBg:SetColorTexture(0, 0, 0, 0.5) -- Dark semi-transparent background track
+
 progressBar:Hide()
 statusFrame:Hide()
 
