@@ -67,6 +67,9 @@ local function Print(msg)
 end
 
 local function AddSharedTooltipLines(tooltip)
+    local stateText = (AutoDungeonWaypointDB and AutoDungeonWaypointDB.AutoRouteEnabled) and "|cFF55FF55ON|r" or "|cFFFF5555OFF|r"
+    tooltip:AddLine("Auto-Routing: " .. stateText, 1, 1, 1)
+    tooltip:AddLine(" ")
     tooltip:AddLine("|cFFFFD100Left-Click:|r Open route menu", 1, 1, 1)
     tooltip:AddLine("|cFFFFD100Right-Click:|r Toggle auto-routing", 1, 1, 1)
 end
