@@ -56,3 +56,7 @@
 ## 2026-04-14 - Progress Bar Visual Context
 **Learning:** Users can misinterpret mostly-empty progress bars if the total track length is not visually distinct from the frame background.
 **Action:** Always provide a dark, semi-transparent background texture (an 'empty track') behind status bars to give visual context of the relative progress length.
+
+## 2024-05-19 - Dynamic Status Rendering in Tooltips
+**Learning:** To improve system status discoverability in World of Warcraft addons, dynamically prefix shared tooltips (such as LDB/minimap icons) with the feature's current state (e.g., Auto-Routing: ON/OFF) using color coding, eliminating the need to open configuration panels.
+**Action:** Always compute derived state at the time of rendering when updating HUD elements and tooltips.
