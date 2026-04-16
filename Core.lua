@@ -1355,7 +1355,8 @@ end
 
 function ADW_OnAddonCompartmentEnter(_, button)
     GameTooltip_SetDefaultAnchor(GameTooltip, button)
-    GameTooltip:SetText("Auto Dungeon Waypoint", 0.0, 0.75, 1.0)
+    local stateText = AutoDungeonWaypointDB.AutoRouteEnabled and "|cFF55FF55[ON]|r" or "|cFFFF5555[OFF]|r"
+    GameTooltip:SetText("Auto Dungeon Waypoint " .. stateText, 0.0, 0.75, 1.0)
     if activeRoute then
         GameTooltip:AddLine("Active: " .. (ADW.RouteNames[activeRouteKey] or activeRouteKey))
     end
@@ -1488,7 +1489,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                     elseif button == "MiddleButton" then ADW_Stop_Binding() end
                 end,
                 OnTooltipShow = function(tooltip)
-                    tooltip:SetText("Auto Dungeon Waypoint", 0.0, 0.75, 1.0)
+                    local stateText = AutoDungeonWaypointDB.AutoRouteEnabled and "|cFF55FF55[ON]|r" or "|cFFFF5555[OFF]|r"
+                    tooltip:SetText("Auto Dungeon Waypoint " .. stateText, 0.0, 0.75, 1.0)
                     if activeRoute then tooltip:AddLine("Active: " .. (ADW.RouteNames[activeRouteKey] or activeRouteKey)) end
                     tooltip:AddLine(" ")
                     AddSharedTooltipLines(tooltip)
