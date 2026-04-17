@@ -582,7 +582,7 @@ if ADW.PortalLayout then
         local label = portalMap:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
         label:SetPoint("CENTER", portalMap, "CENTER", xOff, 2)
         label:SetText(slot.circle)
-        label:SetTextColor(0.4, 0.4, 0.4)
+        label:SetTextColor(0.5, 0.5, 0.5)
         slotLabels[i] = label
     end
 end
@@ -604,7 +604,7 @@ local function ShowPortalMap(routeKey)
             slotLabels[i]:SetTextColor(0.65, 0.65, 0.65)
             slotLabels[i]:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
         else
-            slotLabels[i]:SetTextColor(0.4, 0.4, 0.4)
+            slotLabels[i]:SetTextColor(0.5, 0.5, 0.5)
             slotLabels[i]:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
         end
     end
