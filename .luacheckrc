@@ -37,7 +37,10 @@ std = "lua51"
 -- 412: Shadowing an upvalue
 -- 422: Shadowing an upvalue argument
 -- 211: Unused local variable
-ignore = { "212", "542", "631", "611", "612", "411", "412", "422", "211" }
+-- 431: Shadowing an upvalue
+-- 432: Shadowing an upvalue argument
+-- 311: Value assigned to a local variable is unused
+ignore = { "212", "542", "631", "611", "612", "411", "412", "422", "211", "431", "432", "311" }
 
 -- Per-file overrides
 files["Locales/*.lua"] = {
