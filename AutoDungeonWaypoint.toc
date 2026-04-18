@@ -1,6 +1,20 @@
 ## Interface: 120001
 ## Title: Auto Dungeon Waypoint
+## Title-deDE: Auto Dungeon Waypoint
+## Title-frFR: Auto Dungeon Waypoint
+## Title-esES: Auto Dungeon Waypoint
+## Title-ruRU: Auto Dungeon Waypoint
+## Title-zhCN: Auto Dungeon Waypoint
+## Title-koKR: Auto Dungeon Waypoint
+## Title-ptBR: Auto Dungeon Waypoint
 ## Notes: Automatic step-by-step navigation to Mythic+ dungeons. Auto-activates when joining groups.
+## Notes-deDE: Automatische Schritt-für-Schritt-Navigation zu Mythic+ Dungeons.
+## Notes-frFR: Navigation automatique étape par étape vers les donjons Mythique+.
+## Notes-esES: Navegación automática paso a paso hacia las mazmorras de Míticas+.
+## Notes-ruRU: Автоматическая пошаговая навигация к подземельям Mythic+.
+## Notes-zhCN: 自动引导前往大秘境地下城的路径。
+## Notes-koKR: 신화+ 던전으로 가는 자동 단계별 내비게이션.
+## Notes-ptBR: Navegação automática passo a passo para masmorras Mítica+.
 ## Author: mikeo
 ## Version: 6.3.5
 ## SavedVariables: AutoDungeonWaypointDB
@@ -13,6 +27,16 @@
 ## X-License: MIT
 
 ## X-Curse-Project-ID: 1486357
+
+# Localization
+Locales\enUS.lua
+Locales\deDE.lua
+Locales\frFR.lua
+Locales\esES.lua
+Locales\ruRU.lua
+Locales\zhCN.lua
+Locales\koKR.lua
+Locales\ptBR.lua
 
 # Libraries (embedded)
 libs\LibStub\LibStub.lua
