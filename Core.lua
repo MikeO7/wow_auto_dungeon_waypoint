@@ -73,7 +73,6 @@ local function Log(level, msg)
 end
 
 local function LogInfo(msg)  Log("INFO",  msg) end
-local function LogWarn(msg)  Log("WARN",  msg) end
 local function LogError(msg) Log("ERROR", msg) end
 
 -- ============================================================================
