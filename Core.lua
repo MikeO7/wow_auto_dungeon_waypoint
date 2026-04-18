@@ -1088,7 +1088,9 @@ function StartRoute(routeKey, skipBroadcast)
     
     local route = ADW.Routes[routeKey]
     if not route then
-        Print(RED .. "No route found for:|r " .. tostring(routeKey))
+        -- Sentinel: Prevent UI injection via malicious routeKey strings (e.g. from chat)
+        local safeKey = tostring(routeKey):gsub("|", "||")
+        Print(RED .. "No route found for:|r " .. safeKey)
         return
     end
 
@@ -1593,6 +1595,14 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         local safeSender = Ambiguate(sender, "none")
         local cmd, routeKey = strsplit(":", message, 2)
         if cmd == "ROUTE" and routeKey and ADW.Routes[routeKey] and activeRouteKey ~= routeKey then
+            -- Sentinel: Prevent DoS via popup spam (rate limit: 1 request per 10s per sender)
+            ADW.PopupRateLimits = ADW.PopupRateLimits or {}
+            local now = GetTime()
+            if ADW.PopupRateLimits[safeSender] and (now - ADW.PopupRateLimits[safeSender]) < 10 then
+                return
+            end
+            ADW.PopupRateLimits[safeSender] = now
+
             local dungeonName = ADW.RouteNames[routeKey] or routeKey
             StaticPopup_Show("ADW_CONFIRM_ROUTE", CYAN .. safeSender .. "|r", WHITE .. dungeonName .. "|r", { routeKey = routeKey })
         end
