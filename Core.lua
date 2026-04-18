@@ -735,7 +735,7 @@ local function IsMapOrChild(currentID, targetID)
         info = C_Map.GetMapInfo(info.parentMapID)
         safety = safety + 1
     end
-    if safety >= 10 then DebugPrint("IsMapOrChild: depth limit reached for map " .. tostring(currentID) .. " -> " .. tostring(targetID)) end
+    if safety >= 10 and debugMode then DebugPrint("IsMapOrChild: depth limit reached for map " .. tostring(currentID) .. " -> " .. tostring(targetID)) end
     ADW.MapParentCache[currentID][targetID] = isChild
     return isChild
 end
@@ -820,7 +820,7 @@ local function SyncRouteProgress(isZoneTransition)
     if best ~= currentStepIndex then
         -- Respect forward-skip immunity: don't jump forward past portal steps
         if not isZoneTransition and best > currentStepIndex and GetTime() - lastStepAdvance < 8 then
-            DebugPrint("DEBUG: SyncRouteProgress forward-skip blocked by immunity.")
+            if debugMode then DebugPrint("DEBUG: SyncRouteProgress forward-skip blocked by immunity.") end
             -- Still re-apply the current waypoint so the marker stays visible
             SetWaypointStep(currentStepIndex)
             return
@@ -831,7 +831,7 @@ local function SyncRouteProgress(isZoneTransition)
 end
 
 function ClearRoute()
-    DebugPrint("DEBUG: ClearRoute called (Active:" .. tostring(activeRouteKey) .. ")")
+    if debugMode then DebugPrint("DEBUG: ClearRoute called (Active:" .. tostring(activeRouteKey) .. ")") end
     C_Map.ClearUserWaypoint()
     if checkTicker then checkTicker:Cancel() checkTicker = nil end
     if tomtomUID and TomTom and TomTom.RemoveWaypoint then TomTom:RemoveWaypoint(tomtomUID) end
@@ -910,7 +910,7 @@ function SetWaypointStep(index)
     -- Verify and Force SuperTrack
     if C_Map.HasUserWaypoint() then
         C_SuperTrack.SetSuperTrackedUserWaypoint(true)
-        DebugPrint("DEBUG: SetUserWaypoint map=" .. step.mapID .. " [SUCCESS]")
+        if debugMode then DebugPrint("DEBUG: SetUserWaypoint map=" .. step.mapID .. " [SUCCESS]") end
     else
         LogError("Failed to set Blizzard waypoint for map " .. tostring(step.mapID))
     end
@@ -987,10 +987,10 @@ local function CheckDistance()
     if currentMapID ~= lastMapID then
         lastMapID = currentMapID
         lastMapChangeTime = now
-        DebugPrint("DEBUG: Map change detected. Buffer active.")
+        if debugMode then DebugPrint("DEBUG: Map change detected. Buffer active.") end
     end
 
-    DebugPrint(string.format("DEBUG: Map: %d | Step: %d", currentMapID, currentStepIndex))
+    if debugMode then DebugPrint(string.format("DEBUG: Map: %d | Step: %d", currentMapID, currentStepIndex)) end
     
     local bestIdx, pos, posFetched = ADW.GetBestStepIndex(activeRoute, currentMapID, nil)
     
@@ -998,7 +998,7 @@ local function CheckDistance()
     if bestIdx > currentStepIndex then
         -- Forward-skip immunity: Don't allow SmartSync to jump forward within 8s of a step advance.
         if now - lastStepAdvance < 8 then
-            DebugPrint("DEBUG: Forward-skip immunity active (" .. bestIdx .. " blocked).")
+            if debugMode then DebugPrint("DEBUG: Forward-skip immunity active (" .. bestIdx .. " blocked).") end
         else
             LogInfo(string.format("SmartSync: SKIP FORWARD from %d to %d (Map: %d)", currentStepIndex, bestIdx, currentMapID))
             currentStepIndex = bestIdx
@@ -1011,7 +1011,7 @@ local function CheckDistance()
     if bestIdx < currentStepIndex then
         -- Snap-back immunity: Don't snap back for 5s after an advance.
         if now - lastStepAdvance < 5 then
-            DebugPrint("DEBUG: Snap-back immunity active.")
+            if debugMode then DebugPrint("DEBUG: Snap-back immunity active.") end
             return
         end
 
@@ -1029,7 +1029,7 @@ local function CheckDistance()
                     local dx = (pos.x - priorStep.x) * 1000
                     local dy = (pos.y - priorStep.y) * 1000
                     if (dx*dx + dy*dy) < 400.0 then -- ~100 yards buffer
-                        DebugPrint("DEBUG: Near Step " .. (currentStepIndex-1) .. " - ignoring snap-back.")
+                        if debugMode then DebugPrint("DEBUG: Near Step " .. (currentStepIndex-1) .. " - ignoring snap-back.") end
                         return
                     end
                 end
@@ -1076,7 +1076,7 @@ end
 function StartRoute(routeKey, skipBroadcast)
     if not routeKey then return end
     if activeRouteKey == routeKey then 
-        DebugPrint("DEBUG: StartRoute called for already active route " .. routeKey .. " - skipping.")
+        if debugMode then DebugPrint("DEBUG: StartRoute called for already active route " .. routeKey .. " - skipping.") end
         return 
     end
     
@@ -1089,7 +1089,7 @@ function StartRoute(routeKey, skipBroadcast)
     end
 
     -- Synchronous State Purge
-    DebugPrint("DEBUG: Atomic switch to " .. routeKey)
+    if debugMode then DebugPrint("DEBUG: Atomic switch to " .. routeKey) end
     C_Map.ClearUserWaypoint()
     if checkTicker then checkTicker:Cancel() end
     if tomtomUID and TomTom and TomTom.RemoveWaypoint then TomTom:RemoveWaypoint(tomtomUID) end
@@ -1411,7 +1411,7 @@ function ADW.ProcessActivityID(activityID, isSilent)
     if routeKey == nil then
         local info = C_LFGList.GetActivityInfoTable(activityID)
         if info and info.fullName then
-            DebugLog("ProcessActivityID: Name=" .. info.fullName)
+            if debugMode then DebugLog("ProcessActivityID: Name=" .. info.fullName) end
             local lowerName = info.fullName:lower():gsub("[%p%s]", "")
 
             ADW.RouteNamesClean = ADW.RouteNamesClean or {}
@@ -1435,7 +1435,7 @@ function ADW.ProcessActivityID(activityID, isSilent)
 
     if not routeKey or activeRouteKey == routeKey then return end
 
-    DebugLog("ProcessActivityID: ID=" .. tostring(activityID) .. " Key=" .. tostring(routeKey))
+    if debugMode then DebugLog("ProcessActivityID: ID=" .. tostring(activityID) .. " Key=" .. tostring(routeKey)) end
 
     local name = ADW.RouteNames[routeKey] or routeKey
     if not isSilent then Print(GREEN .. (ADW.L["DUNGEON_DETECTED"] or "Dungeon detected: ") .. "|r " .. WHITE .. name .. "|r " .. (ADW.L["AUTO_STARTING"] or "— auto-starting!")) end

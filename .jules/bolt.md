@@ -52,3 +52,7 @@
 ## 2026-03-31 - Throttle table-allocating C_Spell API in OnUpdate
 **Learning:** High-frequency UI frame render callbacks (e.g. `OnUpdate`) that invoke C-APIs like `C_Spell.GetSpellCooldown()` allocate new tables on every frame. This relentless table allocation inside `OnUpdate` causes unnecessary garbage accumulation, triggering GC micro-stutters.
 **Action:** Throttle the API checks inside `OnUpdate` using an elapsed timer (e.g. check every 0.2s) instead of running on every frame.
+
+## 2026-04-01 - Avoid Eager String Evaluation in Debug Wrappers
+**Learning:** In Lua, functions like `DebugPrint("Value " .. tostring(x))` eagerly evaluate the string concatenation argument before calling the wrapper function, even if the wrapper internally checks a flag (like `debugMode`) and discards it. In high-frequency 4Hz loops like `CheckDistance`, this creates thousands of useless string allocations and triggers GC micro-stutters when debugging is off.
+**Action:** Always wrap debug logging function calls in an inline boolean check (e.g., `if debugMode then DebugPrint(...) end`) at the call site if the argument involves string concatenation or `string.format` to prevent premature evaluation and memory allocation.
