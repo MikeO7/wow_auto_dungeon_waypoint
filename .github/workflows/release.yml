@@ -29,11 +29,11 @@ jobs:
 
           # Increment patch version
           # This handles x.y.z format
-          NEW_VERSION=$(echo $VERSION | awk -F. '{$NF = $NF + 1;} OFS="." {print $0}')
+          NEW_VERSION=$(echo $VERSION | awk -F. -v OFS=. '{$NF = $NF + 1; print $0}')
           echo "New version: $NEW_VERSION"
 
           # Update TOC file
-          sed -i "s/## Version: $VERSION/## Version: $NEW_VERSION/" AutoDungeonWaypoint.toc
+          sed -i "s/^## Version: .*/## Version: $NEW_VERSION/" AutoDungeonWaypoint.toc
 
           # Configure git
           git config user.name "github-actions[bot]"
@@ -55,4 +55,4 @@ jobs:
       - name: Push changes
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          git push origin main --tags
+          git push origin HEAD:main --tags
