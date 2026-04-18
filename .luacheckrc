@@ -57,4 +57,5 @@ files["tests/*.lua"] = {
 }
 
 -- Exclude libraries from linting
-exclude_files = { "libs" }
+-- Exclude libraries and dependencies from linting
+exclude_files = { "libs", ".luarocks" }
