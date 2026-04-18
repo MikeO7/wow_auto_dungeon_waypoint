@@ -102,6 +102,22 @@ local function LogWarn(msg)  Log("WARN",  msg) end
 local function LogError(msg) Log("ERROR", msg) end
 
 -- ============================================================================
+-- Popups
+-- ============================================================================
+StaticPopupDialogs["ADW_CONFIRM_ROUTE"] = {
+    text = ADDON_COLOR .. "[Auto Dungeon Waypoint]|r\n\n%s shared a route to %s.\n\nDo you want to start this route?",
+    button1 = YES,
+    button2 = NO,
+    OnAccept = function(self, data)
+        StartRoute(data.routeKey, true)
+    end,
+    timeout = 30,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
+
+-- ============================================================================
 -- UI Helpers (DRY)
 -- ============================================================================
 function ADW.ApplyGlassAesthetic(frame, hasBorder)
@@ -1559,8 +1575,11 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         return
     end
     if event == "CHAT_MSG_ADDON" then
-        local prefix, message, _, sender = ...
+        local prefix, message, channel, sender = ...
         if prefix ~= "ADW" or not AutoDungeonWaypointDB.AutoRouteEnabled then return end
+
+        -- Trusted channels only to prevent unauthenticated route hijacking via WHISPER/SAY/etc.
+        if channel ~= "PARTY" and channel ~= "RAID" and channel ~= "GUILD" then return end
         
         -- Midnight Resilience: Robust self-filter using UnitIsUnit (handles cross-realm name nuances)
         if UnitIsUnit(sender, "player") then return end
@@ -1568,8 +1587,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         local safeSender = Ambiguate(sender, "none")
         local cmd, routeKey = strsplit(":", message, 2)
         if cmd == "ROUTE" and routeKey and ADW.Routes[routeKey] and activeRouteKey ~= routeKey then
-            Print(CYAN .. safeSender .. "|r shared a route to " .. WHITE .. (ADW.RouteNames[routeKey] or routeKey) .. "|r")
-            StartRoute(routeKey, true) -- skipBroadcast = true to prevent infinite loops
+            local dungeonName = ADW.RouteNames[routeKey] or routeKey
+            StaticPopup_Show("ADW_CONFIRM_ROUTE", CYAN .. safeSender .. "|r", WHITE .. dungeonName .. "|r", { routeKey = routeKey })
         end
     end
 end)
