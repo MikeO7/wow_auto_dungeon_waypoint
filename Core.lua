@@ -644,7 +644,21 @@ autoBtn:SetSize(150, 26)
 autoBtn:SetPoint("LEFT", controlBar, "LEFT", 0, 0)
 autoBtn:SetNormalFontObject("GameFontNormalSmall")
 ADW.MakeDraggable(autoBtn, "ToggleButtonPos", controlBar)
-ADW.SetTooltip(autoBtn, "Toggle Auto-Routing", "Click to enable/disable automatic dungeon detection.", "Hold |cFFFFD100Shift|r and drag to move.")
+autoBtn:SetScript("OnEnter", function(self)
+    GameTooltip_SetDefaultAnchor(GameTooltip, self)
+    if activeRoute and activeRouteKey then
+        local name = ADW.RouteNames[activeRouteKey] or activeRouteKey
+        GameTooltip:SetText(name, 0.0, 0.75, 1.0)
+        GameTooltip:AddLine(ADW.L["ACTIVE_ROUTE"] or "Active Route", 1, 1, 1, true)
+    else
+        local stateText = (AutoDungeonWaypointDB and AutoDungeonWaypointDB.AutoRouteEnabled) and "|cFF55FF55[ON]|r" or "|cFFFF5555[OFF]|r"
+        GameTooltip:SetText((ADW.L["TOGGLE_AUTO_ROUTING"] or "Toggle Auto-Routing") .. " " .. stateText, 0.0, 0.75, 1.0)
+        GameTooltip:AddLine(ADW.L["ENABLE_AUTO_ROUTING_DESC"] or "Click to enable/disable automatic dungeon detection.", 1, 1, 1, true)
+    end
+    GameTooltip:AddLine(ADW.L["SHIFT_DRAG_MOVE"] or "Hold |cFFFFD100Shift|r and drag to move.", 1, 0.8, 0, true)
+    GameTooltip:Show()
+end)
+autoBtn:SetScript("OnLeave", GameTooltip_Hide)
 
 local menuBtn = CreateFrame("Button", nil, controlBar, "UIPanelButtonTemplate")
 menuBtn:SetSize(46, 26)
