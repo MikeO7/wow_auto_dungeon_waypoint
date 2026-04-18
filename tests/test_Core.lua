@@ -14,7 +14,7 @@ _G.CreateFrame = function() return {
     SetScript = function() end, SetSize = function() end, SetPoint = function() end,
     SetWidth = function() end, SetHeight = function() end, SetAllPoints = function() end,
     SetAttribute = function() end, SetNormalFontObject = function() end, SetHighlightFontObject = function() end,
-    CreateTexture = function() return {SetTexture = function() end, SetAllPoints = function() end, SetColorTexture = function() end, SetVertexColor = function() end, SetAlpha = function() end, SetBlendMode = function() end, SetTextureSliceMargins = function() end, SetTextureSliceMode = function() end, SetPoint = function() end, SetSize = function() end, SetTexCoord = function() end} end,
+    CreateTexture = function() return {SetTexture = function() end, SetAllPoints = function() end, SetColorTexture = function() end, SetVertexColor = function() end, SetAlpha = function() end, SetBlendMode = function() end, SetTextureSliceMargins = function() end, SetTextureSliceMode = function() end, SetPoint = function() end, SetSize = function() end, SetTexCoord = function() end, SetDesaturated = function() end} end,
     CreateFontString = function() return {SetFontObject = function() end, SetPoint = function() end, SetText = function() end, GetStringWidth = function() return 0 end, SetJustifyH = function() end, SetTextColor = function() end, SetWordWrap = function() end} end,
     RegisterEvent = function() end, Show = function() end, Hide = function() end, IsShown = function() return false end,
     EnableMouse = function() end, RegisterForDrag = function() end, RegisterForClicks = function() end,
@@ -60,6 +60,8 @@ _G.SLASH_ADW2 = "/autodungeonwaypoint"
 
 _G.GREEN = "|cFF00FF00"
 _G.RED = "|cFFFF0000"
+
+_G.StaticPopupDialogs = {}
 
 
 -- 2. Load the actual Core.lua file safely
