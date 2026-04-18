@@ -16,7 +16,7 @@
 ## Notes-koKR: 신화+ 던전으로 가는 자동 단계별 내비게이션.
 ## Notes-ptBR: Navegação automática passo a passo para masmorras Mítica+.
 ## Author: mikeo
-## Version: 6.3.6
+## Version: 6.3.7
 ## SavedVariables: AutoDungeonWaypointDB
 ## IconTexture: Interface\AddOns\AutoDungeonWaypoint\icon.tga
 ## AddonCompartmentFunc: ADW_OnAddonCompartmentClick
