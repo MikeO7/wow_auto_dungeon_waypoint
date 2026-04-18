@@ -65,12 +65,6 @@ _G.StaticPopupDialogs = {}
 
 
 -- 2. Load the actual Core.lua file safely
-local f, err = loadfile("Core.lua")
-if not f then
-    print("Error loading Core.lua: " .. tostring(err))
-    os.exit(1)
-end
-
 -- Create the addon table
 local addonName = "AutoDungeonWaypoint"
 local addonTable = {
@@ -79,8 +73,20 @@ local addonTable = {
     DefaultRoute = {}
 }
 
--- Execute Core.lua with the mocked arguments
-f(addonName, addonTable)
+-- 2. Load Localization and Data FIRST (matching .toc order)
+local function LoadAddonFile(filename)
+    local f, err = loadfile(filename)
+    if not f then
+        print("Error loading " .. filename .. ": " .. tostring(err))
+        os.exit(1)
+    end
+    f(addonName, addonTable)
+end
+
+_G.GetLocale = function() return "enUS" end
+LoadAddonFile("Locales/enUS.lua")
+LoadAddonFile("Data.lua")
+LoadAddonFile("Core.lua")
 
 -- 3. Define Tests
 TestToggleAutoRoute = {}

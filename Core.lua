@@ -58,7 +58,7 @@ local GRAY        = "|cFF888888"
 local CYAN        = "|cFF00FFFF"
 
 local function ForcePrint(msg)
-    DEFAULT_CHAT_FRAME:AddMessage(ADDON_COLOR .. "[Auto Dungeon Waypoint]|r " .. msg)
+    DEFAULT_CHAT_FRAME:AddMessage(ADDON_COLOR .. (ADW.L["HUD_TITLE"] or "[Auto Dungeon Waypoint]") .. "|r " .. msg)
 end
 
 local function Print(msg)
@@ -72,10 +72,10 @@ end
 
 local function AddSharedTooltipLines(tooltip)
     local stateText = (AutoDungeonWaypointDB and AutoDungeonWaypointDB.AutoRouteEnabled) and "|cFF55FF55ON|r" or "|cFFFF5555OFF|r"
-    tooltip:AddLine("Auto-Routing: " .. stateText, 1, 1, 1)
+    tooltip:AddLine((ADW.L["AUTO_ROUTING"] or "Auto-Routing: ") .. stateText, 1, 1, 1)
     tooltip:AddLine(" ")
-    tooltip:AddLine("|cFFFFD100Left-Click:|r Open route menu", 1, 1, 1)
-    tooltip:AddLine("|cFFFFD100Right-Click:|r Toggle auto-routing", 1, 1, 1)
+    tooltip:AddLine(ADW.L["LEFT_CLICK_MENU"] or "|cFFFFD100Left-Click:|r Open route menu", 1, 1, 1)
+    tooltip:AddLine(ADW.L["RIGHT_CLICK_TOGGLE"] or "|cFFFFD100Right-Click:|r Toggle auto-routing", 1, 1, 1)
 end
 
 -- ============================================================================
@@ -113,7 +113,7 @@ local function LogError(msg) Log("ERROR", msg) end
 -- Popups
 -- ============================================================================
 StaticPopupDialogs["ADW_CONFIRM_ROUTE"] = {
-    text = ADDON_COLOR .. "[Auto Dungeon Waypoint]|r\n\n%s shared a route to %s.\n\nDo you want to start this route?",
+    text = ADDON_COLOR .. (ADW.L["CONFIRM_ROUTE_MSG"] or "[Auto Dungeon Waypoint]|r\n\n%s shared a route to %s.\n\nDo you want to start this route?"),
     button1 = YES,
     button2 = NO,
     OnAccept = function(self, data)
@@ -193,11 +193,11 @@ function ADW.SetTooltip(frame, title, body, extraInfo)
 end
 
 function ADW.GenerateDungeonMenu(owner, rootDescription)
-    rootDescription:CreateTitle(ADDON_COLOR .. "Auto Dungeon Waypoint|r")
-    rootDescription:CreateButton(YELLOW .. "Toggle Auto-Routing|r", function() ADW.ToggleAutoRoute() end)
+    rootDescription:CreateTitle(ADDON_COLOR .. (ADW.L["HUD_TITLE"] or "Auto Dungeon Waypoint") .. "|r")
+    rootDescription:CreateButton(YELLOW .. (ADW.L["TOGGLE_AUTO_ROUTING"] or "Toggle Auto-Routing") .. "|r", function() ADW.ToggleAutoRoute() end)
     
     if activeRoute then
-        rootDescription:CreateButton(RED .. "Cancel Active Route|r", function() ADW_Stop_Binding() end)
+        rootDescription:CreateButton(RED .. (ADW.L["CANCEL_ACTIVE_ROUTE"] or "Cancel Active Route") .. "|r", function() ADW_Stop_Binding() end)
     end
 
     rootDescription:CreateDivider()
@@ -209,13 +209,13 @@ function ADW.GenerateDungeonMenu(owner, rootDescription)
     for _, key in ipairs(keys) do
         local btnText = ADW.RouteNames[key]
         if key == activeRouteKey then
-            btnText = "|cFF00FF00>|r " .. btnText .. " " .. GREEN .. "(Active)|r"
+            btnText = "|cFF00FF00>|r " .. btnText .. " " .. GREEN .. (ADW.L["ACTIVE"] or "(Active)") .. "|r"
         end
         rootDescription:CreateButton(btnText, function() StartRoute(key) end)
     end
     
     rootDescription:CreateDivider()
-    rootDescription:CreateButton(GRAY .. "Open Settings|r", function() 
+    rootDescription:CreateButton(GRAY .. (ADW.L["OPEN_SETTINGS"] or "Open Settings") .. "|r", function()
         if ADW.settingsCategory then Settings.OpenToCategory(ADW.settingsCategory:GetID()) end 
     end)
 end
@@ -271,7 +271,7 @@ stepIcon:SetTexture("Interface\\Icons\\INV_Misc_Map_01")
 local titleText = statusFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalMed3")
 titleText:SetPoint("TOPLEFT", stepIcon, "TOPRIGHT", 12, -4)
 titleText:SetTextColor(0.0, 0.9, 1.0)
-titleText:SetText("Auto Dungeon Waypoint")
+titleText:SetText(ADW.L["HUD_TITLE"] or "Auto Dungeon Waypoint")
 
 local stepText = statusFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 stepText:SetPoint("TOPLEFT", titleText, "BOTTOMLEFT", 0, -2)
@@ -306,10 +306,10 @@ closeBtn:SetScript("OnClick", function()
 end)
 closeBtn:SetScript("OnEnter", function(self)
     GameTooltip_SetDefaultAnchor(GameTooltip, self)
-    GameTooltip:SetText("Close", 0.0, 0.75, 1.0)
-    GameTooltip:AddLine("Dismiss the navigation HUD.", 1, 1, 1, true)
+    GameTooltip:SetText(ADW.L["CLOSE"] or "Close", 0.0, 0.75, 1.0)
+    GameTooltip:AddLine(ADW.L["DISMISS_HUD"] or "Dismiss the navigation HUD.", 1, 1, 1, true)
     if activeRoute then
-        GameTooltip:AddLine("WARNING: Closes the active route.", 1, 0.2, 0.2, true)
+        GameTooltip:AddLine(ADW.L["CLOSE_WARNING"] or "WARNING: Closes the active route.", 1, 0.2, 0.2, true)
     end
     GameTooltip:Show()
 end)
@@ -340,7 +340,7 @@ portalBtn.Icon = portalIcon
 -- Add a "Teleport" label (more apparent)
 local portalLabel = portalBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 portalLabel:SetPoint("BOTTOM", portalBtn, "TOP", 0, 4)
-portalLabel:SetText("TELEPORT")
+portalLabel:SetText(ADW.L["TELEPORT"] or "TELEPORT")
 portalLabel:SetTextColor(0, 1, 1, 0.9) -- Cyan glow
 portalBtn.Label = portalLabel
 
@@ -384,13 +384,9 @@ portalBtn:SetScript("OnUpdate", function(self, elapsed)
             self.cdTimer = 0
             if self.pID then
                 local start, duration = 0, 0
-                if C_Spell and C_Spell.GetSpellCooldown then
-                    local cdInfo = C_Spell.GetSpellCooldown(self.pID)
-                    if cdInfo then
-                        start, duration = cdInfo.startTime, cdInfo.duration
-                    end
-                elseif GetSpellCooldown then
-                    start, duration = GetSpellCooldown(self.pID)
+                local cdInfo = C_Spell.GetSpellCooldown(self.pID)
+                if cdInfo then
+                    start, duration = cdInfo.startTime, cdInfo.duration
                 end
 
                 if start and duration > 0 then
@@ -410,17 +406,17 @@ portalBtn:SetScript("OnEnter", function(self)
     self.Icon:SetVertexColor(1, 1, 0, 1) -- Light yellow highlight
     GameTooltip_SetDefaultAnchor(GameTooltip, self)
 
-    local title = "Use Dungeon Teleport"
+    local title = ADW.L["USE_TELEPORT"] or "Use Dungeon Teleport"
     if self.pID then
-        local spellName = (C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(self.pID)) or (GetSpellInfo and GetSpellInfo(self.pID))
+        local spellName = C_Spell.GetSpellName(self.pID)
         if spellName then
             title = spellName
         end
     end
 
     GameTooltip:SetText(title, 0.0, 0.75, 1.0)
-    GameTooltip:AddLine("Click to teleport directly to the dungeon entrance.", 1, 1, 1, true)
-    GameTooltip:AddLine("Requires the Mythic+ Keystone Hero teleport spell.", 1, 0.8, 0, true)
+    GameTooltip:AddLine(ADW.L["TELEPORT_CLICK"] or "Click to teleport directly to the dungeon entrance.", 1, 1, 1, true)
+    GameTooltip:AddLine(ADW.L["TELEPORT_REQUIREMENT"] or "Requires the Mythic+ Keystone Hero teleport spell.", 1, 0.8, 0, true)
     GameTooltip:Show()
 end)
 portalBtn:SetScript("OnLeave", function(self)
@@ -456,16 +452,16 @@ function ADW.ToggleHUD(enabled)
     end
 
     if db.ShowStatusFrame then
-        Print("Navigation HUD " .. GREEN .. "shown|r.")
+        Print((ADW.L["HUD_SHOWN"] or "Navigation HUD shown") .. GREEN .. "|r.")
     else
-        Print("Navigation HUD " .. RED .. "hidden|r.")
+        Print((ADW.L["HUD_HIDDEN"] or "Navigation HUD hidden") .. RED .. "|r.")
     end
 end
 
 -- Keybinding localization strings for discoverability
-BINDING_HEADER_ADW = "Auto Dungeon Waypoint"
-BINDING_NAME_ADW_TOGGLEHUD = "Toggle Navigation HUD"
-BINDING_NAME_ADW_STOP = "Cancel Active Route"
+BINDING_HEADER_ADW = ADW.L["BINDING_HEADER"] or "Auto Dungeon Waypoint"
+BINDING_NAME_ADW_TOGGLEHUD = ADW.L["BINDING_TOGGLEHUD"] or "Toggle Navigation HUD"
+BINDING_NAME_ADW_STOP = ADW.L["BINDING_STOP"] or "Cancel Route"
 
 -- Global helpers for Bindings.xml
 function ADW_ToggleHUD_Binding()
@@ -474,7 +470,7 @@ end
 
 function ADW_Stop_Binding()
     ClearRoute()
-    ForcePrint("Route cancelled.")
+    ForcePrint(ADW.L["ROUTE_CANCELLED"] or "Route cancelled.")
 end
 
 statusFrame:SetScript("OnMouseUp", function(self, button)
@@ -485,16 +481,16 @@ end)
 
 statusFrame:SetScript("OnEnter", function(self)
     GameTooltip_SetDefaultAnchor(GameTooltip, self)
-    GameTooltip:SetText("Navigation HUD", 0.0, 0.75, 1.0)
+    GameTooltip:SetText(ADW.L["HUD_TITLE"] or "Auto Dungeon Waypoint", 0.0, 0.75, 1.0)
 
     if AutoDungeonWaypointDB and AutoDungeonWaypointDB.CompactMode then
         local currentStepDesc = ""
         if activeRoute and activeRoute[currentStepIndex] then
             currentStepDesc = activeRoute[currentStepIndex].desc or ""
-        elseif titleText:GetText() and string.find(titleText:GetText(), "HUD Preview") then
-            currentStepDesc = "This is how the HUD looks."
-        elseif titleText:GetText() and string.find(titleText:GetText(), "HUD Positioning") then
-            currentStepDesc = "Hold SHIFT and drag to move this frame. Type /adw move again to hide."
+        elseif titleText:GetText() and (string.find(titleText:GetText(), ADW.L["HUD_PREVIEW"] or "HUD Preview")) then
+            currentStepDesc = ADW.L["HUD_PREVIEW_DESC"] or "This is how the HUD looks."
+        elseif titleText:GetText() and (string.find(titleText:GetText(), ADW.L["HUD_POSITIONING"] or "HUD Positioning")) then
+            currentStepDesc = ADW.L["HUD_MOVE_DESC"] or "Hold SHIFT and drag to move this frame. Type /adw move again to hide."
         end
         if currentStepDesc ~= "" then
             GameTooltip:AddLine(currentStepDesc, 1, 1, 1, true)
@@ -502,8 +498,8 @@ statusFrame:SetScript("OnEnter", function(self)
         end
     end
 
-    GameTooltip:AddLine("Right-click to cancel the active route.", 1, 1, 1, true)
-    GameTooltip:AddLine("Hold |cFFFFD100Shift|r and drag to move.", 1, 0.8, 0, true)
+    GameTooltip:AddLine(ADW.L["RIGHT_CLICK_CANCEL"] or "Right-click to cancel the active route.", 1, 1, 1, true)
+    GameTooltip:AddLine(ADW.L["SHIFT_DRAG_MOVE"] or "Hold |cFFFFD100Shift|r and drag to move.", 1, 0.8, 0, true)
     GameTooltip:Show()
 end)
 statusFrame:SetScript("OnLeave", GameTooltip_Hide)
@@ -526,19 +522,15 @@ function UpdateStatusFrame(title, desc, current, total, isPortal)
     if pID and pName then
         if not InCombatLockdown() then
             portalBtn:SetAttribute("macrotext", "/cast " .. pName)
-            local spellData = (C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(pID))
-            local sIcon = (spellData and spellData.iconID) or (GetSpellInfo and select(3, GetSpellInfo(pID)))
+            local spellData = C_Spell.GetSpellInfo(pID)
+            local sIcon = spellData and spellData.iconID
             if sIcon then portalBtn.Icon:SetTexture(sIcon) end
             
             -- Update Cooldown
             local start, duration = 0, 0
-            if C_Spell and C_Spell.GetSpellCooldown then
-                local cdInfo = C_Spell.GetSpellCooldown(pID)
-                if cdInfo then
-                    start, duration = cdInfo.startTime, cdInfo.duration
-                end
-            elseif GetSpellCooldown then
-                start, duration = GetSpellCooldown(pID)
+            local cdInfo = C_Spell.GetSpellCooldown(pID)
+            if cdInfo then
+                start, duration = cdInfo.startTime, cdInfo.duration
             end
             
             if start and duration > 0 then
@@ -657,9 +649,9 @@ ADW.SetTooltip(autoBtn, "Toggle Auto-Routing", "Click to enable/disable automati
 local menuBtn = CreateFrame("Button", nil, controlBar, "UIPanelButtonTemplate")
 menuBtn:SetSize(46, 26)
 menuBtn:SetPoint("LEFT", autoBtn, "RIGHT", 4, 0)
-menuBtn:SetText("List")
+menuBtn:SetText(ADW.L["LIST"] or "List")
 ADW.MakeDraggable(menuBtn, "ToggleButtonPos", controlBar)
-ADW.SetTooltip(menuBtn, "Route List", "Click to view and manually start routes.", "Hold |cFFFFD100Shift|r and drag to move.")
+ADW.SetTooltip(menuBtn, ADW.L["LIST"] or "List", ADW.L["ROUTE_LIST_DESC"] or "Click to view and manually start routes.", ADW.L["SHIFT_DRAG_MOVE"] or "Hold |cFFFFD100Shift|r and drag to move.")
 
 function UpdateToggleButton()
     if not AutoDungeonWaypointDB then return end
@@ -855,13 +847,10 @@ function GetKnownPortal(route)
     -- Try by ID first
     if route.portalID then
         local id = route.portalID
-        local known = false
-        if C_Spell and C_Spell.IsSpellKnown then known = C_Spell.IsSpellKnown(id) end
-        if not known and _G["IsSpellKnown"] then known = _G["IsSpellKnown"](id) end
-        if not known and _G["IsPlayerSpell"] then known = _G["IsPlayerSpell"](id) end
+        local known = C_Spell.IsSpellKnown(id)
         
         if known then
-            local name = (C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(id)) or (GetSpellInfo and GetSpellInfo(id))
+            local name = C_Spell.GetSpellName(id)
             return id, name
         end
     end
@@ -870,22 +859,13 @@ function GetKnownPortal(route)
     if route.portalName then
         local variations = type(route.portalName) == "table" and route.portalName or { route.portalName }
         for _, name in ipairs(variations) do
-            local sID = nil
-            if C_Spell and C_Spell.GetSpellIDForSpellIdentifier then 
-                sID = C_Spell.GetSpellIDForSpellIdentifier(name)
-            elseif _G["GetSpellInfo"] then
-                local _, _, _, _, _, _, spellIDByName = _G["GetSpellInfo"](name)
-                sID = spellIDByName
-            end
+            local sID = C_Spell.GetSpellIDForSpellIdentifier(name)
             
             if sID then
-                local known = false
-                if C_Spell and C_Spell.IsSpellKnown then known = C_Spell.IsSpellKnown(sID) end
-                if not known and _G["IsSpellKnown"] then known = _G["IsSpellKnown"](sID) end
-                if not known and _G["IsPlayerSpell"] then known = _G["IsPlayerSpell"](sID) end
+                local known = C_Spell.IsSpellKnown(sID)
                 
                 if known then
-                    local realName = (C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(sID)) or (GetSpellInfo and GetSpellInfo(sID)) or name
+                    local realName = C_Spell.GetSpellName(sID) or name
                     return sID, realName
                 end
             end
@@ -895,7 +875,7 @@ function GetKnownPortal(route)
 end
 
 local function CompleteRoute()
-    Print(GREEN .. "You have arrived! Route complete.|r")
+    Print(GREEN .. (ADW.L["ARRIVED"] or "You have arrived! Route complete.") .. "|r")
     LogInfo("Route complete: " .. tostring(activeRouteKey))
     if AutoDungeonWaypointDB and AutoDungeonWaypointDB.EnableSounds ~= false then
         PlaySound(878)
@@ -934,8 +914,8 @@ function SetWaypointStep(index)
         isPortal = true
     end
     
-    Print(YELLOW .. "Step " .. index .. "/" .. totalSteps .. ":|r " .. WHITE .. desc .. "|r")
-    LogInfo("ADVANCE: Step " .. index .. "/" .. totalSteps .. " (" .. desc .. ")")
+    Print(YELLOW .. (string.format(ADW.L["STEP_X_Y"] or "Step %d/%d:", index, totalSteps)) .. "|r " .. WHITE .. desc .. "|r")
+    LogInfo(string.format("ADVANCE: Step %d/%d (%s)", index, totalSteps, desc))
     UpdateStatusFrame(dungeonName, desc, index, totalSteps, isPortal)
     if index > 1 and AutoDungeonWaypointDB and AutoDungeonWaypointDB.EnableSounds ~= false then
         PlaySound(850)
@@ -1090,7 +1070,7 @@ function StartRoute(routeKey, skipBroadcast)
     if not route then
         -- Sentinel: Prevent UI injection via malicious routeKey strings (e.g. from chat)
         local safeKey = tostring(routeKey):gsub("|", "||")
-        Print(RED .. "No route found for:|r " .. safeKey)
+        Print(RED .. (ADW.L["NO_ROUTE_FOUND"] or "No route found for:|r ") .. safeKey)
         return
     end
 
@@ -1111,8 +1091,8 @@ function StartRoute(routeKey, skipBroadcast)
     lastPlayerY = nil
     
     local dungeonName = ADW.RouteNames[routeKey] or routeKey
-    local msg = GREEN .. "Starting route to " .. dungeonName .. " (" .. totalSteps .. " steps)|r"
-    if currentStepIndex > 1 then msg = msg .. GRAY .. " — sync'd to step " .. currentStepIndex .. "|r" end
+    local msg = GREEN .. string.format(ADW.L["STARTING_ROUTE"] or "Starting route to %s (%d steps)", dungeonName, totalSteps) .. "|r"
+    if currentStepIndex > 1 then msg = msg .. GRAY .. string.format(ADW.L["SYNCED_STEP"] or " — sync'd to step %d", currentStepIndex) .. "|r" end
     Print(msg)
     
     if AutoDungeonWaypointDB and AutoDungeonWaypointDB.EnableSounds ~= false then
@@ -1124,13 +1104,13 @@ function StartRoute(routeKey, skipBroadcast)
     if pID and pName then
         if not InCombatLockdown() then
             portalBtn:SetAttribute("macrotext", "/cast " .. pName)
-            local spellData = (C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(pID))
-            local sIcon = (spellData and spellData.iconID) or (GetSpellInfo and select(3, GetSpellInfo(pID)))
+            local spellData = C_Spell.GetSpellInfo(pID)
+            local sIcon = spellData and spellData.iconID
             if sIcon then portalBtn.Icon:SetTexture(sIcon) end
             UIFrameFadeIn(portalBtn, 0.4, 0, 1)
             portalBtn:Show()
         end
-        Print(CYAN .. "[Shortcut]|r " .. WHITE .. "Dungeon portal detected. Click the icon on your HUD to use it!|r")
+        Print(CYAN .. (ADW.L["SHORTCUT"] or "[Shortcut]") .. "|r " .. WHITE .. (ADW.L["PORTAL_DETECTED"] or "Dungeon portal detected. Click the icon on your HUD to use it!") .. "|r")
     else
         if not InCombatLockdown() then
             portalBtn:SetAttribute("macrotext", nil)
@@ -1153,8 +1133,8 @@ function ADW.ToggleAutoRoute(enabled)
     local db = AutoDungeonWaypointDB
     if enabled == nil then db.AutoRouteEnabled = not db.AutoRouteEnabled else db.AutoRouteEnabled = enabled end
     UpdateToggleButton()
-    if db.AutoRouteEnabled then Print("Auto-Routing " .. GREEN .. "enabled|r.")
-    else Print("Auto-Routing " .. RED .. "disabled|r.") ClearRoute() end
+    if db.AutoRouteEnabled then Print((ADW.L["AUTO_ROUTING"] or "Auto-Routing ") .. GREEN .. (ADW.L["ENABLED"] or "enabled") .. "|r.")
+    else Print((ADW.L["AUTO_ROUTING"] or "Auto-Routing ") .. RED .. (ADW.L["DISABLED"] or "disabled") .. "|r.") ClearRoute() end
 end
 
 -- ============================================================================
@@ -1166,22 +1146,22 @@ local function CreateOptionsPanel()
     
     local title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 16, -16) 
-    title:SetText("Auto Dungeon Waypoint Settings")
+    title:SetText(ADW.L["SETTINGS_TITLE"] or "Auto Dungeon Waypoint Settings")
     
-    local autoCheck = ADW.CreateConfigCheckbox(panel, "Enable Auto-Routing", "AutoRouteEnabled", 
-        "Auto-Routing", "Automatically detects when you join a Mythic+ group and starts the route.", function(val) ADW.ToggleAutoRoute(val) end)
+    local autoCheck = ADW.CreateConfigCheckbox(panel, ADW.L["ENABLE_AUTO_ROUTING"] or "Enable Auto-Routing", "AutoRouteEnabled",
+        ADW.L["AUTO_ROUTING"] or "Auto-Routing", ADW.L["ENABLE_AUTO_ROUTING_DESC"] or "Automatically detects when you join a Mythic+ group and starts the route.", function(val) ADW.ToggleAutoRoute(val) end)
     autoCheck:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -20)
 
-    local hudCheck = ADW.CreateConfigCheckbox(panel, "Show Navigation HUD", "ShowStatusFrame",
-        "Navigation HUD", "Displays a floating window with the current step's instructions.", function(val)
-            if val then UpdateStatusFrame("HUD Preview", "This is how the HUD looks.", 1, 5) statusFrame:Show() statusFrame:SetAlpha(1)
+    local hudCheck = ADW.CreateConfigCheckbox(panel, ADW.L["SHOW_HUD"] or "Show Navigation HUD", "ShowStatusFrame",
+        ADW.L["HUD_TITLE"] or "Auto Dungeon Waypoint", ADW.L["SHOW_HUD_DESC"] or "Displays a floating window with the current step's instructions.", function(val)
+            if val then UpdateStatusFrame(ADW.L["HUD_PREVIEW"] or "HUD Preview", ADW.L["HUD_PREVIEW_DESC"] or "This is how the HUD looks.", 1, 5) statusFrame:Show() statusFrame:SetAlpha(1)
             else HideStatusFrame() end
         end)
     hudCheck:SetPoint("TOPLEFT", autoCheck, "BOTTOMLEFT", 0, -8)
 
-    local compactCheck = ADW.CreateConfigCheckbox(panel, "Compact HUD", "CompactMode",
-        "Compact HUD", "Hides the instructional text to save screen space.", function()
-            if AutoDungeonWaypointDB.ShowStatusFrame then UpdateStatusFrame("HUD Preview", "This is how the HUD looks.", 1, 5) end
+    local compactCheck = ADW.CreateConfigCheckbox(panel, ADW.L["COMPACT_HUD"] or "Compact HUD", "CompactMode",
+        ADW.L["COMPACT_HUD"] or "Compact HUD", ADW.L["COMPACT_HUD_DESC"] or "Hides the instructional text to save screen space.", function()
+            if AutoDungeonWaypointDB.ShowStatusFrame then UpdateStatusFrame(ADW.L["HUD_PREVIEW"] or "HUD Preview", ADW.L["HUD_PREVIEW_DESC"] or "This is how the HUD looks.", 1, 5) end
         end)
     compactCheck:SetPoint("TOPLEFT", hudCheck, "BOTTOMLEFT", 20, -4)
 
@@ -1196,33 +1176,33 @@ local function CreateOptionsPanel()
         if isEnabled then self:SetAlpha(1) else self:SetAlpha(0.5) end
     end)
 
-    local controlBarCheck = ADW.CreateConfigCheckbox(panel, "Show Control Bar", "ShowControlBar",
-        "Control Bar", "Shows the movable bar with Auto-Routing toggle and List buttons.", function(val)
+    local controlBarCheck = ADW.CreateConfigCheckbox(panel, ADW.L["SHOW_CONTROL_BAR"] or "Show Control Bar", "ShowControlBar",
+        ADW.L["SHOW_CONTROL_BAR"] or "Show Control Bar", ADW.L["SHOW_CONTROL_BAR_DESC"] or "Shows the movable bar with Auto-Routing toggle and List buttons.", function(val)
             if val then controlBar:Show() else controlBar:Hide() end
         end)
     controlBarCheck:SetPoint("TOPLEFT", compactCheck, "BOTTOMLEFT", -20, -8)
 
-    local chatCheck = ADW.CreateConfigCheckbox(panel, "Enable Chat Announcements", "ShowChatText",
-        "Chat Announcements", "Shows text in your chat box when a route starts or a step advances.",
-        function(val) if val then DEFAULT_CHAT_FRAME:AddMessage("|cFF00BFFF[Auto Dungeon Waypoint]|r Chat announcements enabled.") end end)
+    local chatCheck = ADW.CreateConfigCheckbox(panel, ADW.L["ENABLE_CHAT"] or "Enable Chat Announcements", "ShowChatText",
+        ADW.L["ENABLE_CHAT"] or "Enable Chat Announcements", ADW.L["ENABLE_CHAT_DESC"] or "Shows text in your chat box when a route starts or a step advances.",
+        function(val) if val then DEFAULT_CHAT_FRAME:AddMessage(ADDON_COLOR .. (ADW.L["HUD_TITLE"] or "[Auto Dungeon Waypoint]") .. "|r " .. (ADW.L["CHAT_ENABLED_MSG"] or "Chat announcements enabled.")) end end)
     chatCheck:SetPoint("TOPLEFT", controlBarCheck, "BOTTOMLEFT", 0, -8)
 
-    local soundCheck = ADW.CreateConfigCheckbox(panel, "Enable Sound Effects", "EnableSounds",
-        "Sound Effects", "Plays a sound when a route starts, a step advances, or you arrive at your destination.",
+    local soundCheck = ADW.CreateConfigCheckbox(panel, ADW.L["ENABLE_SOUND"] or "Enable Sound Effects", "EnableSounds",
+        ADW.L["ENABLE_SOUND"] or "Enable Sound Effects", ADW.L["ENABLE_SOUND_DESC"] or "Plays a sound when a route starts, a step advances, or you arrive at your destination.",
         function(val) if val then PlaySound(846) end end)
     soundCheck:SetPoint("TOPLEFT", chatCheck, "BOTTOMLEFT", 0, -8)
 
     local resetBtn = CreateFrame("Button", "ADWResetBtn", panel, "UIPanelButtonTemplate")
     resetBtn:SetSize(120, 26) 
     resetBtn:SetPoint("TOPLEFT", soundCheck, "BOTTOMLEFT", 0, -20)
-    resetBtn:SetText("Reset Positions")
+    resetBtn:SetText(ADW.L["RESET_POSITIONS"] or "Reset Positions")
     resetBtn:SetScript("OnClick", function()
         AutoDungeonWaypointDB.StatusFramePos = nil AutoDungeonWaypointDB.ToggleButtonPos = nil
         statusFrame:ClearAllPoints() statusFrame:SetPoint("TOP", UIParent, "TOP", 0, -60)
         controlBar:ClearAllPoints() controlBar:SetPoint("TOP", UIParent, "TOP", 0, -20)
-        ForcePrint("HUD and Control Bar positions have been reset.")
+        ForcePrint(ADW.L["POSITIONS_RESET_MSG"] or "HUD and Control Bar positions have been reset.")
     end)
-    ADW.SetTooltip(resetBtn, "Reset Positions", "Restores the Navigation HUD and Control Bar to their default positions.")
+    ADW.SetTooltip(resetBtn, ADW.L["RESET_POSITIONS"] or "Reset Positions", ADW.L["RESET_POSITIONS_DESC"] or "Restores the Navigation HUD and Control Bar to their default positions.")
     
     if Settings and Settings.RegisterCanvasLayoutCategory then
         local category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
@@ -1241,7 +1221,7 @@ SLASH_AUTODUNGEONWAYPOINT2 = "/autodungeonwaypoint"
 SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
     local cmd, arg = strsplit(" ", (msg or ""):lower(), 2)
     if cmd == "route" and arg then StartRoute(arg)
-    elseif cmd == "stop" then ClearRoute() ForcePrint("Route cancelled.")
+    elseif cmd == "stop" then ClearRoute() ForcePrint(ADW.L["ROUTE_CANCELLED"] or "Route cancelled.")
     elseif cmd == "toggle" then ADW.ToggleAutoRoute()
     elseif cmd == "hide" then
         if AutoDungeonWaypointDB then
@@ -1256,10 +1236,10 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
             if hudCheck  then hudCheck:SetChecked(false)  end
             if barCheck  then barCheck:SetChecked(false)  end
             if chatCheck then chatCheck:SetChecked(false) end
-            ForcePrint("HUD, Control Bar, and Chat Text hidden.")
+            ForcePrint(ADW.L["HUD_BAR_CHAT_HIDDEN"] or "HUD, Control Bar, and Chat Text hidden.")
         end
     elseif cmd == "list" then
-        ForcePrint("Available routes:")
+        ForcePrint(ADW.L["AVAILABLE_ROUTES"] or "Available routes:")
         for key, name in pairs(ADW.RouteNames) do
             local steps = ADW.Routes[key] and #ADW.Routes[key] or 0
             ForcePrint("  " .. YELLOW .. key .. "|r — " .. WHITE .. name .. "|r " .. GRAY .. "(" .. steps .. " steps)|r")
@@ -1278,44 +1258,44 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
                 if d < bestDist then bestDist = d bestKey = key end
             end
         end
-        if bestKey then StartRoute(bestKey) else ForcePrint(RED .. "No nearby dungeon routes found.|r") end
+        if bestKey then StartRoute(bestKey) else ForcePrint(RED .. (ADW.L["NO_NEARBY_DUNGEONS"] or "No nearby dungeon routes found.") .. "|r") end
     elseif cmd == "move" then
         if statusFrame:IsShown() then
             HideStatusFrame()
-            ForcePrint("HUD hidden.")
+            ForcePrint(ADW.L["HUD_HIDDEN_MSG"] or "HUD hidden.")
         else
-            UpdateStatusFrame("HUD Positioning", "Hold SHIFT and drag to move this frame. Type /adw move again to hide.", 1, 1)
+            UpdateStatusFrame(ADW.L["HUD_POSITIONING"] or "HUD Positioning", ADW.L["HUD_MOVE_DESC"] or "Hold SHIFT and drag to move this frame. Type /adw move again to hide.", 1, 1)
             statusFrame:Show()
             statusFrame:SetAlpha(1)
-            ForcePrint("HUD shown for positioning.")
+            ForcePrint(ADW.L["HUD_SHOWN_POS"] or "HUD shown for positioning.")
         end
     elseif cmd == "debug" then
         debugMode = not debugMode
-        ForcePrint("Debug mode " .. (debugMode and GREEN .. "enabled|r" or RED .. "disabled|r"))
+        ForcePrint((ADW.L["DEBUG_MODE"] or "Debug mode ") .. (debugMode and GREEN .. (ADW.L["ENABLED"] or "enabled") .. "|r" or RED .. (ADW.L["DISABLED"] or "disabled") .. "|r"))
     elseif cmd == "mapid" then
         local currentMapID = C_Map.GetBestMapForUnit("player")
         local info = C_Map.GetMapInfo(currentMapID)
-        ForcePrint("Current Map ID: " .. (currentMapID or "nil") .. " (" .. (info and info.name or "Unknown") .. ")")
+        ForcePrint(string.format(ADW.L["CURRENT_MAP_ID"] or "Current Map ID: %s (%s)", (currentMapID or "nil"), (info and info.name or (ADW.L["UNKNOWN"] or "Unknown"))))
         if info and info.parentMapID then
             local pInfo = C_Map.GetMapInfo(info.parentMapID)
-            ForcePrint("Parent Map ID: " .. info.parentMapID .. " (" .. (pInfo and pInfo.name or "Unknown") .. ")")
+            ForcePrint(string.format(ADW.L["PARENT_MAP_ID"] or "Parent Map ID: %d (%s)", info.parentMapID, (pInfo and pInfo.name or (ADW.L["UNKNOWN"] or "Unknown"))))
         end
     elseif cmd == "pos" then
         local currentMapID = C_Map.GetBestMapForUnit("player")
         if currentMapID then
             local pos = ADW.GetPlayerMapPosition(currentMapID, "player")
             if pos then
-                ForcePrint(string.format("Position: mapID=%d  x=%.4f  y=%.4f", currentMapID, pos.x, pos.y))
+                ForcePrint(string.format(ADW.L["POSITION_FORMAT"] or "Position: mapID=%d  x=%.4f  y=%.4f", currentMapID, pos.x, pos.y))
             else
-                ForcePrint(RED .. "Cannot get position on this map.|r")
+                ForcePrint(RED .. (ADW.L["NO_POS_MAP"] or "Cannot get position on this map.") .. "|r")
             end
         else
-            ForcePrint(RED .. "No map detected.|r")
+            ForcePrint(RED .. (ADW.L["NO_MAP_DETECTED"] or "No map detected.") .. "|r")
         end
     elseif cmd == "portal" then
-        if not activeRoute then ForcePrint(RED .. "No active route.|r") return end
+        if not activeRoute then ForcePrint(RED .. (ADW.L["NO_ACTIVE_ROUTE"] or "No active route.") .. "|r") return end
         
-        ForcePrint("Diagnostic for: " .. YELLOW .. (ADW.RouteNames[activeRouteKey] or activeRouteKey) .. "|r")
+        ForcePrint(string.format(ADW.L["DIAGNOSTIC_FOR"] or "Diagnostic for: %s", YELLOW .. (ADW.RouteNames[activeRouteKey] or activeRouteKey) .. "|r"))
         
         local checkIDs = {}
         if activeRoute.portalID then table.insert(checkIDs, activeRoute.portalID) end
@@ -1330,39 +1310,33 @@ SlashCmdList["AUTODUNGEONWAYPOINT"] = function(msg)
         end
 
         if #checkIDs == 0 and #checkNames == 0 then
-            ForcePrint(RED .. "This route has no portal data assigned.|r")
+            ForcePrint(RED .. (ADW.L["NO_PORTAL_DATA"] or "This route has no portal data assigned.") .. "|r")
             return
         end
 
         for _, id in ipairs(checkIDs) do
-            local name = (C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(id)) or (GetSpellInfo and GetSpellInfo(id)) or "ID:"..id
-            local isKnown = false
-            if C_Spell and C_Spell.IsSpellKnown then isKnown = C_Spell.IsSpellKnown(id) end
-            if not isKnown and _G["IsSpellKnown"] then isKnown = _G["IsSpellKnown"](id) end
-            if not isKnown and _G["IsPlayerSpell"] then isKnown = _G["IsPlayerSpell"](id) end
-            ForcePrint(string.format("  - ID %d (%s): %s", id, name, (isKnown and GREEN.."KNOWN" or RED.."UNKNOWN")))
+            local name = C_Spell.GetSpellName(id) or "ID:"..id
+            local isKnown = C_Spell.IsSpellKnown(id)
+            ForcePrint(string.format("  - ID %d (%s): %s", id, name, (isKnown and GREEN .. (ADW.L["KNOWN"] or "KNOWN") or RED .. (ADW.L["UNKNOWN"] or "UNKNOWN"))))
         end
 
         for _, n in ipairs(checkNames) do
-            local sID = nil
-            if C_Spell and C_Spell.GetSpellIDForSpellIdentifier then sID = C_Spell.GetSpellIDForSpellIdentifier(n) end
+            local sID = C_Spell.GetSpellIDForSpellIdentifier(n)
             local isKnown = false
             if sID then
-                if C_Spell and C_Spell.IsSpellKnown then isKnown = C_Spell.IsSpellKnown(sID) end
-                if not isKnown and _G["IsSpellKnown"] then isKnown = _G["IsSpellKnown"](sID) end
-                if not isKnown and _G["IsPlayerSpell"] then isKnown = _G["IsPlayerSpell"](sID) end
+                isKnown = C_Spell.IsSpellKnown(sID)
             end
-            ForcePrint(string.format("  - Name '%s': %s", n, (sID and (isKnown and GREEN.."KNOWN ("..sID..")" or YELLOW.."FOUND ("..sID..") BUT NOT KNOWN") or RED.."NOT FOUND")))
+            ForcePrint(string.format("  - Name '%s': %s", n, (sID and (isKnown and GREEN .. string.format(ADW.L["KNOWN_WITH_ID"] or "KNOWN (%s)", sID) or YELLOW .. string.format(ADW.L["FOUND_NOT_KNOWN"] or "FOUND (%s) BUT NOT KNOWN", sID)) or RED .. (ADW.L["NOT_FOUND"] or "NOT FOUND"))))
         end
 
-        ForcePrint("  - Button Visible: " .. (portalBtn:IsShown() and GREEN .. "YES" or RED .. "NO"))
-        ForcePrint("  - Combat Lockdown: " .. (InCombatLockdown() and RED .. "YES" or GREEN .. "NO"))
-        ForcePrint("  - Secure Macro: " .. tostring(portalBtn:GetAttribute("macrotext") or "nil"))
+        ForcePrint("  - " .. (ADW.L["VISIBLE"] or "Button Visible") .. ": " .. (portalBtn:IsShown() and GREEN .. (ADW.L["VISIBLE"] or "YES") or RED .. (ADW.L["HIDDEN"] or "NO")))
+        ForcePrint("  - " .. (ADW.L["COMBAT_LOCKDOWN"] or "Combat Lockdown") .. ": " .. (InCombatLockdown() and RED .. (ADW.L["VISIBLE"] or "YES") or GREEN .. (ADW.L["HIDDEN"] or "NO")))
+        ForcePrint("  - " .. (ADW.L["SECURE_MACRO"] or "Secure Macro") .. ": " .. tostring(portalBtn:GetAttribute("macrotext") or "nil"))
         
         local p, r, rp, x, y = portalBtn:GetPoint()
-        ForcePrint(string.format("  - Positioning: %s to %s offset (%.1f, %.1f)", p or "nil", rp or "nil", x or 0, y or 0))
+        ForcePrint(string.format(ADW.L["POSITIONING"] or "  - Positioning: %s to %s offset (%.1f, %.1f)", p or "nil", rp or "nil", x or 0, y or 0))
     else
-        ForcePrint("Commands: /adw route <id>, /adw list, /adw stop, /adw nearest, /adw portal, /adw debug, /adw move, /adw mapid, /adw pos")
+        ForcePrint(ADW.L["HELP_COMMANDS"] or "Commands: /adw route <id>, /adw list, /adw stop, /adw nearest, /adw portal, /adw debug, /adw move, /adw mapid, /adw pos")
     end
 end
 
@@ -1376,7 +1350,7 @@ function ADW_OnAddonCompartmentClick(_, buttonName)
     elseif MenuUtil then
         MenuUtil.CreateContextMenu(MinimapCluster or UIParent, ADW.GenerateDungeonMenu)
     else
-        ForcePrint("Addon compartment menu is unavailable. Type /adw list instead.")
+        ForcePrint(ADW.L["COMPARTMENT_UNAVAILABLE"] or "Addon compartment menu is unavailable. Type /adw list instead.")
     end
 end
 
@@ -1390,7 +1364,7 @@ function ADW_OnAddonCompartmentEnter(_, button)
     GameTooltip:AddLine(" ")
     AddSharedTooltipLines(GameTooltip)
     if activeRoute then
-        GameTooltip:AddLine("|cFFFFD100Middle-Click:|r Cancel route", 1, 1, 1)
+        GameTooltip:AddLine(ADW.L["MIDDLE_CLICK_CANCEL"] or "|cFFFFD100Middle-Click:|r Cancel route", 1, 1, 1)
     end
     GameTooltip:Show()
 end
@@ -1450,7 +1424,7 @@ function ADW.ProcessActivityID(activityID, isSilent)
     DebugLog("ProcessActivityID: ID=" .. tostring(activityID) .. " Key=" .. tostring(routeKey))
 
     local name = ADW.RouteNames[routeKey] or routeKey
-    if not isSilent then Print(GREEN .. "Dungeon detected:|r " .. WHITE .. name .. "|r — auto-starting!") end
+    if not isSilent then Print(GREEN .. (ADW.L["DUNGEON_DETECTED"] or "Dungeon detected: ") .. "|r " .. WHITE .. name .. "|r " .. (ADW.L["AUTO_STARTING"] or "— auto-starting!")) end
     StartRoute(routeKey)
 end
 
@@ -1517,11 +1491,11 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                 end,
                 OnTooltipShow = function(tooltip)
                     local stateText = AutoDungeonWaypointDB.AutoRouteEnabled and "|cFF55FF55[ON]|r" or "|cFFFF5555[OFF]|r"
-                    tooltip:SetText("Auto Dungeon Waypoint " .. stateText, 0.0, 0.75, 1.0)
-                    if activeRoute then tooltip:AddLine("Active: " .. (ADW.RouteNames[activeRouteKey] or activeRouteKey)) end
+                    tooltip:SetText((ADW.L["HUD_TITLE"] or "Auto Dungeon Waypoint") .. " " .. stateText, 0.0, 0.75, 1.0)
+                    if activeRoute then tooltip:AddLine((ADW.L["ACTIVE_ROUTE"] or "Active: ") .. (ADW.RouteNames[activeRouteKey] or activeRouteKey)) end
                     tooltip:AddLine(" ")
                     AddSharedTooltipLines(tooltip)
-                    if activeRoute then tooltip:AddLine("|cFFFFD100Middle-Click:|r Cancel route", 1, 1, 1) end
+                    if activeRoute then tooltip:AddLine(ADW.L["MIDDLE_CLICK_CANCEL"] or "|cFFFFD100Middle-Click:|r Cancel route", 1, 1, 1) end
                 end,
             })
             LDBIcon:Register("AutoDungeonWaypoint", adwBroker, AutoDungeonWaypointDB.MinimapIcon)
@@ -1534,10 +1508,10 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         isPlayerInInstance = (instanceType == "party" or instanceType == "raid")
 
         if isLogin or isReload then
-            Print("Loaded — Type /adw list to see routes.")
+            Print(ADW.L["LOADED_MSG"] or "Loaded — Type /adw list to see routes.")
         else
             if isPlayerInInstance and activeRoute then
-                Print(GREEN .. "Entered dungeon! Route cleared.|r") ClearRoute()
+                Print(GREEN .. (ADW.L["ENTERED_DUNGEON"] or "Entered dungeon! Route cleared.") .. "|r") ClearRoute()
             elseif activeRoute then
                 -- After a zone transition, re-sync position instead of blindly re-setting
                 SyncRouteProgress(true)

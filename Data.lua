@@ -1,9 +1,9 @@
 local _, ADW = ...
 
 -- Global strings for BindingsUI (must be defined before Bindings.xml loads)
-_G["BINDING_HEADER_ADW"] = "Auto Dungeon Waypoint"
-_G["BINDING_NAME_ADW_TOGGLEHUD"] = "Toggle Navigation HUD"
-_G["BINDING_NAME_ADW_STOP"] = "Cancel Route"
+_G["BINDING_HEADER_ADW"] = ADW.L["BINDING_HEADER"] or "Auto Dungeon Waypoint"
+_G["BINDING_NAME_ADW_TOGGLEHUD"] = ADW.L["BINDING_TOGGLEHUD"] or "Toggle Navigation HUD"
+_G["BINDING_NAME_ADW_STOP"] = ADW.L["BINDING_STOP"] or "Cancel Route"
 
 -- We will store everything in the ADW namespace.
 -- Route Database
@@ -14,29 +14,29 @@ _G["BINDING_NAME_ADW_STOP"] = "Cancel Route"
 
 -- Common shared steps to reduce redundancy
 ADW.CommonSteps = {
-    TimewaysPortal = { mapID = 2393, x = 0.4243, y = 0.5834, desc = "Take the Timeways Portal (near Wayfarer's Rest)" },
-    VoidstormPortal = { mapID = 2393, x = 0.3530, y = 0.6550, desc = "Take the Voidstorm Portal (Gardens of Remembrance)" },
+    TimewaysPortal = { mapID = 2393, x = 0.4243, y = 0.5834, desc = ADW.L["TIMEWAYS_PORTAL_DESC"] or "Take the Timeways Portal (near Wayfarer's Rest)" },
+    VoidstormPortal = { mapID = 2393, x = 0.3530, y = 0.6550, desc = ADW.L["VOIDSTORM_PORTAL_DESC"] or "Take the Voidstorm Portal (Gardens of Remembrance)" },
 }
 
 -- Timeways Visual Layout (Moved from Core.lua for easier updates)
 ADW.TIMEWAYS_MAP_ID = 2266
 ADW.PortalLayout = {
-    { key = "skyreach",        name = "Skyreach",       circle = "①" },
-    { key = "pitofsaron",      name = "Pit of Saron",   circle = "②" },
+    { key = "skyreach",        name = ADW.L["SKYREACH"] or "Skyreach",       circle = "①" },
+    { key = "pitofsaron",      name = ADW.L["PITOFSARON"] or "Pit of Saron",   circle = "②" },
     { key = nil,               name = nil,              circle = "·"  },  -- empty slot
-    { key = "algethar",        name = "Algeth'ar",      circle = "④" },
-    { key = "seattriumvirate", name = "Seat of Tri.",   circle = "⑤" },
+    { key = "algethar",        name = ADW.L["ALGETHAR"] or "Algeth'ar",      circle = "④" },
+    { key = "seattriumvirate", name = ADW.L["SEAT_TRI_SHORT"] or "Seat of Tri.",   circle = "⑤" },
 }
 
 ADW.RouteNames = {
-    windrunner      = "Windrunner Spire",
-    magisters       = "Magister's Terrace",
-    maisara         = "Maisara Caverns",
-    nexuspoint      = "Nexus-Point Xenas",
-    algethar        = "Algeth'ar Academy",
-    seattriumvirate = "Seat of the Triumvirate",
-    skyreach        = "Skyreach",
-    pitofsaron      = "Pit of Saron",
+    windrunner      = ADW.L["WINDRUNNER"] or "Windrunner Spire",
+    magisters       = ADW.L["MAGISTERS"] or "Magister's Terrace",
+    maisara         = ADW.L["MAISARA"] or "Maisara Caverns",
+    nexuspoint      = ADW.L["NEXUSPOINT"] or "Nexus-Point Xenas",
+    algethar        = ADW.L["ALGETHAR"] or "Algeth'ar Academy",
+    seattriumvirate = ADW.L["SEATTRIUMVIRATE"] or "Seat of the Triumvirate",
+    skyreach        = ADW.L["SKYREACH"] or "Skyreach",
+    pitofsaron      = ADW.L["PITOFSARON"] or "Pit of Saron",
 }
 
 ADW.Routes = {
@@ -49,7 +49,7 @@ ADW.Routes = {
     ["windrunner"] = {
         portalID = 1254400,
         portalName = { "Path of the Windrunners", "Path of the Windrunner", "Path of Windrunner Spire", "Teleport: Windrunner Spire" },
-        { mapID = 2395, x = 0.3563, y = 0.7887, desc = "Fly directly to the Spire Entrance in Eversong Woods" },
+        { mapID = 2395, x = 0.3563, y = 0.7887, desc = ADW.L["WINDRUNNER_DESC"] or "Fly directly to the Spire Entrance in Eversong Woods" },
     },
 
     -- Magister's Terrace: Direct Flight from Silvermoon
@@ -57,7 +57,7 @@ ADW.Routes = {
     ["magisters"] = {
         portalID = 1254572,
         portalName = { "Path of Devoted Magistry", "Path of the Magister", "Path of Magister's Terrace", "Teleport: Magisters' Terrace" },
-        { mapID = 2424, x = 0.6239, y = 0.1455, desc = "Fly directly to the Magister's Terrace entrance (Isle)" },
+        { mapID = 2424, x = 0.6239, y = 0.1455, desc = ADW.L["MAGISTERS_DESC"] or "Fly directly to the Magister's Terrace entrance (Isle)" },
     },
 
     -- Maisara Caverns: Direct Flight from Silvermoon
@@ -65,7 +65,7 @@ ADW.Routes = {
     ["maisara"] = {
         portalID = 1254559,
         portalName = { "Path of Cavernous Depths", "Path of Maisara Caverns", "Teleport: Maisara Caverns" },
-        { mapID = 2437, x = 0.4393, y = 0.3971, desc = "Fly directly to the Caverns entrance" },
+        { mapID = 2437, x = 0.4393, y = 0.3971, desc = ADW.L["MAISARA_DESC"] or "Fly directly to the Caverns entrance" },
     },
 
     -- Nexus-Point Xenas: Silvermoon -> Voidstorm Portal -> Entrance
@@ -74,7 +74,7 @@ ADW.Routes = {
         portalID = 1254563,
         portalName = { "Path of the Nexus", "Path of Nexus-Point Xenas", "Teleport: Nexus-Point Xenas" },
         ADW.CommonSteps.VoidstormPortal,
-        { mapID = 2405, x = 0.6500, y = 0.6170, desc = "Fly directly to the Nexus-Point Xenas entrance" },
+        { mapID = 2405, x = 0.6500, y = 0.6170, desc = ADW.L["NEXUSPOINT_DESC"] or "Fly directly to the Nexus-Point Xenas entrance" },
     },
 
     -- =========================================================================
@@ -87,8 +87,8 @@ ADW.Routes = {
         portalID = 393222,
         portalName = { "Path of the Draconic Scholar", "Path of Algeth'ar Academy", "Teleport: Algeth'ar Academy" },
         ADW.CommonSteps.TimewaysPortal,
-        { mapID = 2266, x = 0.7030, y = 0.7188, desc = "Algeth'ar Academy portal (2nd from right)" },
-        { mapID = 2025, x = 0.5810, y = 0.4260, desc = "Fly North-East to the Academy entrance" },
+        { mapID = 2266, x = 0.7030, y = 0.7188, desc = ADW.L["ALGETHAR_PORTAL_DESC"] or "Algeth'ar Academy portal (2nd from right)" },
+        { mapID = 2025, x = 0.5810, y = 0.4260, desc = ADW.L["ALGETHAR_DESC"] or "Fly North-East to the Academy entrance" },
     },
 
     -- Seat of the Triumvirate: Silvermoon -> Timeways -> Entrance
@@ -97,8 +97,8 @@ ADW.Routes = {
         portalID = 1254551,
         portalName = { "Path of the Triumvirate", "Path of Seat of the Triumvirate", "Teleport: Seat of the Triumvirate" },
         ADW.CommonSteps.TimewaysPortal,
-        { mapID = 2266, x = 0.6090, y = 0.6884, desc = "Seat of the Triumvirate portal (1st from right)" },
-        { mapID = 882,  x = 0.2186, y = 0.5718, desc = "Fly to the Triumvirate entrance" },
+        { mapID = 2266, x = 0.6090, y = 0.6884, desc = ADW.L["SEATTRIUMVIRATE_PORTAL_DESC"] or "Seat of the Triumvirate portal (1st from right)" },
+        { mapID = 882,  x = 0.2186, y = 0.5718, desc = ADW.L["SEATTRIUMVIRATE_DESC"] or "Fly to the Triumvirate entrance" },
     },
 
     -- Skyreach: Silvermoon -> Timeways -> Entrance
@@ -107,8 +107,8 @@ ADW.Routes = {
         portalID = 159898,
         portalName = { "Path of the Skies", "Path of the Sky-Reach", "Path of Skyreach", "Teleport: Skyreach" },
         ADW.CommonSteps.TimewaysPortal,
-        { mapID = 2266, x = 0.6478, y = 0.4468, desc = "Skyreach portal (1st from left)" },
-        { mapID = 542,  x = 0.3557, y = 0.3349, desc = "Fly South-East to the Skyreach entrance" },
+        { mapID = 2266, x = 0.6478, y = 0.4468, desc = ADW.L["SKYREACH_PORTAL_DESC"] or "Skyreach portal (1st from left)" },
+        { mapID = 542,  x = 0.3557, y = 0.3349, desc = ADW.L["SKYREACH_DESC"] or "Fly South-East to the Skyreach entrance" },
     },
 
     -- Pit of Saron: Silvermoon -> Timeways -> Entrance
@@ -117,8 +117,8 @@ ADW.Routes = {
         portalID = 1254555,
         portalName = { "Path of Unyielding Blight", "Path of the Frozen Halls", "Path of Pit of Saron", "Teleport: Pit of Saron" },
         ADW.CommonSteps.TimewaysPortal,
-        { mapID = 2266, x = 0.7372, y = 0.4811, desc = "Pit of Saron portal (2nd from left)" },
-        { mapID = 118,  x = 0.5458, y = 0.9143, desc = "Fly to the Frozen Halls (Pit of Saron)" },
+        { mapID = 2266, x = 0.7372, y = 0.4811, desc = ADW.L["PITOFSARON_PORTAL_DESC"] or "Pit of Saron portal (2nd from left)" },
+        { mapID = 118,  x = 0.5458, y = 0.9143, desc = ADW.L["PITOFSARON_DESC"] or "Fly to the Frozen Halls (Pit of Saron)" },
     },
 }
 
